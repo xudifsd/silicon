@@ -1,8 +1,14 @@
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintStream;
+import java.util.List;
+import java.util.LinkedList;
 
 import control.CommandLine;
+import util.PathVisitor;
+
+import org.antlr.runtime.tree.CommonTree;
 
 public class Carbon {
 	static Carbon carbon;
@@ -31,6 +37,20 @@ public class Carbon {
 		return p.exitValue();
 	}
 
+	public static List<CommonTree> forEachFile(File path, PathVisitor visitor) {
+		List<CommonTree> list = new LinkedList<CommonTree>();
+		File[] result = path.listFiles();
+		for (int i = 0; i < result.length; i++) {
+			if (result[i].isFile()) {
+				CommonTree ct = visitor.visit(result[i].getAbsolutePath());
+				if (ct != null)
+					list.add(ct);
+			} else if (result[i].isDirectory())
+				list.addAll(forEachFile(result[i], visitor));
+		}
+		return list;
+	}
+
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
 		carbon = new Carbon();
@@ -43,5 +63,9 @@ public class Carbon {
 		String fname = args[0];
 		executeInShell("java -jar jar/apktool.jar d " + fname + " output",
 				System.out, System.err);
+
+		List<CommonTree> allAst = forEachFile(new File("output"), new PathVisitor());
+		for (CommonTree ct: allAst)
+			System.out.println(ct.toStringTree());
 	}
 }

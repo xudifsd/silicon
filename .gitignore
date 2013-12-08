@@ -2,4 +2,4 @@ bin/*
 *.class
 /bin
 output/*
-*/.DS_Store
+.DS_Store

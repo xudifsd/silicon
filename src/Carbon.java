@@ -5,16 +5,12 @@ import java.io.PrintStream;
 import java.util.List;
 import java.util.LinkedList;
 
-import control.CommandLine;
 import util.PathVisitor;
 
 import org.antlr.runtime.tree.CommonTree;
 
 public class Carbon {
 	static Carbon carbon;
-	static CommandLine cmd;
-	static InputStream fstream;
-	public ast.program.T theAst;
 
 	public static int executeInShell(String cmd, PrintStream stdout,
 			PrintStream stderr) throws IOException, InterruptedException {
@@ -37,7 +33,7 @@ public class Carbon {
 		return p.exitValue();
 	}
 
-	public static List<CommonTree> forEachFile(File path, PathVisitor visitor) {
+	public static List<CommonTree> forEachFile(File path, PathVisitor visitor) throws org.antlr.runtime.RecognitionException {
 		List<CommonTree> list = new LinkedList<CommonTree>();
 		File[] result = path.listFiles();
 		for (int i = 0; i < result.length; i++) {
@@ -52,9 +48,9 @@ public class Carbon {
 	}
 
 	public static void main(String[] args) throws IOException,
-			InterruptedException {
+			InterruptedException, org.antlr.runtime.RecognitionException {
 		carbon = new Carbon();
-		cmd = new CommandLine();
+		// cmd = new CommandLine();
 
 		if (args.length != 1) {
 			System.err.println("Usage: java -cp bin Carbon A.apk");

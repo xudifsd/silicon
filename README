@@ -1,3 +1,10 @@
+first compile src/antlr3/TranslateWalker.g:
+
+    cd src/antlr3
+    java org.antlr.Tool TranslateWalker.g
+
+and then use eclipse to compile all the java code
+
 use like this:
 
-    java -cp "bin/:jar/antlr-3.5.1-complete.jar:jar/apktool.jar" Carbon test/Fac/Fac.apk
+    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar" Carbon test/Fac/Fac.apk

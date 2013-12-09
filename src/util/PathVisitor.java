@@ -2,12 +2,17 @@ package util;
 
 import org.antlr.runtime.*;
 import org.antlr.runtime.tree.CommonTree;
-import org.jf.smali.*;
+import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.jf.smali.smaliFlexLexer;
+import org.jf.smali.LexerErrorInterface;
+import org.jf.smali.smaliParser;
+
+import antlr3.TranslateWalker;
 
 import java.io.*;
 
 public class PathVisitor {
-	public CommonTree visit(String path) {
+	public CommonTree visit(String path) throws RecognitionException {
 		if (!path.endsWith(".smali"))
 			return null;
 
@@ -47,6 +52,12 @@ public class PathVisitor {
 				|| lexer.getNumberOfSyntaxErrors() > 0)
 			System.out.println("return false");
 
-		return (CommonTree) result.getTree();
+		CommonTree tree = (CommonTree) result.getTree();
+		CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
+		treeStream.setTokenStream(tokens);
+
+		TranslateWalker walker = new TranslateWalker(treeStream);
+		walker.smali_file();
+		return tree;
 	}
 }

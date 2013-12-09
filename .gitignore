@@ -3,3 +3,4 @@ bin/*
 /bin
 output/*
 .DS_Store
+.classpath

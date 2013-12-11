@@ -7,4 +7,4 @@ and then use eclipse to compile all the java code
 
 use like this:
 
-    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar" Carbon test/Fac/Fac.apk
+    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar" Carbon test/apk/Complete.apk

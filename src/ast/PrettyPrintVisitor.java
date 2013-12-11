@@ -21,7 +21,6 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(SgetObject sgetObject) {
-		
 	}
 
 	@Override

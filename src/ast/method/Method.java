@@ -1,5 +1,6 @@
 package ast.method;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -18,12 +19,17 @@ public class Method extends T {
 	public class MethodPrototype {
 		public String returnType;
 		public List<String> argsType;
+
+		public MethodPrototype(String returnType, List<String> argsType) {
+			this.returnType = returnType;
+			this.argsType = argsType;
+		}
 	}
 
 	public Method() {
 		statements = new LinkedList<ast.stm.T>();
 		labels = new HashMap<String, Integer>();
-		registerList = new LinkedList<String>();
+		registerList = new ArrayList<String>();
 	}
 
 	@Override

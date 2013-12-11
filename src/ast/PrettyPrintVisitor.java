@@ -2,6 +2,8 @@ package ast;
 
 import ast.classs.Class;
 import ast.method.Method;
+import ast.stm.InvokeVirtual;
+import ast.stm.SgetObject;
 
 public class PrettyPrintVisitor implements Visitor {
 	// program
@@ -15,5 +17,14 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(Method method) {
+	}
+
+	@Override
+	public void visit(SgetObject sgetObject) {
+		
+	}
+
+	@Override
+	public void visit(InvokeVirtual invokeVirtual) {
 	}
 }

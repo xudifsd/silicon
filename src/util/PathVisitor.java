@@ -8,6 +8,7 @@ import org.jf.smali.LexerErrorInterface;
 import org.jf.smali.smaliParser;
 
 import antlr3.TranslateWalker;
+import ast.PrettyPrintVisitor;
 
 import java.io.*;
 
@@ -57,7 +58,9 @@ public class PathVisitor {
 		treeStream.setTokenStream(tokens);
 
 		TranslateWalker walker = new TranslateWalker(treeStream);
-		walker.smali_file();
+		ast.classs.Class clazz = walker.smali_file();
+		PrettyPrintVisitor ppv = new PrettyPrintVisitor();
+		clazz.accept(ppv);
 		return tree;
 	}
 }

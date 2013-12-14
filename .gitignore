@@ -6,3 +6,4 @@ output/*
 .DS_Store
 src/antlr3/TranslateWalker.java
 src/antlr3/TranslateWalker.tokens
+src/antlr3/update.bat

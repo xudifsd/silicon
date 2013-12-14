@@ -12,7 +12,7 @@ public class Class extends T {
 	public boolean isMain;
 	public String source;
 	public String superName;
-	public String accessList;
+	public List<String> accessList;
 	public List<ast.method.Method> methods;
 	public Map<String, String> fields;// name -> type
 

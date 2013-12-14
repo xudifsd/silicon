@@ -1,12 +1,9 @@
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.LinkedList;
-
 import util.PathVisitor;
-
 import org.antlr.runtime.tree.CommonTree;
 
 public class Carbon {

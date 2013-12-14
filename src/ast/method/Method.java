@@ -1,6 +1,5 @@
 package ast.method;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -14,22 +13,29 @@ public class Method extends T {
 	public List<ast.stm.T> statements;
 	public MethodPrototype prototype;
 	public Map<String, Integer> labels; // name -> offset
-	public List<String> registerList;
+	public List<String> accessList;
+	public String registers_directive;
+	public int registers_directive_count;
 
-	public class MethodPrototype {
+	public static class MethodPrototype extends T{
 		public String returnType;
 		public List<String> argsType;
 
+		public MethodPrototype() {
+		}
 		public MethodPrototype(String returnType, List<String> argsType) {
 			this.returnType = returnType;
 			this.argsType = argsType;
+		}
+		@Override
+		public void accept(Visitor v) {
+			v.visit(this);
 		}
 	}
 
 	public Method() {
 		statements = new LinkedList<ast.stm.T>();
 		labels = new HashMap<String, Integer>();
-		registerList = new ArrayList<String>();
 	}
 
 	@Override

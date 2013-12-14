@@ -35,36 +35,61 @@ options {
 
 @header {
 package antlr3;
+
+import org.jf.smali.LiteralTools;
 }
 
-
-smali_file
+smali_file returns [ast.classs.Class clazz]
   : ^(I_CLASS_DEF header methods fields annotations)
+  
   {
+  	  $clazz = new ast.classs.Class();
+  	  $clazz.FullyQualifiedName = $header.className;
+  	  $clazz.superName = $header.superName;
+  	  $clazz.source = $header.source;
+  	  $clazz.accessList = $header.accessList;
+  	  $clazz.methods = $methods.methodList;
+  	  
       System.out.println("in smali_file");
   }
   ;
 
 
-header
-  : class_spec super_spec? implements_list source_spec
+header returns [String className, String superName, String source, List<String> accessList, List<String> implementsList]
+@init{
+	$superName = "Ljava/lang/Object;";
+}
+  : class_spec super_spec? implements_list source_spec 
+  {
+  	$className = $class_spec.className; 
+  	$accessList =  $class_spec.accessList;
+  	$superName = $super_spec.className;
+  	$source = $source_spec.source;
+  }
   ;
 
 
-class_spec
+class_spec returns [String className, List<String> accessList]
   : class_type_descriptor access_list
   {
+  	$className = $class_type_descriptor.className;
+  	$accessList = $access_list.accessList;
   };
 
-super_spec
+super_spec returns [String className]
   : ^(I_SUPER class_type_descriptor)
   {
+  	$className = $class_type_descriptor.className;
   };
 
 
-implements_spec
+implements_spec returns [List<String> implementsList]
+@init {
+ $implementsList = new ArrayList<String>();
+}
   : ^(I_IMPLEMENTS class_type_descriptor)
   {
+  	$implementsList.add($class_type_descriptor.className);
   };
 
 implements_list
@@ -72,17 +97,22 @@ implements_list
   {
   };
 
-source_spec:
-    ^(I_SOURCE string_literal {})
+source_spec returns [String source]
+  :
+    ^(I_SOURCE string_literal { $source = $string_literal.value; })
   | /*epsilon*/;
 
 
 
-access_list
+access_list returns [List<String> accessList]
+@init{
+	$accessList = new ArrayList<String>();
+}
   : ^(I_ACCESS_LIST
       (
         ACCESS_SPEC
         {
+        	$accessList.add($ACCESS_SPEC.text);
         }
       )*);
 
@@ -93,10 +123,14 @@ fields
       {
       })*);
 
-methods
+methods returns [List<ast.method.Method> methodList]
+@init{
+	$methodList = new ArrayList<ast.method.Method>(); 
+}
   : ^(I_METHODS
       (method
       {
+      	$methodList.add($method.method);
       })*);
 
 field
@@ -201,14 +235,20 @@ sparse_switch_targets
       })*
     );
 
-method
+method returns [ast.method.Method method]
+@init{
+	$method = new ast.method.Method(); /* Be careful! It's better to move it here. YKG. */
+}
   : ^(I_METHOD
       method_name_and_prototype
       access_list
       {
+      	$method.accessList = $access_list.accessList;
       }
       (registers_directive
        {
+       	$method.registers_directive = $registers_directive.type;
+       	$method.registers_directive_count = $registers_directive.count;
        }
       )?
       labels
@@ -221,42 +261,68 @@ method
       annotations
     )
   {
+  	
+  	$method.name = $method_name_and_prototype.method_name;
+  	$method.prototype = $method_name_and_prototype.prototype;
+  	
+  	$method.statements = $statements.stmts;
   };
 
-method_prototype
+method_prototype returns [ast.method.Method.MethodPrototype prototype]
   : ^(I_METHOD_PROTOTYPE ^(I_METHOD_RETURN_TYPE type_descriptor) field_type_list)
   {
+  	$prototype = new ast.method.Method.MethodPrototype();
+	$prototype.returnType = $type_descriptor.type_desc;
+	$prototype.argsType = $field_type_list.argsTypeList;
   };
 
-method_name_and_prototype
+method_name_and_prototype returns [String method_name, ast.method.Method.MethodPrototype prototype]
   : SIMPLE_NAME method_prototype
   {
+  	$method_name = $SIMPLE_NAME.text;
+  	$prototype = $method_prototype.prototype;
   };
 
-field_type_list
+field_type_list returns [List<String> argsTypeList]
+@init{
+	$argsTypeList = new ArrayList<String>();
+}
   : (
       nonvoid_type_descriptor
       {
+		$argsTypeList.add($nonvoid_type_descriptor.type_desc);
       }
     )*;
 
 
-fully_qualified_method
+fully_qualified_method returns [ast.classs.MethodItem methodItem]
+@init{
+	$methodItem = new ast.classs.MethodItem();
+}
   : reference_type_descriptor SIMPLE_NAME method_prototype
   {
+  	$methodItem.classType = $reference_type_descriptor.ref_desc;
+  	$methodItem.methodName = $SIMPLE_NAME.text;
+  	$methodItem.prototype = $method_prototype.prototype;
   };
 
-fully_qualified_field
+fully_qualified_field returns [ast.classs.FieldItem fieldItem]
+@init{
+	$fieldItem = new ast.classs.FieldItem();
+}
   : reference_type_descriptor SIMPLE_NAME nonvoid_type_descriptor
   {
+  	$fieldItem.classType = $reference_type_descriptor.ref_desc;
+  	$fieldItem.fieldName = $SIMPLE_NAME.text;
+  	$fieldItem.fieldType = $nonvoid_type_descriptor.type_desc;
   };
 
-registers_directive
+registers_directive returns [String type, int count]
   : {}
-    ^(( I_REGISTERS {}
-      | I_LOCALS {}
+    ^(( I_REGISTERS { $type = ".registers"; }
+      | I_LOCALS { $type = ".locals"; }
       )
-      short_integral_literal {}
+      short_integral_literal { $count = $short_integral_literal.value; }
      );
 
 labels
@@ -361,9 +427,13 @@ source
     {
     };
 
-statements
+statements returns [List<ast.stm.T> stmts]
+@init{
+	$stmts = new ArrayList<ast.stm.T>();
+}
   : ^(I_STATEMENTS (instruction
         {
+        	$stmts.add($instruction.stmt);
         })*);
 
 label_ref
@@ -385,10 +455,14 @@ offset_or_label
   | label_ref {};
 
 
-register_list
+register_list returns [ArrayList<String> regList]
+@init{
+	$regList = new ArrayList<String>();
+}
   : ^(I_REGISTER_LIST
       (REGISTER
       {
+    	$regList.add($REGISTER.text);  	
       })*);
 
 register_range
@@ -415,16 +489,16 @@ verification_error_type
   {
   };
 
-instruction
+instruction returns [ast.stm.T stmt]
   : insn_format10t {}
-  | insn_format10x {}
+  | insn_format10x {$stmt = $insn_format10x.instruction;}
   | insn_format11n {}
   | insn_format11x {}
   | insn_format12x {}
   | insn_format20bc {}
   | insn_format20t {}
-  | insn_format21c_field {}
-  | insn_format21c_string {}
+  | insn_format21c_field {$stmt = $insn_format21c_field.instruction;}
+  | insn_format21c_string {$stmt = $insn_format21c_string.instruction;}
   | insn_format21c_type {}
   | insn_format21h {}
   | insn_format21s {}
@@ -441,7 +515,7 @@ instruction
   | insn_format31i {}
   | insn_format31t {}
   | insn_format32x {}
-  | insn_format35c_method {}
+  | insn_format35c_method { $stmt = $insn_format35c_method.instruction;}
   | insn_format35c_type {}
   | insn_format3rc_method {}
   | insn_format3rc_type {}
@@ -464,10 +538,14 @@ insn_format10t
     {
     };
 
-insn_format10x
+insn_format10x returns [ast.stm.Instruction.F10x instruction]
+@init{
+	$instruction = new ast.stm.Instruction.F10x();
+}
   : //e.g. return
     ^(I_STATEMENT_FORMAT10x INSTRUCTION_FORMAT10x)
     {
+    	$instruction.name = $INSTRUCTION_FORMAT10x.text;
     };
 
 insn_format11n
@@ -500,16 +578,28 @@ insn_format20t
     {
     };
 
-insn_format21c_field
+insn_format21c_field returns [ast.stm.Instruction.F21c_field instruction]
+@init{
+	$instruction = new ast.stm.Instruction.F21c_field();
+}
   : //e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT21c_FIELD inst=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX) REGISTER fully_qualified_field)
     {
+    	$instruction.name = $inst.text;
+    	$instruction.reg = $REGISTER.text;
+    	$instruction.fieldItem = $fully_qualified_field.fieldItem;
     };
 
-insn_format21c_string
+insn_format21c_string returns [ast.stm.Instruction.F21c_string instruction]
+@init{
+	$instruction = new ast.stm.Instruction.F21c_string();
+}
   : //e.g. const-string v1, "Hello World!"
     ^(I_STATEMENT_FORMAT21c_STRING INSTRUCTION_FORMAT21c_STRING REGISTER string_literal)
     {
+    	$instruction.name = $INSTRUCTION_FORMAT21c_STRING.text;
+    	$instruction.reg = $REGISTER.text;
+    	$instruction.str = $string_literal.value;
     };
 
 insn_format21c_type
@@ -608,10 +698,16 @@ insn_format32x
     {
     };
 
-insn_format35c_method
+insn_format35c_method returns [ast.stm.Instruction.F35c_method instruction]
+@init{
+	$instruction = new ast.stm.Instruction.F35c_method();
+}
   : //e.g. invoke-virtual {} java/io/PrintStream/print(Ljava/lang/Stream;)V
     ^(I_STATEMENT_FORMAT35c_METHOD INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method)
     {
+    	$instruction.name = $INSTRUCTION_FORMAT35c_METHOD.text;
+    	$instruction.regList = $register_list.regList;
+    	$instruction.methodItem = $fully_qualified_method.methodItem;
     };
 
 insn_format35c_type
@@ -696,17 +792,21 @@ insn_sparse_switch_directive
     {
     };
 
-nonvoid_type_descriptor
+nonvoid_type_descriptor returns [String type_desc]
   : (PRIMITIVE_TYPE
   | CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
   {
+  	 $type_desc = $start.getText();
   };
 
 
-reference_type_descriptor
+reference_type_descriptor returns [String ref_desc]
   : (CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
+  {
+  	$ref_desc = $start.getText();
+  }
   ;
 
 
@@ -714,60 +814,69 @@ reference_type_descriptor
 
 
 
-class_type_descriptor
+class_type_descriptor returns [String className]
   : CLASS_DESCRIPTOR
   {
+  	$className = $CLASS_DESCRIPTOR.text;
   };
 
-type_descriptor
-  : VOID_TYPE {}
-  | nonvoid_type_descriptor {}
+type_descriptor returns [String type_desc]
+  : VOID_TYPE { $type_desc = "V"; /* void */ }
+  | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; }
   ;
 
-short_integral_literal
+short_integral_literal returns[short value]
   : long_literal
     {
+      LiteralTools.checkShort($long_literal.value);
+      $value = (short)$long_literal.value;
     }
   | integer_literal
     {
+      LiteralTools.checkShort($integer_literal.value);
+      $value = (short)$integer_literal.value;
     }
-  | short_literal {}
-  | char_literal {}
-  | byte_literal {};
+  | short_literal {$value = $short_literal.value;}
+  | char_literal {$value = (short)$char_literal.value;}
+  | byte_literal {$value = $byte_literal.value;};
 
-integral_literal
+integral_literal returns[int value]
   : long_literal
     {
+      LiteralTools.checkInt($long_literal.value);
+      $value = (int)$long_literal.value;
     }
-  | integer_literal {}
-  | short_literal {}
-  | byte_literal {};
+  | integer_literal {$value = $integer_literal.value;}
+  | short_literal {$value = $short_literal.value;}
+  | byte_literal {$value = $byte_literal.value;};
 
 
-integer_literal
-  : INTEGER_LITERAL {};
+integer_literal returns[int value]
+  : INTEGER_LITERAL { $value = LiteralTools.parseInt($INTEGER_LITERAL.text); };
 
-long_literal
-  : LONG_LITERAL {};
+long_literal returns[long value]
+  : LONG_LITERAL { $value = LiteralTools.parseLong($LONG_LITERAL.text); };
 
-short_literal
-  : SHORT_LITERAL {};
+short_literal returns[short value]
+  : SHORT_LITERAL { $value = LiteralTools.parseShort($SHORT_LITERAL.text); };
 
-byte_literal
-  : BYTE_LITERAL {};
+byte_literal returns[byte value]
+  : BYTE_LITERAL { $value = LiteralTools.parseByte($BYTE_LITERAL.text); };
 
-float_literal
-  : FLOAT_LITERAL {};
+float_literal returns[float value]
+  : FLOAT_LITERAL { $value = LiteralTools.parseFloat($FLOAT_LITERAL.text); };
 
-double_literal
-  : DOUBLE_LITERAL {};
+double_literal returns[double value]
+  : DOUBLE_LITERAL { $value = LiteralTools.parseDouble($DOUBLE_LITERAL.text); };
 
-char_literal
-  : CHAR_LITERAL {};
+char_literal returns[char value]
+  : CHAR_LITERAL { $value = $CHAR_LITERAL.text.charAt(1); };
 
-string_literal
+string_literal returns [String value]
   : STRING_LITERAL
     {
+    	$value = $STRING_LITERAL.text;
+      	$value = $value.substring(1,$value.length()-1);
     };
 
 bool_literal

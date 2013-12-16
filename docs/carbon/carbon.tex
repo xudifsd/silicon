@@ -103,7 +103,7 @@ term1, term2
 \keywords
 keyword1, keyword2
 
-\section{Introduction}
+\section{Introduction}\label{sec-introduction}
 In recent years, Android has emerged as one of the most popular and
 important platform for smart device development. Although most
 Android applications are written in the Java programming language, they
@@ -167,32 +167,106 @@ modification or rewriting.
 So, the primary goal of the work described in this paper is to design
 and implement a new open-source general-purpose framework named
 Carbon for
-Android application analysis and transformation. By doing so, we
-hope to gain deeper understanding of program analysis and
-transformation techniques
-for Android applications. The design philosophy
-of Carbon is to stay close to current mature compiler and virtual
+Android application analysis and transformation. The design philosophy
+of Carbon is to follow closely with current well-established
+compiler and virtual
 machine practice, so that developers can investigate and experiment
-their algorithms. Furthermore, a key requirement for Carbon is to
+their algorithms on Carbon easily. Furthermore, a key requirement
+for Carbon is to
 represent the full Dalvik ISA, no subset, superset or other
 variants will be supported, so that Carbon will be a coherent
-framework. 
+framework. The current development of Carbon is rather 
+stable and. This paper introduces the design and implementation
+details and tradeoffs of Carbon, and lessons we learned in implementing it.
 
-
-
+To summarize, the key technical contribution and highlight
+of this paper is the design and implementation of a new
+framework for Android application analysis and transformation. We
+believe that we are the first to propose such a general-purpose
+Android program analysis framework. Our experiments results
+suggests that Carbon can be used in other circumstances.
 
 The rest of this paper is organized as follows. Section \ref{sec-design}
 introduces the overall design of Carbon; section \ref{}; and section
-\
+\ref{sec-conclusion} concludes.
 
 \section{Design Overview}\label{sec-design}
+We start, in this section, with an overview of the overall
+design philosophy and high-level structure of Carbon. And
+in the next several sections, we'll introduce more design
+and implementation details.
+
+The first decision we must make is to determine the format
+of target applications Carbon can process. We have decided
+to use the .apk file format. There are two reasons for this
+decision: first, although most Android applications
+are developed in Java, they are compiled to .dex format
+before installation, so most application that can be found
+on the Android macket an 
+
+The second decision we must make is the language chosen
+to write Carbon itself. Although we can, in principal, use 
+any programming languages to finish this task, we
+have chosen Java as the implementation language. The main
+reason here is that we'd like to bootstrap Carbon (that
+is, run Carbon with Carbon) in one of our on-going project
+in which we are extending
+Carbon with full-featured virtual
+machine capability support. Of course, choosing Java also makes
+it easy and straightforward for other developers to
+write their own program analysis and transformation
+on Carbon.
+
+As a high-level intermediate representation, abstract
+syntax trees are used to represent Dalvik abstract
+syntax. The abstract syntax tree encodes honestly
+the internal structures of an APK executable: class, 
+methods, intructions, etc.. The details of this
+representation will be described in the next section.
+
+Except for the abstract syntax tree, we have decided
+to use a powerful yet simple control-flow graph
+data structure as the primary intermediate representation for
+Carbon. On one hand, the
+control-flow graph make it easy to calculate various
+control-flow and data-flow information, meanwhile, it
+hiddens many annoying details by de-sugaring many
+language features
+during the translation from the abtract syntax tree
+to the control-flow graph. Section \ref{sec-cfg} will
+describe the design details of the control-flow graph.
+
+As we mentioned in section \ref{sec-introduction}, the
+most important design philosophy of Carbon is to make
+use of the well-established design practices of
+compilers or virtual machines, so that developers
+of various program analysis and transformation algorithm
+can start their work as conveniently as possible, so we
+have decided to 
+
+\section{Front-end and Abstract Syntax Trees}
+In this section, we introduce the design and implementation
+details of the front-end part of Carbon: the lexer,
+the parser, and the abstract syntax trees.
 
 \subsection{Front-end}
+Carbon takes an APK file as its input, so the first phase
+will include 
+Dalvik contains more than 200 different instructions, nevertheless
+to say, writing a lexer
 
-\section{Summary}
+\subsection{Bytecode Verifiers}
 
 
-\section{Summary}\label{sec-summary}
+\subsection{Abstract Syntax Trees}
+
+
+\section{Factored Control-flow Graph}\label{sec-cfg}
+
+\section{Experiments and Evaluations}\label{sec-exp}
+
+
+\section{Conclusion}\label{sec-conclusion}
 
 Summary...
 

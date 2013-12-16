@@ -71,7 +71,26 @@
 \maketitle
 
 \begin{abstract}
+In recent years, Android platform has emerged as one of the most
+important open mobile platforms. However, as Android has introduced
+new file format and new Dalvik instruction set, existing binary-level
+program analysis and transformation tools can not be used directly on
+Android application binaries.
 
+This paper presents the design and implementation of Carbon: a
+new open framework for analysis and transformation of Android
+applications at binary level. First, Carbon is an intermediate
+representation suitable for program analysis and transformation, in
+its current status, Carbon contain both high-level IR such as
+abstract syntax trees, and low-level IR such as control-flow graphs. Second, Carbon
+contains a front-end which can parse any given binary APK files and produce
+abstract syntax trees and control-flow graphs. Third, Carbon is
+now being used in several of
+our ongoing projects, such as a symbolic executor for Dalvik; our
+preliminary experiments and experience shows that Carbon is
+an effective Android application binary analysis and transformation
+framework, and we believe it can usefully be applied in other
+situations as well.
 \end{abstract}
 
 \category{CR-number}{subcategory}{third-level}
@@ -85,184 +104,74 @@ term1, term2
 keyword1, keyword2
 
 \section{Introduction}
+In recent years, Android has emerged as one of the most popular and
+important software system for smart devices. Although most
+Android applications are written in the Java programming language, they
+are not compiled to traditional Java bytecode, instead, Google
+introduces new dex (or odex) file format and new Dalvik instruction
+set, along with a brand-new virtual machine Dalvik. The most notable
+difference between Java bytecode and Dalvik bytecode is that the 
+former is a stack-based architecture whereas the latter one is
+register-based. 
+
+Although some experiments have revealed the register-based
+instruction-set can be implemented more efficiently by the underlying
+virtual machine, Android's new instruction set architecture 
+does pose new challenge: it's hard
+to apply traditional Java bytecode analysis tools to analyze
+and transform the new Dalvik code. And it's also difficult and
+error-prone to port traditional Java bytecode analysis tools
+to Dalvik, due to the different architecture design philosophy. This
+fact has hindered the implementation of many tools on Dalvik system, such
+as testing tools, program optimizations, and profilers, and so on.
+
+To address these challenges and difficulties, there have been two
+directions of research efforts recently:
+\begin{itemize}
+  \item translating Dalvik bytecode to some other ISAs; and
+  \item implementing native tools on Dalvik bytecode directly.
+\end{itemize}
+
+With the first research effort, the Dalvik programs are translated
+to some existing platforms, on which all the program
+analysis and transformation can be performed, in an indirect manner.
+For instance, the Dare project \cite{dare2012} translates Dalvik
+bytecode to standard Java bytecode, so that all program
+analysis and transformation can be performed on the
+generated .class files. Other example projects include
+compilers to LLVM \cite{}; or Dexpler, a translators to Jimple and 
+Soot \cite{}. Although all these researches and tools are successful
+in some facet, there are severe drawbacks with these researches: first, all
+
+With the second research efforts, native tools are built to
+analyze and transform bare Dalvik bytecode directly. Examples of
+such cases include Google's
+Dexdump which provides disassembly facilities for dex files. Other similar research
+and tools 
+include baksmali \cite{}, apktools \cite{}, jeb \cite{}, etc.. However, most of
+existing researches and tools are disassembly or decompiling-oriented, 
+it's hard, is not impossible, to use them as general-purpose
+program analysis and transformation framework without extensive
+modification or rewriting.
+
+So, the primary goal of the work described in this paper is to design
+and implement a new open-source framework 
+
+
+
+
+The rest of this paper is organized as follows. Section \ref{sec-design}
+introduces the overall design of Carbon; section \ref{}; and section
+\
+
+\section{Design}\label{sec-design}
+
+\section{}
 
-The text of the paper begins here.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-More text.
-
-Lots of text.
-
-%\appendix
 \section{Summary}
+
+
+\section{Summary}\label{sec-summary}
 
 Summary...
 
@@ -286,6 +195,11 @@ Tencent.
 
 \bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
 P. Q. Smith, and X. Y. Jones. ...reference text...
+
+\bibitem[]{dare2012}
+Damien Octeau, Somesh Jha and Patrick McDaniel. Retargeting 
+Android Applications to Java Bytecode. 20th International 
+Symposium on the Foundations of Software Engineering (FSE). Cary, NC. November 2012.
 
 \end{thebibliography}
 

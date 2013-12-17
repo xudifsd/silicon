@@ -1,16 +1,22 @@
 package util;
 
-import org.antlr.runtime.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
-import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.LexerErrorInterface;
+import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.smaliParser;
 
 import antlr3.TranslateWalker;
 import ast.PrettyPrintVisitor;
-
-import java.io.*;
 
 public class PathVisitor {
 	public CommonTree visit(String path) throws RecognitionException {

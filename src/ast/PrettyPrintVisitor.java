@@ -278,6 +278,13 @@ public class PrettyPrintVisitor implements Visitor {
 			this.say(access + " ");
 		}
 		this.say(method.name);
+		int a = 1;
+		if(method.name.equals("a") && "15".equals(method.registers_directive_count))
+		{
+			
+			a++;
+		}
+		
 		method.prototype.accept(this);
 		this.indent();
 		this.printSpace();
@@ -290,8 +297,14 @@ public class PrettyPrintVisitor implements Visitor {
 		this.sayln("");
 		this.printSpace();
 		this.sayln(".prologue");
-		
+		int count=0;
 		for(ast.stm.T stmt : method.statements){
+			count++;
+			if(count>210)
+			{
+				a=count;
+			}
+				
 			stmt.accept(this);
 		}
 		

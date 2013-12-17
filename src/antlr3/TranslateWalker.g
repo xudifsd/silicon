@@ -890,7 +890,7 @@ insn_format22b returns [ast.stm.T inst]
         //da: mul-int/lit8 MulIntLit8
         case "mul-int/lit8": $inst = new ast.stm.Instruction.MulIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //db: div-int/lit8 DivIntLit8
-        case "div-int/lit8 ": $inst = new ast.stm.Instruction.DivIntLit8($a.text,$b.text,$c.text,$d.value);break;
+        case "div-int/lit8": $inst = new ast.stm.Instruction.DivIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //dc: rem-int/lit8  RemIntLit8
         case "rem-int/lit8": $inst = new ast.stm.Instruction.RemIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //dd: and-int/lit8 AndIntLit8

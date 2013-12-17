@@ -54,8 +54,8 @@ public class Carbon {
 			System.exit(1);
 		}
 		String fname = args[0];
-		executeInShell("java -jar jar/apktool.jar d " + fname + " output",
-				System.out, System.err);
+	//	executeInShell("java -jar jar/apktool.jar d " + fname + " output",
+		//		System.out, System.err);
 
 		List<CommonTree> allAst = forEachFile(new File("output"), new PathVisitor());
 		for (CommonTree ct: allAst)

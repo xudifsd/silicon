@@ -1,7 +1,5 @@
 package ast;
 
-import ast.classs.Class;
-import ast.stm.Instruction.AputChar;
 
 public interface Visitor {
 	// program

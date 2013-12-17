@@ -6,7 +6,7 @@ import ast.Visitor;
 import ast.classs.FieldItem;
 import ast.classs.MethodItem;
 
-public class Instruction{ /* This is just a namespace. YKG */
+public class Instruction{ /* This is just a opspace. YKG */
 	
 
  /*   
@@ -112,7 +112,6 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//insn_format10t  INSTRUCTION_FORMAT10t offset_or_label
     //e.g. goto endloop:
 
-	
 	//28 10t	goto +AA
 	public static class Goto extends T
 	{
@@ -1184,17 +1183,19 @@ public class Instruction{ /* This is just a namespace. YKG */
 		public String op;
 		public String dest;
 		public String src;
-		@Override
-		public String toString()
+		public AndLong2Addr(String op, String dest, String src)
 		{
-			return "AndLong2Addr [op=" + op + ", dest=" + dest + ", src=" + src
-					+ "]";
+			super();
+			this.op = op;
+			this.dest = dest;
+			this.src = src;
 		}
 		@Override
 		public void accept(Visitor v)
 		{
 			v.visit(this);
 		}
+
 	}
 	//c1: or-long/2addr
 	public static class OrLong2Addr extends T
@@ -2105,14 +2106,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//d8: add-int/lit8
 	public static class AddIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public AddIntLit8(String name, String dest, String source, String value)
+		public AddIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2127,14 +2128,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//d9: rsub-int/lit8
 	public static class RsubIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public RsubIntLit8(String name, String dest, String source, String value)
+		public RsubIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2148,14 +2149,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//da: mul-int/lit8
 	public static class MulIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public MulIntLit8(String name, String dest, String source, String value)
+		public MulIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2169,14 +2170,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//db: div-int/lit8
 	public static class DivIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public DivIntLit8(String name, String dest, String source, String value)
+		public DivIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2190,14 +2191,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//dc: rem-int/lit8
 	public static class RemIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public RemIntLit8(String name, String dest, String source, String value)
+		public RemIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2211,14 +2212,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//dd: and-int/lit8
 	public static class AndIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public AndIntLit8(String name, String dest, String source, String value)
+		public AndIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2232,14 +2233,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//de: or-int/lit8
 	public static class OrIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public OrIntLit8(String name, String dest, String source, String value)
+		public OrIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2253,14 +2254,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//df: xor-int/lit8
 	public static class XorIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public XorIntLit8(String name, String dest, String source, String value)
+		public XorIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2274,14 +2275,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//e0: shl-int/lit8
 	public static class ShlIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public ShlIntLit8(String name, String dest, String source, String value)
+		public ShlIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2295,14 +2296,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//e1: shr-int/lit8
 	public static class ShrIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public ShrIntLit8(String name, String dest, String source, String value)
+		public ShrIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2316,14 +2317,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//e2: ushr-int/lit8
 	public static class UshrIntLit8 extends T
 	{
-		public String name;
+		public String op;
 		public String dest;
 		public String source;
 		public String value;
-		public UshrIntLit8(String name, String dest, String source, String value)
+		public UshrIntLit8(String op, String dest, String source, String value)
 		{
 			super();
-			this.name = name;
+			this.op = op;
 			this.dest = dest;
 			this.source = source;
 			this.value = value;
@@ -2348,12 +2349,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//20 22c	instance-of vA, vB, type@CCCC
 	public static class InstanceOf extends T
 	{
+		public String op;
 		public String dest;
 		public String ref;
 		public String type;
-		public InstanceOf(String dest, String ref, String type)
+		public InstanceOf(String op,String dest, String ref, String type)
 		{
 			super();
+			this.op = op;
 			this.dest = dest;
 			this.ref = ref;
 			this.type = type;
@@ -2368,12 +2371,14 @@ public class Instruction{ /* This is just a namespace. YKG */
 	//23 22c	new-array vA, vB, type@CCCC
 	public static class NewArray extends T
 	{
+		public String op;
 		public String dest;
 		public String size;
 		public String type;
-		public NewArray(String dest, String size, String type)
+		public NewArray(String op,String dest, String size, String type)
 		{
 			super();
+			this.op = op;
 			this.dest = dest;
 			this.size = size;
 			this.type = type;
@@ -4216,11 +4221,13 @@ public class Instruction{ /* This is just a namespace. YKG */
 		public static class Const extends T
 		{
 			public String op;
+			public String dest;
 			public String value;
-			public Const(String op, String value)
+			public Const(String op, String dest,String value)
 			{
 				super();
 				this.op = op;
+				this.dest = dest;
 				this.value = value;
 			}
 			@Override
@@ -4233,11 +4240,13 @@ public class Instruction{ /* This is just a namespace. YKG */
 		public static class ConstWide32 extends T
 		{
 			public String op;
+			public String dest;
 			public String value;
-			public ConstWide32(String op, String value)
+			public ConstWide32(String op, String dest,String value)
 			{
 				super();
 				this.op = op;
+				this.dest = dest;
 				this.value = value;
 			}
 			@Override
@@ -4283,9 +4292,10 @@ public class Instruction{ /* This is just a namespace. YKG */
 			public String op;
 			public String test;
 			public String offset;
-			public PackedSwitch() throws Exception
+			public PackedSwitch() //throws Exception
 			{
-				throw new Exception();
+				//throw new Exception();
+				System.out.println("Instruction: packed-switch");
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4304,9 +4314,10 @@ public class Instruction{ /* This is just a namespace. YKG */
 			public String op;
 			public String test;
 			public String offset;
-			public SparseSwitch() throws Exception
+			public SparseSwitch() //throws Exception
 			{
-				throw new Exception();
+				//throw new Exception();
+				System.out.println("Instruction: sparse-switch");
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4394,9 +4405,10 @@ public class Instruction{ /* This is just a namespace. YKG */
 			public List<String> argList;
 			public String type;
 			
-			public FilledNewArray() throws Exception 
+			public FilledNewArray() //throws Exception 
 			{
-				throw new Exception();
+				//throw new Exception();
+				System.out.println("Instruction: filled-new-array");
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4532,15 +4544,15 @@ public class Instruction{ /* This is just a namespace. YKG */
 	   // 74: invoke-virtual/range
 	    public static class InvokeVirtualRange extends T
 	    {
-	        public String name;
+	        public String op;
 	        public String start;
 	        public String end;
 	        public ast.classs.MethodItem methodItem;
-			public InvokeVirtualRange(String name, String start, String end,
+			public InvokeVirtualRange(String op, String start, String end,
 					MethodItem methodItem)
 			{
 				super();
-				this.name = name;
+				this.op = op;
 				this.start = start;
 				this.end = end;
 				this.methodItem = methodItem;
@@ -4554,15 +4566,15 @@ public class Instruction{ /* This is just a namespace. YKG */
 	   // 75: invoke-super/range
 	    public static class InvokeSuperRange extends T
 	    {
-	        public String name;
+	        public String op;
 	        public String start;
 	        public String end;
 	        public ast.classs.MethodItem methodItem;
-			public InvokeSuperRange(String name, String start, String end,
+			public InvokeSuperRange(String op, String start, String end,
 					MethodItem methodItem)
 			{
 				super();
-				this.name = name;
+				this.op = op;
 				this.start = start;
 				this.end = end;
 				this.methodItem = methodItem;
@@ -4576,15 +4588,15 @@ public class Instruction{ /* This is just a namespace. YKG */
 	   // 76: invoke-direct/range
 	    public static class InvokeDirectRange extends T
 	    {
-	        public String name;
+	        public String op;
 	        public String start;
 	        public String end;
 	        public ast.classs.MethodItem methodItem;
-			public InvokeDirectRange(String name, String start, String end,
+			public InvokeDirectRange(String op, String start, String end,
 					MethodItem methodItem)
 			{
 				super();
-				this.name = name;
+				this.op = op;
 				this.start = start;
 				this.end = end;
 				this.methodItem = methodItem;
@@ -4598,15 +4610,15 @@ public class Instruction{ /* This is just a namespace. YKG */
 	   // 77: invoke-static/range
 	    public static class InvokeStaticRange extends T
 	    {
-	        public String name;
+	        public String op;
 	        public String start;
 	        public String end;
 	        public ast.classs.MethodItem methodItem;
-			public InvokeStaticRange(String name, String start, String end,
+			public InvokeStaticRange(String op, String start, String end,
 					MethodItem methodItem)
 			{
 				super();
-				this.name = name;
+				this.op = op;
 				this.start = start;
 				this.end = end;
 				this.methodItem = methodItem;
@@ -4620,15 +4632,15 @@ public class Instruction{ /* This is just a namespace. YKG */
 	   // 78: invoke-interface/range	
 	    public static class InvokeInterfaceRange extends T
 	    {
-	        public String name;
+	        public String op;
 	        public String start;
 	        public String end;
 	        public ast.classs.MethodItem methodItem;
-			public InvokeInterfaceRange(String name, String start, String end,
+			public InvokeInterfaceRange(String op, String start, String end,
 					MethodItem methodItem)
 			{
 				super();
-				this.name = name;
+				this.op = op;
 				this.start = start;
 				this.end = end;
 				this.methodItem = methodItem;
@@ -4651,9 +4663,10 @@ public class Instruction{ /* This is just a namespace. YKG */
 	        public String start;
 	        public String end;
 	        public String type;
-	        public FilledNewArrayRange() throws Exception
+	        public FilledNewArrayRange() //throws Exception
 	        {
-	        	throw new Exception();
+	        	//throw new Exception();
+	        	System.out.println("Instruction:filled-new-array/range");
 	        }
 			public void accept(Visitor v)
 			{

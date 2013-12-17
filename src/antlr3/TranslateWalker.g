@@ -36,7 +36,6 @@ options {
 @header {
 package antlr3;
 
-import org.jf.smali.LiteralTools;
 }
 
 smali_file returns [ast.classs.Class clazz]
@@ -174,26 +173,26 @@ fixed_size_literal
   | bool_literal {};
 
 //everything but string
-fixed_64bit_literal
-  : integer_literal {}
-  | long_literal {}
-  | short_literal {}
-  | byte_literal {}
-  | float_literal {}
-  | double_literal {}
-  | char_literal {}
-  | bool_literal {};
-
+  fixed_64bit_literal returns [String value]
+  : a=long_literal {$value = $a.value;}
+  | a=integer_literal {$value = $a.value;}
+  | a=short_literal {$value = $a.value;}
+  | a=byte_literal {$value = $a.value;}
+  | a=float_literal {$value = $a.value;}
+  | a=double_literal {$value = $a.value;}
+  | a=char_literal {$value = $a.value;}
+  | a=bool_literal {$value = $a.value;}
+  ;
 //everything but string and double
 //long is allowed, but it must fit into an int
 fixed_32bit_literal returns [String value]
-  : a=(integer_literal {}
-  | long_literal {}
-  | short_literal {}
-  | byte_literal {}
-  | float_literal {}
-  | char_literal {}
-  | bool_literal {}){ $avalue = $a.value;}
+  : a=integer_literal {$value = $a.value;}
+  | a=long_literal {$value = $a.value;}
+  | a=short_literal {$value = $a.value;}
+  | a=byte_literal {$value = $a.value;}
+  | a=float_literal {$value = $a.value;}
+  | a=char_literal {$value = $a.value;}
+  | a=bool_literal {$value = $a.value;}
   ;
 
 array_elements
@@ -266,7 +265,7 @@ method returns [ast.method.Method method]
   	$method.name = $method_name_and_prototype.method_name;
   	$method.prototype = $method_name_and_prototype.prototype;
   	
-  	$method.statements = $statements.stmts;
+  	$method.statements = $statements.instList;
   };
 
 method_prototype returns [ast.method.Method.MethodPrototype prototype]
@@ -318,12 +317,12 @@ fully_qualified_field returns [ast.classs.FieldItem fieldItem]
   	$fieldItem.fieldType = $nonvoid_type_descriptor.type_desc;
   };
 
-registers_directive returns [String type, int count]
+registers_directive returns [String type, String count]
   : {}
     ^(( I_REGISTERS { $type = ".registers"; }
       | I_LOCALS { $type = ".locals"; }
       )
-      short_integral_literal { $count = $short_integral_literal.value; }
+      a=short_integral_literal { $count = $a.value; }
      );
 
 labels
@@ -428,13 +427,13 @@ source
     {
     };
 
-statements returns [List<ast.stm.T> stmts]
+statements returns [List<ast.stm.T> instList]
 @init{
-	$stmts = new ArrayList<ast.stm.T>();
+	$instList = new ArrayList<ast.stm.T>();
 }
   : ^(I_STATEMENTS (instruction
         {
-        	$stmts.add($instruction.stmt);
+        	$instList.add($instruction.inst);
         })*);
 
 label_ref
@@ -460,7 +459,7 @@ offset_or_label returns [String offorlab]
 
 register_list returns [ArrayList<String> argList]
 @init{
-	$regList = new ArrayList<String>();
+	$argList = new ArrayList<String>();
 }
   : ^(I_REGISTER_LIST
       (REGISTER
@@ -468,9 +467,15 @@ register_list returns [ArrayList<String> argList]
     	$argList.add($REGISTER.text);  	
       })*);
 
-register_range
-  : ^(I_REGISTER_RANGE (startReg=REGISTER endReg=REGISTER?)?)
+register_range returns [String started ,String ended]
+  : ^(I_REGISTER_RANGE (a=REGISTER b=REGISTER?)?)
     {
+        if ($a != null) {
+          $started = $a.text;
+        }
+        if ($b != null) {
+          $ended =  $b.text;
+          }
     }
   ;
 
@@ -492,59 +497,58 @@ verification_error_type
   {
   };
 
-instruction returns [ast.stm.T stmt]
-  : insn_format10t {}
-  | insn_format10x {}
-  | insn_format11n {}
-  | insn_format11x {}
-  | insn_format12x {}
-  | insn_format20bc {}
-  | insn_format20t {}
-  | insn_format21c_field {}
-  | insn_format21c_string {}
-  | insn_format21c_type {}
-  | insn_format21h {}
-  | insn_format21s {}
-  | insn_format21t {}
-  | insn_format22b {}
-  | insn_format22c_field {}
-  | insn_format22c_type {}
-  | insn_format22s {}
-  | insn_format22t {}
-  | insn_format22x {}
-  | insn_format23x {}
-  | insn_format30t {}
-  | insn_format31c {}
-  | insn_format31i {}
-  | insn_format31t {}
-  | insn_format32x {}
-  | insn_format35c_method {}
-  | insn_format35c_type {}
-  | insn_format3rc_method {}
-  | insn_format3rc_type {}
-  | insn_format41c_type {}
-  | insn_format41c_field {}
-  | insn_format51l_type {}
-  | insn_format52c_type {}
-  | insn_format52c_field {}
-  | insn_format5rc_method {}
-  | insn_format5rc_type {}
-  | insn_array_data_directive {}
-  | insn_packed_switch_directive {}
-  | insn_sparse_switch_directive {};
+instruction returns [ast.stm.T inst]
+  : a=insn_format10t { $inst = $a.inst;}
+  | a=insn_format10x {$inst = $a.inst;}
+  | a=insn_format11n {$inst = $a.inst;}
+  | a=insn_format11x {$inst = $a.inst;}
+  | a=insn_format12x {$inst = $a.inst;}
+  | a=insn_format20bc {$inst = $a.inst;}
+  | a=insn_format20t {$inst = $a.inst;}
+  | a=insn_format21c_field {$inst = $a.inst;}
+  | a=insn_format21c_string {$inst = $a.inst;}
+  | a=insn_format21c_type {$inst = $a.inst;}
+  | a=insn_format21h {$inst = $a.inst;}
+  | a=insn_format21s {$inst = $a.inst;}
+  | a=insn_format21t {$inst = $a.inst;}
+  | a=insn_format22b {$inst = $a.inst;}
+  | a=insn_format22c_field {$inst = $a.inst;}
+  | a=insn_format22c_type {$inst = $a.inst;}
+  | a=insn_format22s {$inst = $a.inst;}
+  | a=insn_format22t {$inst = $a.inst;}
+  | a=insn_format22x {$inst = $a.inst;}
+  | a=insn_format23x {$inst = $a.inst;}
+  | a=insn_format30t {$inst = $a.inst;}
+  | a=insn_format31c {$inst = $a.inst;}
+  | a=insn_format31i {$inst = $a.inst;}
+  | a=insn_format31t {$inst = $a.inst;}
+  | a=insn_format32x {$inst = $a.inst;}
+  | a=insn_format35c_method {$inst = $a.inst;}
+  | a=insn_format35c_type {$inst = $a.inst;}
+  | a=insn_format3rc_method {$inst = $a.inst;}
+  | a=insn_format3rc_type {$inst = $a.inst;}
+  | a=insn_format41c_type {$inst = $a.inst;}
+  | a=insn_format41c_field {$inst = $a.inst;}
+  | a=insn_format51l_type {$inst = $a.inst;}
+  | a=insn_format52c_type {$inst = $a.inst;}
+  | a=insn_format52c_field {$inst = $a.inst;}
+  | a=insn_format5rc_method {$inst = $a.inst;}
+  | a=insn_format5rc_type {$inst = $a.inst;}
+  ;
+
 
 
 insn_format10t returns [ast.stm.T inst] 
 
   : //e.g. goto endloop:
     {}
-    ^(I_STATEMENT_FORMAT10t a=INSTRUCTION_FORMAT10t b=offset_or_label.offorlab)
+    ^(I_STATEMENT_FORMAT10t a=INSTRUCTION_FORMAT10t b=offset_or_label)//offorlab
     {
         switch($a.text)
         {
           //goto Goto
-          case "goto": inst =  new ast.stm.Goto($a.text,$b.offorlab);
-          default: ;
+          case "goto": $inst =  new ast.stm.Instruction.Goto($a.text,$b.offorlab);break;
+          default: System.out.println("insn_format10t: " + $a.text + " unknown");
         }
     };
 insn_format10x returns [ast.stm.T inst]
@@ -554,10 +558,10 @@ insn_format10x returns [ast.stm.T inst]
     	     switch($a.text)
            {
               // nop Nop
-             case "nop" : inst = new ast.stm.Nop($a.text);
+             case "nop" : $inst = new ast.stm.Instruction.Nop($a.text); break;
              //return-void ReturnVoid
-             case "return-void": inst = new ast.stm.ReturnVoid($a.text);
-             default :;
+             case "return-void": $inst = new ast.stm.Instruction.ReturnVoid($a.text); break;
+             default: System.out.println("insn_format10x: " + $a.text + " unknown");
            }
     };
 insn_format11n returns [ast.stm.T inst]
@@ -568,8 +572,8 @@ insn_format11n returns [ast.stm.T inst]
         switch($a.text)
         {
           //const/4 Const4
-          case "const/4" : inst = new ast.stm.Const4($a.text,$b.text,$c.value);
-          default :;
+          case "const/4" : $inst = new ast.stm.Instruction.Const4($a.text,$b.text,$c.value); break;
+          default: System.out.println("insn_format11n: " + $a.text + " unknown");
         }
     };
 insn_format11x returns [ast.stm.T inst]
@@ -579,159 +583,161 @@ insn_format11x returns [ast.stm.T inst]
         switch($a.text)
         {
           //move-result MoveResult
-          case "move-result" inst =  new ast.stm.MoveResult($a.text,$b.text);
+          case "move-result" : $inst =  new ast.stm.Instruction.MoveResult($a.text,$b.text);break;
           //move-result-wide MoveResultWide
-          case "move-result-wide": inst =  new ast.stm.MoveResultWide($a.text,$b.text);
+          case "move-result-wide": $inst =  new ast.stm.Instruction.MoveResultWide($a.text,$b.text);break;
           //move-result-object  MoveResultObject
-          case "move-result-object": inst =  new ast.stm.MoveResultObject($a.text,$b.text);
+          case "move-result-object": $inst =  new ast.stm.Instruction.MoveResultObject($a.text,$b.text);break;
           //move-exception MoveException
-          case "move-exception": inst =  new ast.stm.MoveException($a.text,$b.text);
+          case "move-exception": $inst =  new ast.stm.Instruction.MoveException($a.text,$b.text);break;
           //return Return
-          case "return": inst =  new ast.stm.Return($a.text,$b.text);
+          case "return": $inst =  new ast.stm.Instruction.Return($a.text,$b.text);break;
           //return-wide ReturnWide
-          case "return-wide": inst =  new ast.stm.ReturnWide($a.text,$b.text);
+          case "return-wide": $inst =  new ast.stm.Instruction.ReturnWide($a.text,$b.text);break;
           //return-object ReturnObject
-          case "return-object": inst =  new ast.stm.ReturnObject($a.text,$b.text);
+          case "return-object": $inst =  new ast.stm.Instruction.ReturnObject($a.text,$b.text);break;
           //monitor-enter  MonitorEnter
-          case "monitor-enter": inst =  new ast.stm.MonitorEnter($a.text,$b.text);
+          case "monitor-enter": $inst =  new ast.stm.Instruction.MonitorEnter($a.text,$b.text);break;
           //monitor-exit MonitorExit
-          case "monitor-exit": inst =  new ast.stm.MonitorExit($a.text,$b.text);
+          case "monitor-exit": $inst =  new ast.stm.Instruction.MonitorExit($a.text,$b.text);break;
           //throw Throw
-          case "throw Throw": inst =  new ast.stm.Throw($a.text,$b.text);
-          default :;
+          case "throw": $inst =  new ast.stm.Instruction.Throw($a.text,$b.text);break;
+          default: System.out.println("insn_format11x: " + $a.text + " unknown");
         }
     };
 insn_format12x returns [ast.stm.T inst]
 
   : //e.g. move v1 v2
-      ^(I_STATEMENT_FORMAT12x a=INSTRUCTION_FORMAT12x c=REGISTER d=REGISTER)
+      ^(I_STATEMENT_FORMAT12x a=INSTRUCTION_FORMAT12x b=REGISTER c=REGISTER)
       {
         switch($a.text)
         {
           
-          //01 12x move Move
-          case "move": inst =  new ast.stm.Move($a.text,$b.text,$c.text);
-          //04 12x move-wide MoveWide
-          case "move-wide": inst =  new ast.stm.MoveWide($a.text,$b.text,$c.text);
-          //07 12x move-object MoveObject
-          case "move-object": inst =  new ast.stm.MoveObject($a.text,$b.text,$c.text);
-          //21 12x array-length arrayLength
-          case "array-length": inst =  new ast.stm.arrayLength($a.text,$b.text,$c.text);
-          //7b: neg-int NegInt
-          case "neg-int": inst =  new ast.stm.NegInt($a.text,$b.text,$c.text);
-          //7c: not-int NotInt
-          case "not-int": inst =  new ast.stm.NotInt($a.text,$b.text,$c.text);
-          //7d: neg-long NegLong
-          case "neg-long": inst =  new ast.stm.NegLong($a.text,$b.text,$c.text);
-          //7e: not-long  NotLong
-          case "not-long": inst =  new ast.stm.NotLong($a.text,$b.text,$c.text);
-          //7f: neg-float NegFloat
-          case "neg-float": inst =  new ast.stm.NegFloat($a.text,$b.text,$c.text);
-          //80: neg-double NegDouble
-          case "neg-double": inst =  new ast.stm.NegDouble($a.text,$b.text,$c.text);
-          //81: int-to-long IntToLong
-          case "int-to-long": inst =  new ast.stm.IntToLong($a.text,$b.text,$c.text);
-          //82: int-to-float IntToFloat
-          case "int-to-float": inst =  new ast.stm.IntToFloat($a.text,$b.text,$c.text);
-          //83: int-to-double IntToDouble
-          case "int-to-double": inst =  new ast.stm.IntToDouble($a.text,$b.text,$c.text);
-          //84: long-to-int LongToInt
-          case "long-to-int": inst =  new ast.stm.LongToInt($a.text,$b.text,$c.text);
-          //85: long-to-float LongToFloat
-          case "long-to-float": inst =  new ast.stm.LongToFloat($a.text,$b.text,$c.text);
-          //86: long-to-double LongToDouble
-          case "long-to-double": inst =  new ast.stm.LongToDouble($a.text,$b.text,$c.text);
-          //87: float-to-int FloatToInt
-          case "float-to-int": inst =  new ast.stm.FloatToInt($a.text,$b.text,$c.text);
-          //88: float-to-long FloatToLong
-          case "float-to-long": inst =  new ast.stm.FloatToLong($a.text,$b.text,$c.text);
-          //89: float-to-double FloatToDouble
-          case "float-to-double": inst =  new ast.stm.FloatToDouble($a.text,$b.text,$c.text);
-          //8a: double-to-int DoubleToInt
-          case "double-to-int": inst =  new ast.stm.DoubleToInt($a.text,$b.text,$c.text);
-          //8b: double-to-long DoubleToLong
-          case "double-to-long": inst =  new ast.stm.DoubleToLong($a.text,$b.text,$c.text);
-          //8c: double-to-float DoubleToFloat
-          case "double-to-float": inst =  new ast.stm.DoubleToFloat($a.text,$b.text,$c.text);
-          //8d: int-to-byte IntToByte
-          case "int-to-byte": inst =  new ast.stm.IntToByte($a.text,$b.text,$c.text);
-          //8e: int-to-char  IntToChar
-          case "int-to-char": inst =  new ast.stm.IntToChar($a.text,$b.text,$c.text);
-          //8f: int-to-short IntToShort
-          case "int-to-short": inst =  new ast.stm.IntToShort($a.text,$b.text,$c.text);
+            //01 12x move Move
+            case "move": $inst =  new ast.stm.Instruction.Move($a.text,$b.text,$c.text);break;
+            //04 12x move-wide MoveWide
+            case "move-wide": $inst =  new ast.stm.Instruction.MoveWide($a.text,$b.text,$c.text);break;
+            //07 12x move-object MoveObject
+            case "move-object": $inst =  new ast.stm.Instruction.MoveObject($a.text,$b.text,$c.text);break;
+            //21 12x array-length arrayLength
+            case "array-length": $inst =  new ast.stm.Instruction.arrayLength($a.text,$b.text,$c.text);break;
+            //7b: neg-int NegInt
+            case "neg-int": $inst =  new ast.stm.Instruction.NegInt($a.text,$b.text,$c.text);break;
+            //7c: not-int NotInt
+            case "not-int": $inst =  new ast.stm.Instruction.NotInt($a.text,$b.text,$c.text);break;
+            //7d: neg-long NegLong
+            case "neg-long": $inst =  new ast.stm.Instruction.NegLong($a.text,$b.text,$c.text);break;
+            //7e: not-long  NotLong
+            case "not-long": $inst =  new ast.stm.Instruction.NotLong($a.text,$b.text,$c.text);break;
+            //7f: neg-float NegFloat
+            case "neg-float": $inst =  new ast.stm.Instruction.NegFloat($a.text,$b.text,$c.text);break;
+            //80: neg-double NegDouble
+            case "neg-double": $inst =  new ast.stm.Instruction.NegDouble($a.text,$b.text,$c.text);break;
+            //81: int-to-long IntToLong
+            case "int-to-long": $inst =  new ast.stm.Instruction.IntToLong($a.text,$b.text,$c.text);break;
+            //82: int-to-float IntToFloat
+            case "int-to-float": $inst =  new ast.stm.Instruction.IntToFloat($a.text,$b.text,$c.text);break;
+            //83: int-to-double IntToDouble
+            case "int-to-double": $inst =  new ast.stm.Instruction.IntToDouble($a.text,$b.text,$c.text);break;
+            //84: long-to-int LongToInt
+            case "long-to-int": $inst =  new ast.stm.Instruction.LongToInt($a.text,$b.text,$c.text);break;
+            //85: long-to-float LongToFloat
+            case "long-to-float": $inst =  new ast.stm.Instruction.LongToFloat($a.text,$b.text,$c.text);break;
+            //86: long-to-double LongToDouble
+            case "long-to-double": $inst =  new ast.stm.Instruction.LongToDouble($a.text,$b.text,$c.text);break;
+            //87: float-to-int FloatToInt
+            case "float-to-int": $inst =  new ast.stm.Instruction.FloatToInt($a.text,$b.text,$c.text);break;
+            //88: float-to-long FloatToLong
+            case "float-to-long": $inst =  new ast.stm.Instruction.FloatToLong($a.text,$b.text,$c.text);break;
+            //89: float-to-double FloatToDouble
+            case "float-to-double": $inst =  new ast.stm.Instruction.FloatToDouble($a.text,$b.text,$c.text);break;
+            //8a: double-to-int DoubleToInt
+            case "double-to-int": $inst =  new ast.stm.Instruction.DoubleToInt($a.text,$b.text,$c.text);break;
+            //8b: double-to-long DoubleToLong
+            case "double-to-long": $inst =  new ast.stm.Instruction.DoubleToLong($a.text,$b.text,$c.text);break;
+            //8c: double-to-float DoubleToFloat
+            case "double-to-float": $inst =  new ast.stm.Instruction.DoubleToFloat($a.text,$b.text,$c.text);break;
+            //8d: int-to-byte IntToByte
+            case "int-to-byte": $inst =  new ast.stm.Instruction.IntToByte($a.text,$b.text,$c.text);break;
+            //8e: int-to-char  IntToChar
+            case "int-to-char": $inst =  new ast.stm.Instruction.IntToChar($a.text,$b.text,$c.text);break;
+            //8f: int-to-short IntToShort
+            case "int-to-short": $inst =  new ast.stm.Instruction.IntToShort($a.text,$b.text,$c.text);break;
 
-          //b0: add-int/2addr AddInt2Addr
-          case "add-int/2addr": inst =  new ast.stm.AddInt2Addr($a.text,$b.text,$c.text);
-          //b1: sub-int/2addr SubInt2Addr    
-          case "sub-int/2addr": inst =  new ast.stm.SubInt2Addr($a.text,$b.text,$c.text);
-          //b2: mul-int/2addr MulInt2Addr
-          case "mul-int/2addr": inst =  new ast.stm.MulInt2Addr($a.text,$b.text,$c.text);
-          //b3: div-int/2addr DivInt2Addr
-          case "div-int/2addr": inst =  new ast.stm.DivInt2Addr($a.text,$b.text,$c.text);
-          //b4: rem-int/2addr RemInt2Addr
-          case "rem-int/2addr": inst =  new ast.stm.RemInt2Addr($a.text,$b.text,$c.text);
-          //b5: and-int/2addr AndInt2Addr
-          case "and-int/2add": inst =  new ast.stm.AndInt2Addr($a.text,$b.text,$c.text);
-          //b6: or-int/2addr OrInt2Addr
-          case "or-int/2addr": inst =  new ast.stm.OrInt2Addr($a.text,$b.text,$c.text);
-          //b7: xor-int/2addr XorInt2Addr
-          case "xor-int/2addr": inst =  new ast.stm.XorInt2Addr($a.text,$b.text,$c.text);
-          //b8: shl-int/2addr ShlInt2Addr
-          case "shl-int/2addr": inst =  new ast.stm.ShlInt2Addr($a.text,$b.text,$c.text);
-          //b9: shr-int/2addr  ShrInt2Addr
-          case "shr-int/2addr": inst =  new ast.stm.ShrInt2Addr($a.text,$b.text,$c.text);
-          //ba: ushr-int/2addr UshrInt2Addr
-          case "ushr-int/2addr": inst =  new ast.stm.UshrInt2Addr($a.text,$b.text,$c.text);
-          //bb: add-long/2addr AddLong2Addr
-          case "add-long/2addr": inst =  new ast.stm.AddLong2Addr($a.text,$b.text,$c.text);
-          //bc: sub-long/2addr SubLong2Addr
-          case "sub-long/2addr": inst =  new ast.stm.SubLong2Addr($a.text,$b.text,$c.text);
-          //bd: mul-long/2addr MulLong2Addr
-          case "mul-long/2addr": inst =  new ast.stm.MulLong2Addr($a.text,$b.text,$c.text);
-          //be: div-long/2addr DivLong2Addr
-          case "div-long/2addr": inst =  new ast.stm.DivLong2Addr($a.text,$b.text,$c.text);
-          //bf: rem-long/2addr RemLong2Addr
-          case "rem-long/2addr": inst =  new ast.stm.RemLong2Addr($a.text,$b.text,$c.text);
-          //c0: and-long/2addr AndLong2Addr
-          case "and-long/2addr": inst =  new ast.stm.AndLong2Addr($a.text,$b.text,$c.text);
-          //c1: or-long/2addr OrLong2Addr
-          case "or-long/2addr": inst =  new ast.stm.OrLong2Addr($a.text,$b.text,$c.text);
-          //c2: xor-long/2addr XorLong2Addr
-          case "xor-long/2addr": inst =  new ast.stm.XorLong2Addr($a.text,$b.text,$c.text);
-          //c3: shl-long/2addr ShlLong2Addr
-          case "shl-long/2addr": inst =  new ast.stm.ShlLong2Addr($a.text,$b.text,$c.text);
-          //c4: shr-long/2addr ShrLong2Addr
-          case "shr-long/2addr": inst =  new ast.stm.ShrLong2Addr($a.text,$b.text,$c.text);
-          //c5: ushr-long/2addr UshrLong2Addr
-          case "ushr-long/2addr": inst =  new ast.stm.UshrLong2Addr($a.text,$b.text,$c.text);
-          //c6: add-float/2addr AddFloat2Addr
-          case "add-float/2addr": inst =  new ast.stm.AddFloat2Addr($a.text,$b.text,$c.text);
-          //c7: sub-float/2addr SubFloat2Addr
-          case "sub-float/2addr": inst =  new ast.stm.SubFloat2Addr($a.text,$b.text,$c.text);
-          //c8: mul-float/2addr MulFloat2Addr
-          case "mul-float/2addr: inst =  new ast.stm.MulFloat2Addr($a.text,$b.text,$c.text);
-          //c9: div-float/2addr DivFloat2Addr
-          case "div-float/2addr": inst =  new ast.stm.DivFloat2Addr($a.text,$b.text,$c.text);
-          //ca: rem-float/2addr RemFloat2Addr
-          case "rem-float/2addr": inst =  new ast.stm.RemFloat2Addr($a.text,$b.text,$c.text);
-          //cb: add-double/2addr AddDouble2Addr
-          case "add-double/2addr": inst =  new ast.stm.AddDouble2Addr($a.text,$b.text,$c.text);
-          //cc: sub-double/2addr SubDouble2Addr
-          case "sub-double/2addr": inst =  new ast.stm.SubDouble2Addr($a.text,$b.text,$c.text);
-          //cd: mul-double/2addr MulDouble2Addr
-          case "mul-double/2addr": inst =  new ast.stm.MulDouble2Addr($a.text,$b.text,$c.text);
-          //ce: div-double/2addr DivDouble2Addr
-          case "div-double/2addr": inst =  new ast.stm.DivDouble2Addr($a.text,$b.text,$c.text);
-          //cf: rem-double/2addr RemDouble2Addr
-          case "rem-double/2addr": inst =  new ast.stm.RemDouble2Addr($a.text,$b.text,$c.text);
-          default:;
+            //b0: add-int/2addr AddInt2Addr
+            case "add-int/2addr": $inst =  new ast.stm.Instruction.AddInt2Addr($a.text,$b.text,$c.text);break;
+            //b1: sub-int/2addr SubInt2Addr    
+            case "sub-int/2addr": $inst =  new ast.stm.Instruction.SubInt2Addr($a.text,$b.text,$c.text);break;
+            //b2: mul-int/2addr MulInt2Addr
+            case "mul-int/2addr": $inst =  new ast.stm.Instruction.MulInt2Addr($a.text,$b.text,$c.text);break;
+            //b3: div-int/2addr DivInt2Addr
+            case "div-int/2addr": $inst =  new ast.stm.Instruction.DivInt2Addr($a.text,$b.text,$c.text);break;
+            //b4: rem-int/2addr RemInt2Addr
+            case "rem-int/2addr": $inst =  new ast.stm.Instruction.RemInt2Addr($a.text,$b.text,$c.text);break;
+            //b5: and-int/2addr AndInt2Addr
+            case "and-int/2addr": $inst =  new ast.stm.Instruction.AndInt2Addr($a.text,$b.text,$c.text);break;
+            //b6: or-int/2addr OrInt2Addr
+            case "or-int/2addr": $inst =  new ast.stm.Instruction.OrInt2Addr($a.text,$b.text,$c.text);break;
+            //b7: xor-int/2addr XorInt2Addr
+            case "xor-int/2addr": $inst =  new ast.stm.Instruction.XorInt2Addr($a.text,$b.text,$c.text);break;
+            //b8: shl-int/2addr ShlInt2Addr
+            case "shl-int/2addr": $inst =  new ast.stm.Instruction.ShlInt2Addr($a.text,$b.text,$c.text);break;
+            //b9: shr-int/2addr  ShrInt2Addr
+            case "shr-int/2addr": $inst =  new ast.stm.Instruction.ShrInt2Addr($a.text,$b.text,$c.text);break;
+            //ba: ushr-int/2addr UshrInt2Addr
+            case "ushr-int/2addr": $inst =  new ast.stm.Instruction.UshrInt2Addr($a.text,$b.text,$c.text);break;
+            //bb: add-long/2addr AddLong2Addr
+            case "add-long/2addr": $inst =  new ast.stm.Instruction.AddLong2Addr($a.text,$b.text,$c.text);break;
+            //bc: sub-long/2addr SubLong2Addr
+            case "sub-long/2addr": $inst =  new ast.stm.Instruction.SubLong2Addr($a.text,$b.text,$c.text);break;
+            //bd: mul-long/2addr MulLong2Addr
+            case "mul-long/2addr": $inst =  new ast.stm.Instruction.MulLong2Addr($a.text,$b.text,$c.text);break;
+            //be: div-long/2addr DivLong2Addr
+            case "div-long/2addr": $inst =  new ast.stm.Instruction.DivLong2Addr($a.text,$b.text,$c.text);break;
+            //bf: rem-long/2addr RemLong2Addr
+            case "rem-long/2addr": $inst =  new ast.stm.Instruction.RemLong2Addr($a.text,$b.text,$c.text);break;
+            //c0: and-long/2addr AndLong2Addr
+            case "and-long/2addr": $inst =  new ast.stm.Instruction.AndLong2Addr($a.text,$b.text,$c.text);break;
+            //c1: or-long/2addr OrLong2Addr
+            case "or-long/2addr": $inst =  new ast.stm.Instruction.OrLong2Addr($a.text,$b.text,$c.text);break;
+            //c2: xor-long/2addr XorLong2Addr
+            case "xor-long/2addr": $inst =  new ast.stm.Instruction.XorLong2Addr($a.text,$b.text,$c.text);break;
+            //c3: shl-long/2addr ShlLong2Addr
+            case "shl-long/2addr": $inst =  new ast.stm.Instruction.ShlLong2Addr($a.text,$b.text,$c.text);break;
+            //c4: shr-long/2addr ShrLong2Addr
+            case "shr-long/2addr": $inst =  new ast.stm.Instruction.ShrLong2Addr($a.text,$b.text,$c.text);break;
+            //c5: ushr-long/2addr UshrLong2Addr
+            case "ushr-long/2addr": $inst =  new ast.stm.Instruction.UshrLong2Addr($a.text,$b.text,$c.text);break;
+            //c6: add-float/2addr AddFloat2Addr
+            case "add-float/2addr": $inst =  new ast.stm.Instruction.AddFloat2Addr($a.text,$b.text,$c.text);break;
+            //c7: sub-float/2addr SubFloat2Addr
+            case "sub-float/2addr": $inst =  new ast.stm.Instruction.SubFloat2Addr($a.text,$b.text,$c.text);break;
+            //c8: mul-float/2addr MulFloat2Addr
+            case "mul-float/2addr": $inst =  new ast.stm.Instruction.SubFloat2Addr($a.text,$b.text,$c.text);break; 
+            //c9: div-float/2addr DivFloat2Addr
+            case "div-float/2addr": $inst =  new ast.stm.Instruction.DivFloat2Addr($a.text,$b.text,$c.text);break;
+            //ca: rem-float/2addr RemFloat2Addr
+            case "rem-float/2addr": $inst =  new ast.stm.Instruction.RemFloat2Addr($a.text,$b.text,$c.text);break;
+            //cb: add-double/2addr AddDouble2Addr
+            case "add-double/2addr": $inst =  new ast.stm.Instruction.AddDouble2Addr($a.text,$b.text,$c.text);break;
+            //cc: sub-double/2addr SubDouble2Addr
+            case "sub-double/2addr": $inst =  new ast.stm.Instruction.SubDouble2Addr($a.text,$b.text,$c.text);break;
+            //cd: mul-double/2addr MulDouble2Addr
+            case "mul-double/2addr": $inst =  new ast.stm.Instruction.MulDouble2Addr($a.text,$b.text,$c.text);break;
+            //ce: div-double/2addr DivDouble2Addr
+            case "div-double/2addr": $inst =  new ast.stm.Instruction.DivDouble2Addr($a.text,$b.text,$c.text);break;
+            //cf: rem-double/2addr RemDouble2Addr
+            case "rem-double/2addr": $inst =  new ast.stm.Instruction.RemDouble2Addr($a.text,$b.text,$c.text);break;
+            default: System.out.println("insn_format12x: " + $a.text + " unknown");
         }
-      };
-
-insn_format20bc returns [ast.stm.T inst]  // can not find in dalvik bytecode
+      }
+      ;
+//can not find
+insn_format20bc returns [ast.stm.T inst]  
   : //e.g. throw-verification-error generic-error, Lsome/class;
     ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
     {
+          System.out.println("insn_format20bc: can not find in dalvik bytecode" );
     };
 
 insn_format20t returns [ast.stm.T inst]
@@ -741,52 +747,48 @@ insn_format20t returns [ast.stm.T inst]
         
         switch($a.text)
         {
-          //goto/16 Goto16
-          case: "goto/16" inst = new ast.stm.Goto16($a.text,$b.offorlab);
-          default:;
+           case "goto/16": $inst = new ast.stm.Instruction.Goto16($a.text,$b.offorlab);break;
+           default: System.out.println("insn_format20t: " + $a.text + " unknown");
         }
     };
 
-
-
-
-
 insn_format21c_field returns [ast.stm.T inst]
   : //e.g. sget_object v0, java/lang/System/out LJava/io/PrintStream;
-    ^(I_STATEMENT_FORMAT21c_FIELD a(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX)
+    ^(I_STATEMENT_FORMAT21c_FIELD a=(INSTRUCTION_FORMAT21c_FIELD | INSTRUCTION_FORMAT21c_FIELD_ODEX)
     b=REGISTER c=fully_qualified_field)
     {
         switch($a.text)
         {
           
           //60: sget Sget
-          case:"sget" inst = new ast.stm.Sget($a.text,$b.text,$c.fieldItem);
+          case"sget" : $inst = new ast.stm.Instruction.Sget($a.text,$b.text,$c.fieldItem);break;
           //61: sget-wide SgetWide
-          case:"sget-wide" inst = new ast.stm.SgetWide($a.text,$b.text,$c.fieldItem);
-          //62: sget-object SgetObject
-          case:"" inst = new ast.stm.SgetObject($a.text,$b.text,$c.fieldItem);
+          case"sget-wide": $inst = new ast.stm.Instruction.SgetWide($a.text,$b.text,$c.fieldItem);break;
+          //62: sget-object :SgetObject
+          case"sget-object" :$inst = new ast.stm.Instruction.SgetObject($a.text,$b.text,$c.fieldItem);break;
           //63: sget-boolean SgetBoolean
-          case:"sget-object" inst = new ast.stm.SgetBoolean($a.text,$b.text,$c.fieldItem);
+          case"sget-boolean" :inst = new ast.stm.Instruction.SgetBoolean($a.text,$b.text,$c.fieldItem);break;
           //64: sget-byte SgetByte
-          case:"sget-byte" inst = new ast.stm.SgetByte($a.text,$b.text,$c.fieldItem);
+          case"sget-byte" :$inst = new ast.stm.Instruction.SgetByte($a.text,$b.text,$c.fieldItem);break;
           //65: sget-char SgetChar
-          case:"sget-char" inst = new ast.stm.SgetChar($a.text,$b.text,$c.fieldItem);
+          case"sget-char" :$inst = new ast.stm.Instruction.SgetChar($a.text,$b.text,$c.fieldItem);break;
           //66: sget-short SgetShort
-          case:"sget-short" inst = new ast.stm.SgetShort($a.text,$b.text,$c.fieldItem);
+          case"sget-short" :$inst = new ast.stm.Instruction.SgetShort($a.text,$b.text,$c.fieldItem);break;
           //67: sput Sput
-          case:"sput" inst = new ast.stm.Sput($a.text,$b.text,$c.fieldItem);
+          case"sput" :$inst = new ast.stm.Instruction.Sput($a.text,$b.text,$c.fieldItem);break;
           //68: sput-wide  SputWide
-          case:"sput-wide" inst = new ast.stm.SputWide($a.text,$b.text,$c.fieldItem);
-          //69: sput-object SputObject
-          case:"sput-object" inst = new ast.stm.SputObject($a.text,$b.text,$c.fieldItem);
+          case"sput-wide" :$inst = new ast.stm.Instruction.SputWide($a.text,$b.text,$c.fieldItem);break;
+          //69: sput-object: SputObject
+          case"sput-object": $inst = new ast.stm.Instruction.SputObject($a.text,$b.text,$c.fieldItem);break;
           //6a: sput-boolean SputBoolean
-          case:"sput-boolean" inst = new ast.stm.SputBoolean($a.text,$b.text,$c.fieldItem);
+          case"sput-boolean": $inst = new ast.stm.Instruction.SputBoolean($a.text,$b.text,$c.fieldItem);break;
           //6b: sput-byte SputByte
-          case:"sput-byte" inst = new ast.stm.SputByte($a.text,$b.text,$c.fieldItem);
+          case"sput-byte" :$inst = new ast.stm.Instruction.SputByte($a.text,$b.text,$c.fieldItem);break;
           //6c: sput-char SputChar
-          case:"sput-char" inst = new ast.stm.SputChar($a.text,$b.text,$c.fieldItem);
+          case"sput-char" : $inst = new ast.stm.Instruction.SputChar($a.text,$b.text,$c.fieldItem);break;
           //6d: sput-short SputShort
-          case:"sput-short" inst = new ast.stm.SputShort($a.text,$b.text,$c.fieldItem);
+          case"sput-short": $inst = new ast.stm.Instruction.SputShort($a.text,$b.text,$c.fieldItem);break;
+          default: System.out.println("insn_format21c_field: " + $a.text + " unknown");
         }
 
     };
@@ -799,8 +801,8 @@ insn_format21c_string returns [ast.stm.T inst]
       switch($a.text)
       {
         //1a 21c  const-string ConstString
-        case "const-string" : inst = new ast.stm.ConstString($a.text,$b.text,$c.value);
-        default:;
+        case "const-string" : $inst = new ast.stm.Instruction.ConstString($a.text,$b.text,$c.value);break;
+        default: System.out.println("insn_format21c_string: " + $a.text + " unknown");
       }
 
     };
@@ -809,17 +811,17 @@ insn_format21c_type returns [ast.stm.T inst]
   : //e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
     ^(I_STATEMENT_FORMAT21c_TYPE a=INSTRUCTION_FORMAT21c_TYPE b=REGISTER c=reference_type_descriptor) 
     {
+
         switch($a.text)
         {
             //1c 21c  const-class ConstClass
-            case "const-class" inst = new ast.stm.ConstClass($a.txt,$b.text,$c.ref);
+            case "const-class" :$inst = new ast.stm.Instruction.ConstClass($a.text,$b.text,$c.ref_desc); break;
             //1f 21c  check-cast CheckCast
-            case "check-cast" inst = new ast.stm.CheckCast($a.txt,$b.text,$c.ref);
+            case "check-cast" :$inst = new ast.stm.Instruction.CheckCast($a.text,$b.text,$c.ref_desc);break;
             //22 21c  new-instance NewInstance
-            case "new-instance" inst = new ast.stm.NewInstance($a.txt,$b.text,$c.ref);
-            default:;
+            case "new-instance": $inst = new ast.stm.Instruction.NewInstance($a.text,$b.text,$c.ref_desc);break;
+            default: System.out.println("insn_format21c_type: " + $a.text + " unknown");
         }
-
     };
 
 insn_format21h returns [ast.stm.T inst]
@@ -829,14 +831,12 @@ insn_format21h returns [ast.stm.T inst]
         switch($a.text)
         {
           //15 21h  const/high16 ConstHigh16
-          case "const/high16": inst = new ast.stm.ConstHigh16($a.text,$b.text,$c.value);
+          case "const/high16": $inst = new ast.stm.Instruction.ConstHigh16($a.text,$b.text,$c.value);break;
           //19 21h  const-wide/high16 ConstWideHigh16
-          case "const-wide/high16": inst = new ast.stm.ConstWideHigh16($a.text,$b.text,$c.value);
-          default:;
+          case "const-wide/high16": $inst = new ast.stm.Instruction.ConstWideHigh16($a.text,$b.text,$c.value);break;
+          default: System.out.println("insn_format21h: " + $a.text + " unknown");
         }
     };
-
-
 
 insn_format21s returns [ast.stm.T inst]
   : //e.g. const/16 v1, 1234
@@ -845,10 +845,10 @@ insn_format21s returns [ast.stm.T inst]
       switch($a.text)
       {
         //13 21s  const/16 Const16
-        case "const/16" : inst = new ast.stm.Const16($a.text,$b.text,$c.value);
+        case "const/16" : $inst = new ast.stm.Instruction.Const16($a.text,$b.text,$c.value);break;
         //16 21s const-wide/16 ConstWide16
-        case "const-wide/16" : inst = new ast.stm.ConstWide16();
-        default: ;
+        case "const-wide/16" : $inst = new ast.stm.Instruction.ConstWide16($a.text,$b.text,$c.value);break;
+        default: System.out.println("insn_format21s: " + $a.text + " unknown");
       }
       
     };
@@ -861,18 +861,18 @@ insn_format21t returns [ast.stm.T inst]
       {
         //38..3d 21t 
         //38: if-eqz IfEqz
-        case "if-eqz" : inst new = ast.stm.IfEqz($a.text,$c.offorlab);
+        case "if-eqz" : $inst = new ast.stm.Instruction.IfEqz($a.text,$b.text,$c.offorlab);break;
         //39: if-nez IfNez
-        case "if-nez " : inst new = ast.stm.IfNez($a.text,$c.offorlab);
+        case "if-nez" : $inst = new ast.stm.Instruction.IfNez($a.text,$b.text,$c.offorlab);break;
         //3a: if-ltz IfLtz
-        case "if-ltz" : inst new = ast.stm.IfLtz($a.text,$c.offorlab);
+        case "if-ltz" : $inst = new ast.stm.Instruction.IfLtz($a.text,$b.text,$c.offorlab);break;
         //3b: if-gez IfGez
-        case "if-gez" : inst new = ast.stm.IfGez($a.text,$c.offorlab);
+        case "if-gez" : $inst = new ast.stm.Instruction.IfGez($a.text,$b.text,$c.offorlab);break;
         //3c: if-gtz IfGtz
-        case "if-gtz" : inst new = ast.stm.IfGtz($a.text,$c.offorlab);
+        case "if-gtz" : $inst = new ast.stm.Instruction.IfGtz($a.text,$b.text,$c.offorlab);break;
         //3d: if-lez IfLez
-        case "if-lez : inst new = ast.stm.IfLez($a.text,$c.offorlab);
-        default:;
+        case "if-lez" : $inst = new ast.stm.Instruction.IfLez($a.text,$b.text,$c.offorlab);break;
+        default: System.out.println("insn_format21t: " + $a.text + " unknown");
       }
     };
 
@@ -884,31 +884,30 @@ insn_format22b returns [ast.stm.T inst]
       {
         //d8..e2 22b  binop/lit8 vAA, vBB, #+CC
         //d8: add-int/lit8 AddIntLit8
-        case "add-int/lit8": inst = new ast.stm.AddIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "add-int/lit8": $inst = new ast.stm.Instruction.AddIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //d9: rsub-int/lit8 RsubIntLit8
-        case "rsub-int/lit8": inst = new ast.stm.RsubIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "rsub-int/lit8": $inst = new ast.stm.Instruction.RsubIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //da: mul-int/lit8 MulIntLit8
-        case "mul-int/lit8": inst = new ast.stm.MulIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "mul-int/lit8": $inst = new ast.stm.Instruction.MulIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //db: div-int/lit8 DivIntLit8
-        case "div-int/lit8 ": inst = new ast.stm.DivIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "div-int/lit8 ": $inst = new ast.stm.Instruction.DivIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //dc: rem-int/lit8  RemIntLit8
-        case "rem-int/lit8": inst = new ast.stm.RemIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "rem-int/lit8": $inst = new ast.stm.Instruction.RemIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //dd: and-int/lit8 AndIntLit8
-        case "and-int/lit8": inst = new ast.stm.AndIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "and-int/lit8": $inst = new ast.stm.Instruction.AndIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //de: or-int/lit8 OrIntLit8
-        case "or-int/lit8": inst = new ast.stm.OrIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "or-int/lit8": $inst = new ast.stm.Instruction.OrIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //df: xor-int/lit8 XorIntLit8
-        case "xor-int/lit8": inst = new ast.stm.XorIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "xor-int/lit8": $inst = new ast.stm.Instruction.XorIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //e0: shl-int/lit8 ShlIntLit8
-        case "shl-int/lit8": inst = new ast.stm.ShlIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "shl-int/lit8": $inst = new ast.stm.Instruction.ShlIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //e1: shr-int/lit8 ShrIntLit8
-        case "shr-int/lit8": inst = new ast.stm.ShrIntLit8($a.text,$b.text,$c.text,$d.value);
+        case "shr-int/lit8": $inst = new ast.stm.Instruction.ShrIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //e2: ushr-int/lit8 UshrIntLit8
-        case "ushr-int/lit8": inst = new ast.stm.UshrIntLit8($a.text,$b.text,$c.text,$d.value);
-        default:;
+        case "ushr-int/lit8": $inst = new ast.stm.Instruction.UshrIntLit8($a.text,$b.text,$c.text,$d.value);break;
+        default: System.out.println("insn_format22b: " + $a.text + " unknown");
       }
     };
-
 
 insn_format22c_field returns [ast.stm.T inst]
   : //e.g. iput-object v1, v0,sorg/jf/HelloWorld2/HelloWorld2.helloWorld Ljava/lang/String;
@@ -919,34 +918,34 @@ insn_format22c_field returns [ast.stm.T inst]
           //52..5f 22c  
           //iinstanceop vA, vB, field@CCCC
           //52: iget  Iget
-          case "iget" : inst = new ast.stm.Iget($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget" : $inst = new ast.stm.Instruction.Iget($a.text,$b.text,$c.text,$d.fieldItem);break;
           //53: iget-wide IgetWide
-          case "iget-wide" : inst = new ast.stm.IgetWide($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-wide" : $inst = new ast.stm.Instruction.IgetWide($a.text,$b.text,$c.text,$d.fieldItem);break;
           //54: iget-object IgetOjbect
-          case "iget-object" : inst = new ast.stm.IgetOjbect($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-object" : $inst = new ast.stm.Instruction.IgetOjbect($a.text,$b.text,$c.text,$d.fieldItem);break;
           //55: iget-boolean IgetBoolean
-          case "iget-boolean" : inst = new ast.stm.IgetBoolean($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-boolean" : $inst = new ast.stm.Instruction.IgetBoolean($a.text,$b.text,$c.text,$d.fieldItem);break;
           //56: iget-byte IgetByte
-          case "iget-byte" : inst = new ast.stm.IgetByte($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-byte" : $inst = new ast.stm.Instruction.IgetByte($a.text,$b.text,$c.text,$d.fieldItem);break;
           //57: iget-char IgetChar
-          case "iget-char" : inst = new ast.stm.IgetChar($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-char" : $inst = new ast.stm.Instruction.IgetChar($a.text,$b.text,$c.text,$d.fieldItem);break;
           //58: iget-short IgetShort
-          case "iget-short" : inst = new ast.stm.IgetShort($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iget-short" : $inst = new ast.stm.Instruction.IgetShort($a.text,$b.text,$c.text,$d.fieldItem);break;
           //59: iput Iput
-          case "iput" : inst = new ast.stm.Iput($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput" : $inst = new ast.stm.Instruction.Iput($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5a: iput-wide IputWide 
-          case "iput-wide" : inst = new ast.stm.IputWide($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput-wide" : $inst = new ast.stm.Instruction.IputWide($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5b: iput-object IputObject
-          case "iput-object" : inst = new ast.stm.IputObject($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput-object" : $inst = new ast.stm.Instruction.IputObject($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5c: iput-boolean IputBoolean
-          case "iput-boolean" : inst = new ast.stm.IputBoolean($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput-boolean" : $inst = new ast.stm.Instruction.IputBoolean($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5d: iput-byte IputByte
-          case "iput-byte" : inst = new ast.stm.IputByte($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput-byte" : $inst = new ast.stm.Instruction.IputByte($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5e: iput-char IputChar
-          case "iput-char" : inst = new ast.stm.IputChar($a.text,$b.text,$c.text,$d.fieldItem);
+          case "iput-char" : $inst = new ast.stm.Instruction.IputChar($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5f: iput-short IputShort
-          case "iput-short" : inst = new ast.stm.IputShort($a.text,$b.text,$c.text,$d.fieldItem);
-          default:;
+          case "iput-short" : $inst = new ast.stm.Instruction.IputShort($a.text,$b.text,$c.text,$d.fieldItem);break;
+          default: System.out.println("insn_format22c_field: " + $a.text + " unknown");
        }
     };
 
@@ -957,10 +956,10 @@ insn_format22c_type returns [ast.stm.T inst]
         switch($a.text)
         {
             //20 22c  instance-of InstanceOf
-            case "instance-of" : inst = new ast.stm.InstanceOf($a.text,$b.text,$c.text,$d.type_desc);
+            case "instance-of" : $inst = new ast.stm.Instruction.InstanceOf($a.text,$b.text,$c.text,$d.type_desc);break;
             //23 22c  new-array NewArray
-            case "new-array" : inst = new ast.stm.NewArray($a.text,$b.text,$c.text,$d.type_desc);
-            default:;
+            case "new-array" : $inst = new ast.stm.Instruction.NewArray($a.text,$b.text,$c.text,$d.type_desc);break;
+            default: System.out.println("insn_format22c_type: " + $a.text + " unknown");
         }
     };
 
@@ -970,24 +969,24 @@ insn_format22s returns [ast.stm.T inst]
     {
         switch($a.text)
         {
-          d0..d7 22s  binop/lit16 vA, vB, #+CCCC
+          //d0..d7 22s  binop/lit16 vA, vB, #+CCCC
           //d0: add-int/lit16 AddIntLit16
-          case "add-int/lit16" : inst = new ast.stm.AddIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "add-int/lit16" : $inst = new ast.stm.Instruction.AddIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d1: rsub-int (reverse subtract) RsubInt
-          case "rsub-int" : inst = new ast.stm.RsubInt($a.text,$b.text,$c.text,$d.value);
+          case "rsub-int" : $inst = new ast.stm.Instruction.RsubInt($a.text,$b.text,$c.text,$d.value);break;
           //d2: mul-int/lit16 MulIntLit16
-          case "mul-int/lit16" : inst = new ast.stm.MulIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "mul-int/lit16" : $inst = new ast.stm.Instruction.MulIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d3: div-int/lit16 DivIntLit16
-          case "div-int/lit16" : inst = new ast.stm.DivIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "div-int/lit16" : $inst = new ast.stm.Instruction.DivIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d4: rem-int/lit16 RemIntLit16
-          case "rem-int/lit16" : inst = new ast.stm.RemIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "rem-int/lit16" : $inst = new ast.stm.Instruction.RemIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d5: and-int/lit16 AndIntLit16
-          case "and-int/lit16" : inst = new ast.stm.AndIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "and-int/lit16" : $inst = new ast.stm.Instruction.AndIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d6: or-int/lit16 OrIntLit16
-          case "or-int/lit16" : inst = new ast.stm.OrIntLit16($a.text,$b.text,$c.text,$d.value);
+          case "or-int/lit16" : $inst = new ast.stm.Instruction.OrIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d7: xor-int/lit16 XorIntLit16
-          case "xor-int/lit16" : inst = new ast.stm.XorIntLit16($a.text,$b.text,$c.text,$d.value);
-          default:;
+          case "xor-int/lit16" : $inst = new ast.stm.Instruction.XorIntLit16($a.text,$b.text,$c.text,$d.value);break;
+          default: System.out.println("insn_format22s: " + $a.text + " unknown");
         }
     };
 
@@ -999,18 +998,18 @@ insn_format22t returns [ast.stm.T inst]
       {
         //32..37 22t  if-test vA, vB, +CCCC
         //32: if-eq IfEq
-        case "if-eq" : inst = new ast.stm.IfEq($a.text,$b.text,$c.text,$d.text);
+        case "if-eq" : $inst = new ast.stm.Instruction.IfEq($a.text,$b.text,$c.text,$d.text);break;
         //33: if-ne IfNe
-        case "if-ne" : inst = new ast.stm.IfNe($a.text,$b.text,$c.text,$d.text);
+        case "if-ne" : $inst = new ast.stm.Instruction.IfNe($a.text,$b.text,$c.text,$d.text);break;
         //34: if-lt IfLt
-        case "if-lt" : inst = new ast.stm.IfLt($a.text,$b.text,$c.text,$d.text);
+        case "if-lt" : $inst = new ast.stm.Instruction.IfLt($a.text,$b.text,$c.text,$d.text);break;
         //35: if-ge IfGe
-        case "if-ge" : inst = new ast.stm.IfGe($a.text,$b.text,$c.text,$d.text);
+        case "if-ge" : $inst = new ast.stm.Instruction.IfGe($a.text,$b.text,$c.text,$d.text);break;
         //36: if-gt IfGt
-        case "if-gt" : inst = new ast.stm.IfGt($a.text,$b.text,$c.text,$d.text);
+        case "if-gt" : $inst = new ast.stm.Instruction.IfGt($a.text,$b.text,$c.text,$d.text);break;
         //37: if-le IfLe
-        case "if-le" : inst = new ast.stm.IfLe($a.text,$b.text,$c.text,$d.text);
-        default:;
+        case "if-le" : $inst = new ast.stm.Instruction.IfLe($a.text,$b.text,$c.text,$d.text);break;
+        default: System.out.println("insn_format22t: " + $a.text + " unknown");
       }
     };
 
@@ -1021,12 +1020,12 @@ insn_format22x returns [ast.stm.T inst]
       switch($a.text)
       {
         //02  move/from16 MoveFrom16
-        case "move/from16" : inst = new ast.stm.MoveFrom16($a.text,$b.text,$c.text);
+        case "move/from16" : $inst = new ast.stm.Instruction.MoveFrom16($a.text,$b.text,$c.text);break;
         //05  move-wide/from16 MoveWideFrom16
-        case "move-wide/from16" : inst = new ast.stm.MoveWideFrom16($a.text,$b.text,$c.text);
+        case "move-wide/from16" : $inst = new ast.stm.Instruction.MoveWideFrom16($a.text,$b.text,$c.text);break;
         //08  move-object/from16 MoveOjbectFrom16
-        case "move-object/from16" : inst = new ast.stm.MoveOjbectFrom16($a.text,$b.text,$c.text);
-        default:;
+        case "move-object/from16" : $inst = new ast.stm.Instruction.MoveOjbectFrom16($a.text,$b.text,$c.text);break;
+        default: System.out.println("insn_format22x: " + $a.text + " unknown");
       }
     };
 
@@ -1038,114 +1037,114 @@ insn_format23x returns [ast.stm.T inst]
      {
           //2d..31 23x  cmpkind vAA, vBB, vCC
           //2d: cmpl-float (lt bias) CmplFloat
-          case "cmpl-float" : inst = new ast.stm.CmplFloat($a.text,$b.text,$c.text,$d.text);
+          case "cmpl-float" : $inst = new ast.stm.Instruction.CmplFloat($a.text,$b.text,$c.text,$d.text);break;
           //2e: cmpg-float (gt bias) CmpgFloat
-          case "cmpg-float" : inst = new ast.stm.CmpgFloat($a.text,$b.text,$c.text,$d.text);
+          case "cmpg-float" : $inst = new ast.stm.Instruction.CmpgFloat($a.text,$b.text,$c.text,$d.text);break;
           //2f: cmpl-double (lt bias) CmplDouble
-          case "cmpl-double" : inst = new ast.stm.CmplDouble($a.text,$b.text,$c.text,$d.text);
+          case "cmpl-double" : $inst = new ast.stm.Instruction.CmplDouble($a.text,$b.text,$c.text,$d.text);break;
           //30: cmpg-double (gt bias) Cmpgdouble
-          case "cmpg-double" : inst = new ast.stm.Cmpgdouble($a.text,$b.text,$c.text,$d.text);
+          case "cmpg-double" : $inst = new ast.stm.Instruction.Cmpgdouble($a.text,$b.text,$c.text,$d.text);break;
           //31: cmp-long  CmpLong
-          case "cmp-long" : inst = new ast.stm.CmpLong($a.text,$b.text,$c.text,$d.text);
+          case "cmp-long" : $inst = new ast.stm.Instruction.CmpLong($a.text,$b.text,$c.text,$d.text);break;
 
-          44..51 23x  arrayop vAA, vBB, vCC
-          44:   aget  Aget
-          case "aget" : inst = new ast.stm.Aget($a.text,$b.text,$c.text,$d.text);
-          45:   aget-wide AgetWide
-          case "aget-wide" : inst = new ast.stm.AgetWide($a.text,$b.text,$c.text,$d.text);
-          46:   aget-object AgetObject
-          case "aget-object" : inst = new ast.stm.AgetObject($a.text,$b.text,$c.text,$d.text);
-          47:   aget-boolean AgetBoolean
-          case "aget-boolean" : inst = new ast.stm.AgetBoolean($a.text,$b.text,$c.text,$d.text);
-          48:   aget-byte AgetByte
-          case "aget-byte" : inst = new ast.stm.AgetByte($a.text,$b.text,$c.text,$d.text);
-          49:   aget-char AgetChar
-          case "aget-char" : inst = new ast.stm.AgetChar($a.text,$b.text,$c.text,$d.text);
-          4a:   aget-short AgetShort
-          case "aget-short" : inst = new ast.stm.AgetShort($a.text,$b.text,$c.text,$d.text);
-          4b:   aput Aput
-          case "aput Aput" : inst = new ast.stm.Aput($a.text,$b.text,$c.text,$d.text);
-          4c:   aput-wide AputWide
-          case "aput-wide" : inst = new ast.stm.AputWide($a.text,$b.text,$c.text,$d.text);
-          4d:   aput-object AputObject
-          case "aput-object" : inst = new ast.stm.AputObject($a.text,$b.text,$c.text,$d.text);
-          4e:   aput-boolean AputBoolean
-          case "aput-boolean" : inst = new ast.stm.AputBoolean($a.text,$b.text,$c.text,$d.text);
-          4f:   aput-byte AputByte
-          case "aput-byte" : inst = new ast.stm.AputByte($a.text,$b.text,$c.text,$d.text);
-          50:   aput-char AputChar
-          case "aput-char" : inst = new ast.stm.AputChar($a.text,$b.text,$c.text,$d.text);
-          51:   aput-short AputShort
-          case "aput-short" : inst = new ast.stm.AputShort($a.text,$b.text,$c.text,$d.text);
+          //44..51 23x  arrayop vAA, vBB, vCC
+         // 44:   aget  Aget
+          case "aget" : $inst = new ast.stm.Instruction.Aget($a.text,$b.text,$c.text,$d.text);break;
+         // 45:   aget-wide AgetWide
+          case "aget-wide" : $inst = new ast.stm.Instruction.AgetWide($a.text,$b.text,$c.text,$d.text);break;
+         // 46:   aget-object AgetObject
+          case "aget-object" : $inst = new ast.stm.Instruction.AgetObject($a.text,$b.text,$c.text,$d.text);break;
+         // 47:   aget-boolean AgetBoolean
+          case "aget-boolean" : $inst = new ast.stm.Instruction.AgetBoolean($a.text,$b.text,$c.text,$d.text);break;
+         // 48:   aget-byte AgetByte
+          case "aget-byte" : $inst = new ast.stm.Instruction.AgetByte($a.text,$b.text,$c.text,$d.text);break;
+          //49:   aget-char AgetChar
+          case "aget-char" : $inst = new ast.stm.Instruction.AgetChar($a.text,$b.text,$c.text,$d.text);break;
+         // 4a:   aget-short AgetShort
+          case "aget-short" : $inst = new ast.stm.Instruction.AgetShort($a.text,$b.text,$c.text,$d.text);break;
+         // 4b:   aput Aput
+          case "aput" : $inst = new ast.stm.Instruction.Aput($a.text,$b.text,$c.text,$d.text);break;
+         // 4c:   aput-wide AputWide
+          case "aput-wide" : $inst = new ast.stm.Instruction.AputWide($a.text,$b.text,$c.text,$d.text);break;
+         // 4d:   aput-object AputObject
+          case "aput-object" : $inst = new ast.stm.Instruction.AputObject($a.text,$b.text,$c.text,$d.text);break;
+         // 4e:   aput-boolean AputBoolean
+          case "aput-boolean" : $inst = new ast.stm.Instruction.AputBoolean($a.text,$b.text,$c.text,$d.text);break;
+         // 4f:   aput-byte AputByte
+          case "aput-byte" : $inst = new ast.stm.Instruction.AputByte($a.text,$b.text,$c.text,$d.text);break;
+         // 50:   aput-char AputChar
+          case "aput-char" : $inst = new ast.stm.Instruction.AputChar($a.text,$b.text,$c.text,$d.text);break;
+         // 51:   aput-short AputShort
+          case "aput-short" : $inst = new ast.stm.Instruction.AputShort($a.text,$b.text,$c.text,$d.text);break;
 
           //90..af 23x  binop vAA, vBB, vCC
           //90: add-int AddInt
-          case "add-int" : inst = new ast.stm.AddInt($a.text,$b.text,$c.text,$d.text);
+          case "add-int" : $inst = new ast.stm.Instruction.AddInt($a.text,$b.text,$c.text,$d.text);break;
           //91: sub-int  SubInt
-          case "sub-int" : inst = new ast.stm.SubInt($a.text,$b.text,$c.text,$d.text);
+          case "sub-int" : $inst = new ast.stm.Instruction.SubInt($a.text,$b.text,$c.text,$d.text);break;
           //92: mul-int MulInt
-          case "mul-int" : inst = new ast.stm.MulInt($a.text,$b.text,$c.text,$d.text);
+          case "mul-int" : $inst = new ast.stm.Instruction.MulInt($a.text,$b.text,$c.text,$d.text);break;
           //93: div-int DivInt
-          case "div-int" : inst = new ast.stm.DivInt($a.text,$b.text,$c.text,$d.text);
+          case "div-int" : $inst = new ast.stm.Instruction.DivInt($a.text,$b.text,$c.text,$d.text);break;
           //94: rem-int RemInt
-          case "rem-int" : inst = new ast.stm.RemInt($a.text,$b.text,$c.text,$d.text);
+          case "rem-int" : $inst = new ast.stm.Instruction.RemInt($a.text,$b.text,$c.text,$d.text);break;
           //95: and-int AndInt
-          case "and-int" : inst = new ast.stm.AndInt($a.text,$b.text,$c.text,$d.text);
+          case "and-int" : $inst = new ast.stm.Instruction.AndInt($a.text,$b.text,$c.text,$d.text);break;
           //96: or-int OrInt
-          case "or-int" : inst = new ast.stm.OrInt($a.text,$b.text,$c.text,$d.text);
+          case "or-int" : $inst = new ast.stm.Instruction.OrInt($a.text,$b.text,$c.text,$d.text);break;
           //97: xor-int XorInt
-          case "xor-int" : inst = new ast.stm.XorInt($a.text,$b.text,$c.text,$d.text);
+          case "xor-int" : $inst = new ast.stm.Instruction.XorInt($a.text,$b.text,$c.text,$d.text);break;
           //98: shl-int ShlInt
-          case "shl-int" : inst = new ast.stm.ShlInt($a.text,$b.text,$c.text,$d.text);
+          case "shl-int" : $inst = new ast.stm.Instruction.ShlInt($a.text,$b.text,$c.text,$d.text);break;
           //99: shr-int ShrInt
-          case "shr-int" : inst = new ast.stm.ShrInt($a.text,$b.text,$c.text,$d.text);
+          case "shr-int" : $inst = new ast.stm.Instruction.ShrInt($a.text,$b.text,$c.text,$d.text);break;
           //9a: ushr-int UshrInt
-          case "ushr-int" : inst = new ast.stm.UshrInt($a.text,$b.text,$c.text,$d.text);
+          case "ushr-int" : $inst = new ast.stm.Instruction.UshrInt($a.text,$b.text,$c.text,$d.text);break;
           //9b: add-long AddLong
-          case "add-long" : inst = new ast.stm.AddLong($a.text,$b.text,$c.text,$d.text);
+          case "add-long" : $inst = new ast.stm.Instruction.AddLong($a.text,$b.text,$c.text,$d.text);break;
           //9c: sub-long SubLong
-          case "sub-long" : inst = new ast.stm.SubLong($a.text,$b.text,$c.text,$d.text);
+          case "sub-long" : $inst = new ast.stm.Instruction.SubLong($a.text,$b.text,$c.text,$d.text);break;
           //9d: mul-long MulLong
-          case "mul-long" : inst = new ast.stm.MulLong($a.text,$b.text,$c.text,$d.text);
+          case "mul-long" : $inst = new ast.stm.Instruction.MulLong($a.text,$b.text,$c.text,$d.text);break;
           //9e: div-long DivLong
-          case "div-long" : inst = new ast.stm.DivLong($a.text,$b.text,$c.text,$d.text);
+          case "div-long" : $inst = new ast.stm.Instruction.DivLong($a.text,$b.text,$c.text,$d.text);break;
           //9f: rem-long RemLong
-          case "rem-long" : inst = new ast.stm.RemLong($a.text,$b.text,$c.text,$d.text);
+          case "rem-long" : $inst = new ast.stm.Instruction.RemLong($a.text,$b.text,$c.text,$d.text);break;
           //a0: and-long AndLong
-          case "and-long" : inst = new ast.stm.AndLong($a.text,$b.text,$c.text,$d.text);
+          case "and-long" : $inst = new ast.stm.Instruction.AndLong($a.text,$b.text,$c.text,$d.text);break;
           //a1: or-long OrLong
-          case "or-long" : inst = new ast.stm.OrLong($a.text,$b.text,$c.text,$d.text);
+          case "or-long" : $inst = new ast.stm.Instruction.OrLong($a.text,$b.text,$c.text,$d.text);break;
           //a2: xor-long XorLong
-          case "xor-long" : inst = new ast.stm.XorLong($a.text,$b.text,$c.text,$d.text);
+          case "xor-long" : $inst = new ast.stm.Instruction.XorLong($a.text,$b.text,$c.text,$d.text);break;
           //a3: shl-long ShlLong
-          case "shl-long" : inst = new ast.stm.ShlLong($a.text,$b.text,$c.text,$d.text);
+          case "shl-long" : $inst = new ast.stm.Instruction.ShlLong($a.text,$b.text,$c.text,$d.text);break;
           //a4: shr-long ShrLong
-          case "shr-long" : inst = new ast.stm.ShrLong($a.text,$b.text,$c.text,$d.text);
+          case "shr-long" : $inst = new ast.stm.Instruction.ShrLong($a.text,$b.text,$c.text,$d.text);break;
           //a5: ushr-long UshrLong
-          case "ushr-long" : inst = new ast.stm.UshrLong($a.text,$b.text,$c.text,$d.text);
+          case "ushr-long" : $inst = new ast.stm.Instruction.UshrLong($a.text,$b.text,$c.text,$d.text);break;
           //a6: add-float AddFloat
-          case "add-float" : inst = new ast.stm.AddFloat($a.text,$b.text,$c.text,$d.text);
+          case "add-float" : $inst = new ast.stm.Instruction.AddFloat($a.text,$b.text,$c.text,$d.text);break;
           //a7: sub-float SubFloat
-          case "sub-float" : inst = new ast.stm.SubFloat($a.text,$b.text,$c.text,$d.text);
+          case "sub-float" : $inst = new ast.stm.Instruction.SubFloat($a.text,$b.text,$c.text,$d.text);break;
           //a8: mul-float MulFloat
-          case "mul-float" : inst = new ast.stm.MulFloat($a.text,$b.text,$c.text,$d.text);
+          case "mul-float" : $inst = new ast.stm.Instruction.MulFloat($a.text,$b.text,$c.text,$d.text);break;
           //a9: div-float DivFloat
-          case "div-float" : inst = new ast.stm.DivFloat($a.text,$b.text,$c.text,$d.text);
+          case "div-float" : $inst = new ast.stm.Instruction.DivFloat($a.text,$b.text,$c.text,$d.text);break;
           //aa: rem-float RemFloat
-          case "rem-float" : inst = new ast.stm.RemFloat($a.text,$b.text,$c.text,$d.text);
+          case "rem-float" : $inst = new ast.stm.Instruction.RemFloat($a.text,$b.text,$c.text,$d.text);break;
           //ab: add-double AddDouble
-          case "add-double" : inst = new ast.stm.AddDouble($a.text,$b.text,$c.text,$d.text);
+          case "add-double" : $inst = new ast.stm.Instruction.AddDouble($a.text,$b.text,$c.text,$d.text);break;
           //ac: sub-double SubDouble
-          case "sub-double" : inst = new ast.stm.SubDouble($a.text,$b.text,$c.text,$d.text);
+          case "sub-double" : $inst = new ast.stm.Instruction.SubDouble($a.text,$b.text,$c.text,$d.text);break;
           //ad: mul-double MulDouble
-          case "mul-double" : inst = new ast.stm.MulDouble($a.text,$b.text,$c.text,$d.text);
+          case "mul-double" : $inst = new ast.stm.Instruction.MulDouble($a.text,$b.text,$c.text,$d.text);break;
           //ae: div-double DivDouble
-          case "div-double" : inst = new ast.stm.DivDouble($a.text,$b.text,$c.text,$d.text);
+          case "div-double" : $inst = new ast.stm.Instruction.DivDouble($a.text,$b.text,$c.text,$d.text);break;
           //af: rem-double RemDouble
-          case "rem-double" : inst = new ast.stm.RemDouble($a.text,$b.text,$c.text,$d.text);
+          case "rem-double" : $inst = new ast.stm.Instruction.RemDouble($a.text,$b.text,$c.text,$d.text);break;
  
 
-          default:;
+          default: System.out.println("insn_format23x: " + $a.text + " unknown");
 
 
      }
@@ -1160,8 +1159,8 @@ insn_format30t returns [ast.stm.T inst]
       {
         //2a 30t  goto/32 +AAAAAAAA
         //Goto32
-        case "goto/32" :  inst = new ast.stm.Goto32($a.text,$b.offorlab);
-        default:;
+        case "goto/32" :  $inst = new ast.stm.Instruction.Goto32($a.text,$b.offorlab);break;
+        default: System.out.println("insn_format30t: " + $a.text + " unknown");
       }
 
     };
@@ -1174,8 +1173,8 @@ insn_format31c returns [ast.stm.T inst]
        {
           //1b 31c const-string/jumbo vAA, string@BBBBBBBB
           //ConstStringJumbo
-          case "const-string/jumbo" : inst = new ast.stm.ConstStringJumbo($a.text,$b.text,$c.value);
-          default:;
+          case "const-string/jumbo" : $inst = new ast.stm.Instruction.ConstStringJumbo($a.text,$b.text,$c.value);break;
+          default: System.out.println("insn_format31c: " + $a.text + " unknown");
 
        }
       
@@ -1188,10 +1187,10 @@ insn_format31i returns [ast.stm.T inst]
       switch($a.text)
       {
         //14 31i const Const
-        case "const" = new ast.stm.Const($a.text,$b.text,$c.value);
+        case "const" : $inst = new ast.stm.Instruction.Const($a.text,$b.text,$c.value);
         //17 31i const-wide/32 ConstWide32
-        case "const-wide/32" = new ast.stm.ConstWide32($a.text,$b.text,$c.value);
-        default:;
+        case "const-wide/32": $inst = new ast.stm.Instruction.ConstWide32($a.text,$b.text,$c.value);break;
+        default: System.out.println("insn_format31i: " + $a.text + " unknown");
       }
 
     };
@@ -1203,12 +1202,12 @@ insn_format31t returns [ast.stm.T inst]
        switch($a.text)
       {
         //26 31t  fill-array-data  FillArrayData
-        case "fill-array-data" = new ast.stm.FillArrayData($a.text,$b.text,$c.offorlab);
-        //2b 31t  packed-switch  PackedSwitch
-        case "packed-switch" = new ast.stm.PackedSwitch($a.text,$b.text,$c.offorlab);
-        //2c 31t  sparse-switch  SparseSwitch
-        case "sparse-switch" = new ast.stm.SparseSwitch($a.text,$b.text,$c.offorlab);
-        default:;
+        case "fill-array-data":$inst = new ast.stm.Instruction.FillArrayData($a.text,$b.text,$c.offorlab);break;
+        //2b 31t  packed-switch  PackedSwitch // throw exception
+        case "packed-switch" : $inst = new ast.stm.Instruction.PackedSwitch();break;
+        //2c 31t  sparse-switch  SparseSwitch // throw exception
+        case "sparse-switch" : $inst = new ast.stm.Instruction.SparseSwitch();break;
+        default: System.out.println("insn_format31t: " + $a.text + " unknown");
       }
     };
 
@@ -1221,131 +1220,152 @@ insn_format32x returns [ast.stm.T inst]
        { 
 
          //03 32x  move/16 Move16
-         case "move/16" : inst = new ast.stm.Move16($a.text,$b.text,$c.text);
+         case "move/16" : $inst = new ast.stm.Instruction.Move16($a.text,$b.text,$c.text);break;
          //06 32x move-wide/16 MoveWide16
-         case "move-wide/16" : inst = new ast.stm.MoveWide16($a.text,$b.text,$c.text);
+         case "move-wide/16" : $inst = new ast.stm.Instruction.MoveWide16($a.text,$b.text,$c.text);break;
          //09 32x  move-object/16 MoveObject16
-         case "move-object/16" : inst = new ast.stm.MoveObject16($a.text,$b.text,$c.text);
-         default:;
+         case "move-object/16" : $inst = new ast.stm.Instruction.MoveObject16($a.text,$b.text,$c.text);break;
+         default: System.out.println("insn_format32x: " + $a.text + " unknown");
 
        }
 
     };
 
 
-
-
-
-
 insn_format35c_method returns [ast.stm.T inst]
 
   : //e.g. invoke-virtual {} java/io/PrintStream/print(Ljava/lang/Stream;)V
-    ^(I_STATEMENT_FORMAT35c_METHOD a=INSTRUCTION_FORMAT35c_METHOD b=register_list c=fully_qualified_method)
+    ^(I_STATEMENT_FORMAT35c_METHOD a=INSTRUCTION_FORMAT35c_METHOD b=register_list c=fully_qualified_method) //methodItem
     {
+      switch($a.text)
+      {
+         //6e..72 35c  invoke-kind {vC, vD, vE, vF, vG}, meth@BBBB
+        //6e: invoke-virtual InvokeVirtual
+        case "invoke-virtual" : $inst = new ast.stm.Instruction.InvokeVirtual($a.text,$b.argList,$c.methodItem);break;
+        //6f: invoke-super InvokeSuper
+        case "invoke-super" : $inst = new ast.stm.Instruction.InvokeSuper($a.text,$b.argList,$c.methodItem);break;
+        //70: invoke-direct InvokeDirect
+        case "invoke-direct" : $inst = new ast.stm.Instruction.InvokeDirect($a.text,$b.argList,$c.methodItem);break;
+        //71: invoke-static InvokeStatic
+        case "invoke-static" : $inst = new ast.stm.Instruction.InvokeStatic($a.text,$b.argList,$c.methodItem);break;
+        //72: invoke-interface   InvokeInterface
+        case "invoke-interface" : $inst = new ast.stm.Instruction.InvokeInterface($a.text,$b.argList,$c.methodItem);break;
+        default: System.out.println("insn_format35c_method: " + $a.text + " unknown");
+      }
+     
     };
 
 insn_format35c_type returns [ast.stm.T inst]
   : //e.g. filled-new-array {}, I
-    ^(I_STATEMENT_FORMAT35c_TYPE a=INSTRUCTION_FORMAT35c_TYPE b=register_list c=nonvoid_type_descriptor)
+    ^(I_STATEMENT_FORMAT35c_TYPE a=INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
     {
       switch($a.text)
       {
         //24 35c  filled-new-array FilledNewArray
-        case "filled-new-array" : inst = new ast.stm.FilledNewArray($a.text,$b.argList,$c.type_desc);
-        default:;
+        case "filled-new-array" : $inst = new ast.stm.Instruction.FilledNewArray();break;
+        default: System.out.println("insn_format35c_type: " + $a.text + " unknown");
       }
       
     };
-
-
-
-
 
 insn_format3rc_method returns [ast.stm.T inst]
   : //e.g. invoke-virtual/range {} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     ^(I_STATEMENT_FORMAT3rc_METHOD a=INSTRUCTION_FORMAT3rc_METHOD b=register_range c=fully_qualified_method)
     {
+        switch($a.text)
+        {
+          //74..78 3rc  invoke-kind/range {vCCCC .. vNNNN}, meth@BBBB
+          //74: invoke-virtual/range InvokeVirtualRange
+          case "invoke-virtual/range" : $inst = new ast.stm.Instruction.InvokeVirtualRange($a.text,$b.started,$b.ended,$c.methodItem);break;
+          //75: invoke-super/range InvokeSuperRange
+          case "invoke-super/range" : $inst = new ast.stm.Instruction.InvokeSuperRange($a.text,$b.started,$b.ended,$c.methodItem);break;
+          //76: invoke-direct/range InvokeDirectRange
+          case "invoke-direct/range" : $inst = new ast.stm.Instruction.InvokeDirectRange($a.text,$b.started,$b.ended,$c.methodItem);break;
+          //77: invoke-static/range InvokeStaticRange
+          case "invoke-static/range" : $inst = new ast.stm.Instruction.InvokeStaticRange($a.text,$b.started,$b.ended,$c.methodItem);break;
+          //78: invoke-interface/range InvokeInterfaceRange
+          case "invoke-interface/range" : $inst = new ast.stm.Instruction.InvokeInterfaceRange($a.text,$b.started,$b.ended,$c.methodItem);break;
+          default: System.out.println("insn_format3rc_method: " + $a.text + " unknown");
+        }
+
     };
 
 insn_format3rc_type returns [ast.stm.T inst]
   : //e.g. filled-new-array/range {} I
-    ^(I_STATEMENT_FORMAT3rc_TYPE a=INSTRUCTION_FORMAT3rc_TYPE b=register_range c=nonvoid_type_descriptor)
+    ^(I_STATEMENT_FORMAT3rc_TYPE a=INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)//type_desc
     {
+      switch($a.text)
+      {
+        //25 3rc filled-new-array/range
+        //FilledNewArrayRange
+        case "filled-new-array/range" : $inst = new ast.stm.Instruction.FilledNewArrayRange();break;
+        default: System.out.println("insn_format3rc_type: " + $a.text + " unknown");
+      }
+
     };
 
-
-
-
+//can not find
 insn_format41c_type returns [ast.stm.T inst]
   : //e.g. const-class/jumbo v2, org/jf/HelloWorld2/HelloWorld2
     ^(I_STATEMENT_FORMAT41c_TYPE INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
     {
-    };
- 
+         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+    };  
+// can not find
 insn_format41c_field returns [ast.stm.T inst]
   : //e.g. sget-object/jumbo v0, Ljava/lang/System;->out:LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT41c_FIELD INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
     {
-    };
+         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+    };  
 
 insn_format51l_type returns [ast.stm.T inst]
   : //e.g. const-wide v0, 5000000000L
-    ^(I_STATEMENT_FORMAT51l INSTRUCTION_FORMAT51l REGISTER fixed_64bit_literal)
+    ^(I_STATEMENT_FORMAT51l a=INSTRUCTION_FORMAT51l b=REGISTER c=fixed_64bit_literal)//value
     {
+      switch($a.text)
+      {
+          //18 51l  const-wide  ConstWide
+          case "const-wide" : $inst = new ast.stm.Instruction.ConstWide($a.text,$b.text,$c.value);break;
+          default: System.out.println("insn_format51l_type: " + $a.text + " unknown");
+      }
+        
     };
-
+// can not find
 insn_format52c_type returns [ast.stm.T inst]
   : //e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
-    ^(I_STATEMENT_FORMAT52c_TYPE INSTRUCTION_FORMAT52c_TYPE registerA=REGISTER registerB=REGISTER nonvoid_type_descriptor)
+    ^(I_STATEMENT_FORMAT52c_TYPE INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
     {
-    };
-
+         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+    }; 
+// can not find
 insn_format52c_field returns [ast.stm.T inst]
   : //e.g. iput-object/jumbo v1, v0, Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
-    ^(I_STATEMENT_FORMAT52c_FIELD INSTRUCTION_FORMAT52c_FIELD registerA=REGISTER registerB=REGISTER fully_qualified_field)
+    ^(I_STATEMENT_FORMAT52c_FIELD INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
     {
-    };
-
+         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+    }; 
+// can not find
 insn_format5rc_method returns [ast.stm.T inst]
   : //e.g. invoke-virtual/jumbo {} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     ^(I_STATEMENT_FORMAT5rc_METHOD INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method)
     {
+       System.out.println("insn_format20bc: can not find in dalvik bytecode" );
     };
-
+// can not find
 insn_format5rc_type returns [ast.stm.T inst]
   : //e.g. filled-new-array/jumbo {} I
     ^(I_STATEMENT_FORMAT5rc_TYPE INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor)
     {
-    };
-
-insn_array_data_directive returns [ast.stm.T inst]
-  : //e.g. .array-data 4 1000000 .end array-data
-    ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE short_integral_literal) array_elements)
-    {
-    };
-
-insn_packed_switch_directive returns [ast.stm.T inst]
-  :
-    ^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY fixed_32bit_literal)
-      packed_switch_targets)
-  ;
-
-insn_sparse_switch_directive returns [ast.stm.T inst]
-  :
-    ^(I_STATEMENT_SPARSE_SWITCH sparse_switch_target_count sparse_switch_keys
-      {
-      }
-
-      sparse_switch_targets)
-    {
-    };
+      System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+    }; 
 
 nonvoid_type_descriptor returns [String type_desc]
-  : (PRIMITIVE_TYPE
+  : a=(PRIMITIVE_TYPE
   | CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
   {
-  	 $type_desc = $start.getText();
+  	 $type_desc = $a.text;
   };
 
 
@@ -1353,7 +1373,7 @@ reference_type_descriptor returns [String ref_desc]
   : a=(CLASS_DESCRIPTOR
   | ARRAY_DESCRIPTOR)
   {
-  	$ref = $atext;
+  	$ref_desc = $a.text;
   }
   ;
 
@@ -1374,46 +1394,47 @@ type_descriptor returns [String type_desc]
   ;
 
 short_integral_literal returns [String value]
-  : a=(long_literal{}
-  | integer_literal{}
-  | short_literal {}
-  | char_literal {;}
-  | byte_literal {}) {$value = $a.value;};
+  : a=long_literal{$value = $a.value;}
+  | a=integer_literal{$value = $a.value;}
+  | a=short_literal {$value = $a.value;}
+  | a=char_literal {$value = $a.value;}
+  | a=byte_literal {$value = $a.value;} 
+  ;
 
 integral_literal returns[String value]
-  : a=(long_literal{}
-  | integer_literal {}
-  | short_literal {}
-  | byte_literal {}){$value = $a.value;};
+  : a=long_literal{$value = $a.value;}
+  | a=integer_literal {$value = $a.value;}
+  | a=short_literal {$value = $a.value;}
+  | a=byte_literal {$value = $a.value;}
+  ;
 
 
 integer_literal returns[String value]
-  : a=INTEGER_LITERAL { $value = $a.text; };
+  : a=INTEGER_LITERAL { $value = $a.text;  };
 
 long_literal returns[String value]
-  : a=LONG_LITERAL { $value = $.text; };
+  : a=LONG_LITERAL { $value = $a.text; };
 
 short_literal returns[String value]
-  :  a=SHORT_LITERAL { $value = $.text; };
+  :  a=SHORT_LITERAL { $value = $a.text; };
 
 byte_literal returns[String value]
-  :  a=BYTE_LITERAL { $value = $.text;};
+  :  a=BYTE_LITERAL { $value = $a.text;};
 
 float_literal returns[String value]
-  :  a=FLOAT_LITERAL { $value = $.text; };
+  :  a=FLOAT_LITERAL { $value = $a.text; };
 
 double_literal returns[String value]
-  :  a=DOUBLE_LITERAL { $value = $.text; };
+  :  a=DOUBLE_LITERAL { $value = $a.text; };
 
 char_literal returns[String value]
-  :  a=CHAR_LITERAL { $value = $.text; };
+  :  a=CHAR_LITERAL { $value = $a.text; };
 
 string_literal returns [String value]
-  :  a=STRING_LITERAL
-    { $value = $.text;};
+  :  a=STRING_LITERAL { $value = $a.text;};
 
-bool_literal
-  : BOOL_LITERAL {};
+bool_literal returns [String value]
+  :  a=BOOL_LITERAL {$value = $a.text;};
 
 array_literal
   : {}

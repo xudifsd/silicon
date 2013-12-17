@@ -9,13 +9,13 @@ import ast.Visitor;
 
 public class Method extends T {
 	public String name;
-	public int localNum;
+	public String localNum;
 	public List<ast.stm.T> statements;
 	public MethodPrototype prototype;
 	public Map<String, Integer> labels; // name -> offset
 	public List<String> accessList;
 	public String registers_directive;
-	public int registers_directive_count;
+	public String registers_directive_count;
 
 	public static class MethodPrototype extends T{
 		public String returnType;

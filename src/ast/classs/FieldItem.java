@@ -11,4 +11,11 @@ public class FieldItem extends T{
 	public void accept(Visitor v) {
 		v.visit(this);
 	}
+
+	@Override
+	public String toString()
+	{
+		return this.classType+"->"+this.fieldName+":"+this.fieldType;
+	}
+	
 }

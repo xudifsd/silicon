@@ -47,9 +47,9 @@ smali_file returns [ast.classs.Class clazz]
   	  $clazz.superName = $header.superName;
   	  $clazz.source = $header.source;
   	  $clazz.accessList = $header.accessList;
+      $clazz.implementsList = $header.implementsList;
   	  $clazz.methods = $methods.methodList;
-  	  
-      System.out.println("in smali_file");
+      $clazz.fieldList = $fields.fieldList;
   }
   ;
 
@@ -64,6 +64,7 @@ header returns [String className, String superName, String source, List<String> 
   	$accessList =  $class_spec.accessList;
   	$superName = $super_spec.className;
   	$source = $source_spec.source;
+    $implementsList = $implements_list.implementsList;
   }
   ;
 
@@ -82,18 +83,20 @@ super_spec returns [String className]
   };
 
 
-implements_spec returns [List<String> implementsList]
+implements_spec returns [String className]
+
+  : ^(I_IMPLEMENTS a=class_type_descriptor)
+  {
+  	$className = $a.className;
+  };
+
+implements_list returns [List<String> implementsList]
 @init {
  $implementsList = new ArrayList<String>();
 }
-  : ^(I_IMPLEMENTS class_type_descriptor)
+  : (implements_spec {$implementsList.add($implements_spec.className);} )*
   {
-  	$implementsList.add($class_type_descriptor.className);
-  };
-
-implements_list
-  : (implements_spec {} )*
-  {
+    
   };
 
 source_spec returns [String source]
@@ -116,10 +119,15 @@ access_list returns [List<String> accessList]
       )*);
 
 
-fields
+fields returns[List<ast.classs.Class.Field> fieldList]
+@init
+{
+  fieldList = new ArrayList<ast.classs.Class.Field>();
+}
   : ^(I_FIELDS
-      (field
+      (a= field 
       {
+        $fieldList.add($a.fieldd);
       })*);
 
 methods returns [List<ast.method.Method> methodList]
@@ -132,9 +140,10 @@ methods returns [List<ast.method.Method> methodList]
       	$methodList.add($method.method);
       })*);
 
-field
-  :^(I_FIELD SIMPLE_NAME access_list ^(I_FIELD_TYPE nonvoid_type_descriptor) field_initial_value annotations?)
+field returns[ast.classs.Class.Field fieldd]
+  :^(I_FIELD a=SIMPLE_NAME b=access_list ^(I_FIELD_TYPE c=nonvoid_type_descriptor) field_initial_value annotations?)
   {
+      $fieldd = new ast.classs.Class.Field($a.text,$b.accessList,$c.type_desc);
   };
 
 
@@ -142,8 +151,8 @@ field_initial_value
   : ^(I_FIELD_INITIAL_VALUE literal) {}
   | /*epsilon*/;
 
-literal
-  : integer_literal {}
+literal 
+  : integer_literal {} 
   | long_literal {}
   | short_literal {}
   | byte_literal {}
@@ -154,23 +163,23 @@ literal
   | bool_literal {}
   | NULL_LITERAL {}
   | type_descriptor {}
-  | array_literal {}
+  | array_literal {} 
   | subannotation {}
   | field_literal {}
-  | method_literal {}
-  | enum_literal {};
+  | method_literal {} 
+  | enum_literal {};  
 
 
 //everything but string
-fixed_size_literal
-  : integer_literal {}
-  | long_literal {}
-  | short_literal {}
-  | byte_literal {}
-  | float_literal {}
-  | double_literal {}
-  | char_literal {}
-  | bool_literal {};
+fixed_size_literal returns [String value]
+  :a=integer_literal {$value = $a.value;}
+  |a=long_literal {$value = $a.value;}
+  |a=short_literal {$value = $a.value;}
+  |a=byte_literal {$value = $a.value;}
+  |a=float_literal {$value = $a.value;}
+  |a=double_literal {$value = $a.value;}
+  |a=char_literal {$value = $a.value;}
+  |a=bool_literal {$value = $a.value;};
 
 //everything but string
   fixed_64bit_literal returns [String value]
@@ -195,43 +204,64 @@ fixed_32bit_literal returns [String value]
   | a=bool_literal {$value = $a.value;}
   ;
 
-array_elements
+array_elements returns[List<String> elementList]
+@init
+{
+  $elementList = new ArrayList<String>();
+}
   : {}
     ^(I_ARRAY_ELEMENTS
-      (fixed_size_literal
+      (a=fixed_size_literal
       {
+          $elementList.add($a.value);
       })*);
 
-packed_switch_target_count
-  : I_PACKED_SWITCH_TARGET_COUNT {};
+packed_switch_target_count returns[String txt]
+  : a=I_PACKED_SWITCH_TARGET_COUNT {$txt = $a.text;};
 
-packed_switch_targets
+packed_switch_targets  returns[String count,List<String> labList]
+@init
+{
+  $labList = new ArrayList<String>();
+}
   :
     ^(I_PACKED_SWITCH_TARGETS
-      packed_switch_target_count
+      a=packed_switch_target_count
       {
+        $count = $a.txt;
       }
 
-      (offset_or_label
+      (b=offset_or_label
       {
+        $labList.add($b.offorlab);
       })*
     );
 
-sparse_switch_target_count
-  : I_SPARSE_SWITCH_TARGET_COUNT {};
+sparse_switch_target_count returns[String txt]
+  : a=I_SPARSE_SWITCH_TARGET_COUNT {$txt = $a.text;};
 
-sparse_switch_keys
+sparse_switch_keys returns[List<String> keyList]
+@init
+{
+  keyList = new ArrayList<String>();
+}
   : ^(I_SPARSE_SWITCH_KEYS
-      (fixed_32bit_literal
+      (a=fixed_32bit_literal
       {
+        $keyList.add($a.value);
       })*
     );
 
 
-sparse_switch_targets
+sparse_switch_targets returns[List<String> labList]
+@init
+{
+  labList = new ArrayList<String>();
+}
   : ^(I_SPARSE_SWITCH_TARGETS
-      (offset_or_label
+      (a=offset_or_label
       {
+        $labList.add($a.offorlab);
       })*
     );
 
@@ -241,6 +271,10 @@ method returns [ast.method.Method method]
 }
   : ^(I_METHOD
       method_name_and_prototype
+      {
+         $method.name = $method_name_and_prototype.method_name;
+         $method.prototype = $method_name_and_prototype.prototype;
+      }
       access_list
       {
       	$method.accessList = $access_list.accessList;
@@ -252,20 +286,34 @@ method returns [ast.method.Method method]
        }
       )?
       labels
+      {
+        $method.labelList = $labels.labelList;
+      }
       packed_switch_declarations
-      sparse_switch_declarations
+      {
+        $method.pSwitchDecList = $packed_switch_declarations.pSwitchDecList;
+      }
+      sparse_switch_declarations 
+      {
+        $method.sSwitchDecList = $sparse_switch_declarations.sSwitchDecList;
+      }
       statements
+      {
+        $method.statements = $statements.instList;
+      }
       catches
-      parameters
+      {
+        $method.catchList = $catches.catchList;
+      } 
+      parameters 
+      {
+        
+      }
       ordered_debug_directives
       annotations
     )
   {
-  	
-  	$method.name = $method_name_and_prototype.method_name;
-  	$method.prototype = $method_name_and_prototype.prototype;
-  	
-  	$method.statements = $statements.instList;
+  
   };
 
 method_prototype returns [ast.method.Method.MethodPrototype prototype]
@@ -325,45 +373,72 @@ registers_directive returns [String type, String count]
       a=short_integral_literal { $count = $a.value; }
      );
 
-labels
-  : ^(I_LABELS label_def*);
+labels returns[List<ast.method.Method.Label> labelList ]
+@init
+{
+  labelList =  new ArrayList<ast.method.Method.Label>();
+}
+  : ^(I_LABELS (a=label_def {labelList.add($a.label);})*);
 
-label_def
-  : ^(I_LABEL SIMPLE_NAME address)
+label_def returns [ast.method.Method.Label label]
+  : ^(I_LABEL a=SIMPLE_NAME b=address)
     {
+      $label =  new ast.method.Method.Label($a.text,$b.add);
     };
 
-packed_switch_declarations
-  : ^(I_PACKED_SWITCH_DECLARATIONS packed_switch_declaration*);
+packed_switch_declarations returns[List<ast.method.Method.PSwitchDec> pSwitchDecList]
+@init
+{
+  pSwitchDecList = new ArrayList<ast.method.Method.PSwitchDec>();
+}
+  : ^(I_PACKED_SWITCH_DECLARATIONS 
+     (a=packed_switch_declaration{$pSwitchDecList.add($a.pSwitchDec);})*);
 
-packed_switch_declaration
-  : ^(I_PACKED_SWITCH_DECLARATION address offset_or_label_absolute)
+packed_switch_declaration returns[ast.method.Method.PSwitchDec pSwitchDec]
+  : ^(I_PACKED_SWITCH_DECLARATION a=address b=offset_or_label_absolute)
     {
+      $pSwitchDec = new ast.method.Method.PSwitchDec($a.add,$b.dest);
     };
 
-sparse_switch_declarations
-  : ^(I_SPARSE_SWITCH_DECLARATIONS sparse_switch_declaration*);
+sparse_switch_declarations returns[List<ast.method.Method.SSwitchDec> sSwitchDecList]
+@init
+{
+  sSwitchDecList = new ArrayList<ast.method.Method.SSwitchDec>();
+}
+  : ^(I_SPARSE_SWITCH_DECLARATIONS 
+    (a=sparse_switch_declaration{$sSwitchDecList.add($a.sSwitchDec);})*);
 
-sparse_switch_declaration
-  : ^(I_SPARSE_SWITCH_DECLARATION address offset_or_label_absolute)
+sparse_switch_declaration returns[ast.method.Method.SSwitchDec sSwitchDec]
+  : ^(I_SPARSE_SWITCH_DECLARATION a=address b=offset_or_label_absolute)
     {
+      $sSwitchDec = new ast.method.Method.SSwitchDec($a.add,$b.dest);
     };
 
-catches : ^(I_CATCHES catch_directive* catchall_directive*);
+catches returns[List<ast.method.Method.Catch> catchList]
+@init
+{
+  catchList = new ArrayList<ast.method.Method.Catch>();
+}
+ : ^(I_CATCHES 
+     (a=catch_directive{catchList.add($a.catchh);})* 
+     (b=catchall_directive{catchList.add($b.catchh);})*);
 
-catch_directive
-  : ^(I_CATCH address nonvoid_type_descriptor from=offset_or_label_absolute to=offset_or_label_absolute using=offset_or_label_absolute)
+catch_directive returns[ast.method.Method.Catch catchh]
+  : ^(I_CATCH a=address b=nonvoid_type_descriptor c=offset_or_label_absolute d=offset_or_label_absolute e=offset_or_label_absolute)
     {
+      $catchh = new ast.method.Method.Catch($a.add,$b.type_desc,$c.dest,$d.dest,$e.dest);
     };
 
-catchall_directive
-  : ^(I_CATCHALL address from=offset_or_label_absolute to=offset_or_label_absolute using=offset_or_label_absolute)
+catchall_directive returns[ast.method.Method.Catch catchh]
+  : ^(I_CATCHALL a=address b=offset_or_label_absolute c=offset_or_label_absolute d=offset_or_label_absolute)
     {
+      $catchh = new ast.method.Method.Catch($a.add,$b.dest,$c.dest,$d.dest);
     };
 
-address
+address returns[String add]
   : I_ADDRESS
-    {
+    { 
+      $add=$I_ADDRESS.text;
     };
 
 parameters
@@ -373,11 +448,8 @@ parameters
     )
   ;
 
-parameter
-  : ^(I_PARAMETER (string_literal {}
-                  | {}
-                  )
-        annotations {}
+parameter 
+  : ^(I_PARAMETER (string_literal {}| {}) annotations {}
     );
 
 ordered_debug_directives
@@ -436,24 +508,26 @@ statements returns [List<ast.stm.T> instList]
         	$instList.add($instruction.inst);
         })*);
 
-label_ref
-  : SIMPLE_NAME
-    {
+label_ref returns[String txt]
+  : a=SIMPLE_NAME
+    { 
+        $txt = $a.text;
     };
 
-offset
-  : OFFSET
+offset returns[String txt]
+  : a=OFFSET
     {
+        $txt = $a.text;
     };
 
-offset_or_label_absolute 
-  : offset {}
-  | label_ref {}
+offset_or_label_absolute returns[String dest]
+  : a=offset {$dest = $a.txt;}
+  | a=label_ref {$dest = $a.txt;}
   ;
 
 offset_or_label returns [String offorlab]
-  : a=(offset {}
-  | label_ref {}) {$offorlab=$a.text;}
+  : a=offset {$offorlab=$a.txt;}
+  | a=label_ref {$offorlab=$a.txt;}
   ;
 
 
@@ -534,6 +608,9 @@ instruction returns [ast.stm.T inst]
   | a=insn_format52c_field {$inst = $a.inst;}
   | a=insn_format5rc_method {$inst = $a.inst;}
   | a=insn_format5rc_type {$inst = $a.inst;}
+  | a=insn_array_data_directive{$inst = $a.inst;}
+  | a=insn_packed_switch_directive { $inst = $a.inst;}
+  | a=insn_sparse_switch_directive {$inst = $a.inst;}
   ;
 
 
@@ -548,7 +625,7 @@ insn_format10t returns [ast.stm.T inst]
         {
           //goto Goto
           case "goto": $inst =  new ast.stm.Instruction.Goto($a.text,$b.offorlab);break;
-          default: System.out.println("insn_format10t: " + $a.text + " unknown");
+          default: System.err.println("insn_format10t: " + $a.text + " unknown");
         }
     };
 insn_format10x returns [ast.stm.T inst]
@@ -561,7 +638,7 @@ insn_format10x returns [ast.stm.T inst]
              case "nop" : $inst = new ast.stm.Instruction.Nop($a.text); break;
              //return-void ReturnVoid
              case "return-void": $inst = new ast.stm.Instruction.ReturnVoid($a.text); break;
-             default: System.out.println("insn_format10x: " + $a.text + " unknown");
+             default: System.err.println("insn_format10x: " + $a.text + " unknown");
            }
     };
 insn_format11n returns [ast.stm.T inst]
@@ -573,7 +650,7 @@ insn_format11n returns [ast.stm.T inst]
         {
           //const/4 Const4
           case "const/4" : $inst = new ast.stm.Instruction.Const4($a.text,$b.text,$c.value); break;
-          default: System.out.println("insn_format11n: " + $a.text + " unknown");
+          default: System.err.println("insn_format11n: " + $a.text + " unknown");
         }
     };
 insn_format11x returns [ast.stm.T inst]
@@ -602,7 +679,7 @@ insn_format11x returns [ast.stm.T inst]
           case "monitor-exit": $inst =  new ast.stm.Instruction.MonitorExit($a.text,$b.text);break;
           //throw Throw
           case "throw": $inst =  new ast.stm.Instruction.Throw($a.text,$b.text);break;
-          default: System.out.println("insn_format11x: " + $a.text + " unknown");
+          default: System.err.println("insn_format11x: " + $a.text + " unknown");
         }
     };
 insn_format12x returns [ast.stm.T inst]
@@ -728,7 +805,7 @@ insn_format12x returns [ast.stm.T inst]
             case "div-double/2addr": $inst =  new ast.stm.Instruction.DivDouble2Addr($a.text,$b.text,$c.text);break;
             //cf: rem-double/2addr RemDouble2Addr
             case "rem-double/2addr": $inst =  new ast.stm.Instruction.RemDouble2Addr($a.text,$b.text,$c.text);break;
-            default: System.out.println("insn_format12x: " + $a.text + " unknown");
+            default: System.err.println("insn_format12x: " + $a.text + " unknown");
         }
       }
       ;
@@ -737,7 +814,7 @@ insn_format20bc returns [ast.stm.T inst]
   : //e.g. throw-verification-error generic-error, Lsome/class;
     ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
     {
-          System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+          System.err.println("insn_format20bc: can not find in dalvik bytecode" );
     };
 
 insn_format20t returns [ast.stm.T inst]
@@ -748,7 +825,7 @@ insn_format20t returns [ast.stm.T inst]
         switch($a.text)
         {
            case "goto/16": $inst = new ast.stm.Instruction.Goto16($a.text,$b.offorlab);break;
-           default: System.out.println("insn_format20t: " + $a.text + " unknown");
+           default: System.err.println("insn_format20t: " + $a.text + " unknown");
         }
     };
 
@@ -788,7 +865,7 @@ insn_format21c_field returns [ast.stm.T inst]
           case"sput-char" : $inst = new ast.stm.Instruction.SputChar($a.text,$b.text,$c.fieldItem);break;
           //6d: sput-short SputShort
           case"sput-short": $inst = new ast.stm.Instruction.SputShort($a.text,$b.text,$c.fieldItem);break;
-          default: System.out.println("insn_format21c_field: " + $a.text + " unknown");
+          default: System.err.println("insn_format21c_field: " + $a.text + " unknown");
         }
 
     };
@@ -802,7 +879,7 @@ insn_format21c_string returns [ast.stm.T inst]
       {
         //1a 21c  const-string ConstString
         case "const-string" : $inst = new ast.stm.Instruction.ConstString($a.text,$b.text,$c.value);break;
-        default: System.out.println("insn_format21c_string: " + $a.text + " unknown");
+        default: System.err.println("insn_format21c_string: " + $a.text + " unknown");
       }
 
     };
@@ -820,7 +897,7 @@ insn_format21c_type returns [ast.stm.T inst]
             case "check-cast" :$inst = new ast.stm.Instruction.CheckCast($a.text,$b.text,$c.ref_desc);break;
             //22 21c  new-instance NewInstance
             case "new-instance": $inst = new ast.stm.Instruction.NewInstance($a.text,$b.text,$c.ref_desc);break;
-            default: System.out.println("insn_format21c_type: " + $a.text + " unknown");
+            default: System.err.println("insn_format21c_type: " + $a.text + " unknown");
         }
     };
 
@@ -834,7 +911,7 @@ insn_format21h returns [ast.stm.T inst]
           case "const/high16": $inst = new ast.stm.Instruction.ConstHigh16($a.text,$b.text,$c.value);break;
           //19 21h  const-wide/high16 ConstWideHigh16
           case "const-wide/high16": $inst = new ast.stm.Instruction.ConstWideHigh16($a.text,$b.text,$c.value);break;
-          default: System.out.println("insn_format21h: " + $a.text + " unknown");
+          default: System.err.println("insn_format21h: " + $a.text + " unknown");
         }
     };
 
@@ -848,7 +925,7 @@ insn_format21s returns [ast.stm.T inst]
         case "const/16" : $inst = new ast.stm.Instruction.Const16($a.text,$b.text,$c.value);break;
         //16 21s const-wide/16 ConstWide16
         case "const-wide/16" : $inst = new ast.stm.Instruction.ConstWide16($a.text,$b.text,$c.value);break;
-        default: System.out.println("insn_format21s: " + $a.text + " unknown");
+        default: System.err.println("insn_format21s: " + $a.text + " unknown");
       }
       
     };
@@ -872,7 +949,7 @@ insn_format21t returns [ast.stm.T inst]
         case "if-gtz" : $inst = new ast.stm.Instruction.IfGtz($a.text,$b.text,$c.offorlab);break;
         //3d: if-lez IfLez
         case "if-lez" : $inst = new ast.stm.Instruction.IfLez($a.text,$b.text,$c.offorlab);break;
-        default: System.out.println("insn_format21t: " + $a.text + " unknown");
+        default: System.err.println("insn_format21t: " + $a.text + " unknown");
       }
     };
 
@@ -905,7 +982,7 @@ insn_format22b returns [ast.stm.T inst]
         case "shr-int/lit8": $inst = new ast.stm.Instruction.ShrIntLit8($a.text,$b.text,$c.text,$d.value);break;
         //e2: ushr-int/lit8 UshrIntLit8
         case "ushr-int/lit8": $inst = new ast.stm.Instruction.UshrIntLit8($a.text,$b.text,$c.text,$d.value);break;
-        default: System.out.println("insn_format22b: " + $a.text + " unknown");
+        default: System.err.println("insn_format22b: " + $a.text + " unknown");
       }
     };
 
@@ -945,7 +1022,7 @@ insn_format22c_field returns [ast.stm.T inst]
           case "iput-char" : $inst = new ast.stm.Instruction.IputChar($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5f: iput-short IputShort
           case "iput-short" : $inst = new ast.stm.Instruction.IputShort($a.text,$b.text,$c.text,$d.fieldItem);break;
-          default: System.out.println("insn_format22c_field: " + $a.text + " unknown");
+          default: System.err.println("insn_format22c_field: " + $a.text + " unknown");
        }
     };
 
@@ -959,7 +1036,7 @@ insn_format22c_type returns [ast.stm.T inst]
             case "instance-of" : $inst = new ast.stm.Instruction.InstanceOf($a.text,$b.text,$c.text,$d.type_desc);break;
             //23 22c  new-array NewArray
             case "new-array" : $inst = new ast.stm.Instruction.NewArray($a.text,$b.text,$c.text,$d.type_desc);break;
-            default: System.out.println("insn_format22c_type: " + $a.text + " unknown");
+            default: System.err.println("insn_format22c_type: " + $a.text + " unknown");
         }
     };
 
@@ -986,7 +1063,7 @@ insn_format22s returns [ast.stm.T inst]
           case "or-int/lit16" : $inst = new ast.stm.Instruction.OrIntLit16($a.text,$b.text,$c.text,$d.value);break;
           //d7: xor-int/lit16 XorIntLit16
           case "xor-int/lit16" : $inst = new ast.stm.Instruction.XorIntLit16($a.text,$b.text,$c.text,$d.value);break;
-          default: System.out.println("insn_format22s: " + $a.text + " unknown");
+          default: System.err.println("insn_format22s: " + $a.text + " unknown");
         }
     };
 
@@ -1009,7 +1086,7 @@ insn_format22t returns [ast.stm.T inst]
         case "if-gt" : $inst = new ast.stm.Instruction.IfGt($a.text,$b.text,$c.text,$d.text);break;
         //37: if-le IfLe
         case "if-le" : $inst = new ast.stm.Instruction.IfLe($a.text,$b.text,$c.text,$d.text);break;
-        default: System.out.println("insn_format22t: " + $a.text + " unknown");
+        default: System.err.println("insn_format22t: " + $a.text + " unknown");
       }
     };
 
@@ -1025,7 +1102,7 @@ insn_format22x returns [ast.stm.T inst]
         case "move-wide/from16" : $inst = new ast.stm.Instruction.MoveWideFrom16($a.text,$b.text,$c.text);break;
         //08  move-object/from16 MoveOjbectFrom16
         case "move-object/from16" : $inst = new ast.stm.Instruction.MoveOjbectFrom16($a.text,$b.text,$c.text);break;
-        default: System.out.println("insn_format22x: " + $a.text + " unknown");
+        default: System.err.println("insn_format22x: " + $a.text + " unknown");
       }
     };
 
@@ -1144,7 +1221,7 @@ insn_format23x returns [ast.stm.T inst]
           case "rem-double" : $inst = new ast.stm.Instruction.RemDouble($a.text,$b.text,$c.text,$d.text);break;
  
 
-          default: System.out.println("insn_format23x: " + $a.text + " unknown");
+          default: System.err.println("insn_format23x: " + $a.text + " unknown");
 
 
      }
@@ -1160,9 +1237,8 @@ insn_format30t returns [ast.stm.T inst]
         //2a 30t  goto/32 +AAAAAAAA
         //Goto32
         case "goto/32" :  $inst = new ast.stm.Instruction.Goto32($a.text,$b.offorlab);break;
-        default: System.out.println("insn_format30t: " + $a.text + " unknown");
+        default: System.err.println("insn_format30t: " + $a.text + " unknown");
       }
-
     };
 
 insn_format31c returns [ast.stm.T inst]
@@ -1174,10 +1250,8 @@ insn_format31c returns [ast.stm.T inst]
           //1b 31c const-string/jumbo vAA, string@BBBBBBBB
           //ConstStringJumbo
           case "const-string/jumbo" : $inst = new ast.stm.Instruction.ConstStringJumbo($a.text,$b.text,$c.value);break;
-          default: System.out.println("insn_format31c: " + $a.text + " unknown");
-
+          default: System.err.println("insn_format31c: " + $a.text + " unknown");
        }
-      
     };
 
 insn_format31i returns [ast.stm.T inst]
@@ -1190,7 +1264,7 @@ insn_format31i returns [ast.stm.T inst]
         case "const" : $inst = new ast.stm.Instruction.Const($a.text,$b.text,$c.value);
         //17 31i const-wide/32 ConstWide32
         case "const-wide/32": $inst = new ast.stm.Instruction.ConstWide32($a.text,$b.text,$c.value);break;
-        default: System.out.println("insn_format31i: " + $a.text + " unknown");
+        default: System.err.println("insn_format31i: " + $a.text + " unknown");
       }
 
     };
@@ -1203,11 +1277,11 @@ insn_format31t returns [ast.stm.T inst]
       {
         //26 31t  fill-array-data  FillArrayData
         case "fill-array-data":$inst = new ast.stm.Instruction.FillArrayData($a.text,$b.text,$c.offorlab);break;
-        //2b 31t  packed-switch  PackedSwitch // throw exception
-        case "packed-switch" : $inst = new ast.stm.Instruction.PackedSwitch();break;
-        //2c 31t  sparse-switch  SparseSwitch // throw exception
-        case "sparse-switch" : $inst = new ast.stm.Instruction.SparseSwitch();break;
-        default: System.out.println("insn_format31t: " + $a.text + " unknown");
+        //2b 31t  packed-switch vAA, +BBBBBBBB 
+        case "packed-switch":$inst = new ast.stm.Instruction.PackedSwitch($a.text,$b.text,$c.offorlab);break;
+        //2c 31t  sparse-switch vAA, +BBBBBBBB 
+        case "sparse-switch":$inst = new ast.stm.Instruction.SparseSwitch($a.text,$b.text,$c.offorlab);break;
+        default: System.err.println("insn_format31t: " + $a.text + " unknown");
       }
     };
 
@@ -1225,7 +1299,7 @@ insn_format32x returns [ast.stm.T inst]
          case "move-wide/16" : $inst = new ast.stm.Instruction.MoveWide16($a.text,$b.text,$c.text);break;
          //09 32x  move-object/16 MoveObject16
          case "move-object/16" : $inst = new ast.stm.Instruction.MoveObject16($a.text,$b.text,$c.text);break;
-         default: System.out.println("insn_format32x: " + $a.text + " unknown");
+         default: System.err.println("insn_format32x: " + $a.text + " unknown");
 
        }
 
@@ -1250,20 +1324,20 @@ insn_format35c_method returns [ast.stm.T inst]
         case "invoke-static" : $inst = new ast.stm.Instruction.InvokeStatic($a.text,$b.argList,$c.methodItem);break;
         //72: invoke-interface   InvokeInterface
         case "invoke-interface" : $inst = new ast.stm.Instruction.InvokeInterface($a.text,$b.argList,$c.methodItem);break;
-        default: System.out.println("insn_format35c_method: " + $a.text + " unknown");
+        default: System.err.println("insn_format35c_method: " + $a.text + " unknown");
       }
      
     };
 
 insn_format35c_type returns [ast.stm.T inst]
   : //e.g. filled-new-array {}, I
-    ^(I_STATEMENT_FORMAT35c_TYPE a=INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor)
+    ^(I_STATEMENT_FORMAT35c_TYPE a=INSTRUCTION_FORMAT35c_TYPE b=register_list c=nonvoid_type_descriptor)
     {
       switch($a.text)
       {
         //24 35c  filled-new-array FilledNewArray
-        case "filled-new-array" : $inst = new ast.stm.Instruction.FilledNewArray();break;
-        default: System.out.println("insn_format35c_type: " + $a.text + " unknown");
+        case "filled-new-array" : $inst = new ast.stm.Instruction.FilledNewArray($a.text,$b.argList,$c.type_desc);break;
+        default: System.err.println("insn_format35c_type: " + $a.text + " unknown");
       }
       
     };
@@ -1285,7 +1359,7 @@ insn_format3rc_method returns [ast.stm.T inst]
           case "invoke-static/range" : $inst = new ast.stm.Instruction.InvokeStaticRange($a.text,$b.started,$b.ended,$c.methodItem);break;
           //78: invoke-interface/range InvokeInterfaceRange
           case "invoke-interface/range" : $inst = new ast.stm.Instruction.InvokeInterfaceRange($a.text,$b.started,$b.ended,$c.methodItem);break;
-          default: System.out.println("insn_format3rc_method: " + $a.text + " unknown");
+          default: System.err.println("insn_format3rc_method: " + $a.text + " unknown");
         }
 
     };
@@ -1299,7 +1373,7 @@ insn_format3rc_type returns [ast.stm.T inst]
         //25 3rc filled-new-array/range
         //FilledNewArrayRange
         case "filled-new-array/range" : $inst = new ast.stm.Instruction.FilledNewArrayRange();break;
-        default: System.out.println("insn_format3rc_type: " + $a.text + " unknown");
+        default: System.err.println("insn_format3rc_type: " + $a.text + " unknown");
       }
 
     };
@@ -1309,14 +1383,14 @@ insn_format41c_type returns [ast.stm.T inst]
   : //e.g. const-class/jumbo v2, org/jf/HelloWorld2/HelloWorld2
     ^(I_STATEMENT_FORMAT41c_TYPE INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
     {
-         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+         System.err.println("insn_format20bc: can not find in dalvik bytecode" );
     };  
 // can not find
 insn_format41c_field returns [ast.stm.T inst]
   : //e.g. sget-object/jumbo v0, Ljava/lang/System;->out:LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT41c_FIELD INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
     {
-         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+         System.err.println("insn_format20bc: can not find in dalvik bytecode" );
     };  
 
 insn_format51l_type returns [ast.stm.T inst]
@@ -1327,7 +1401,7 @@ insn_format51l_type returns [ast.stm.T inst]
       {
           //18 51l  const-wide  ConstWide
           case "const-wide" : $inst = new ast.stm.Instruction.ConstWide($a.text,$b.text,$c.value);break;
-          default: System.out.println("insn_format51l_type: " + $a.text + " unknown");
+          default: System.err.println("insn_format51l_type: " + $a.text + " unknown");
       }
         
     };
@@ -1336,29 +1410,53 @@ insn_format52c_type returns [ast.stm.T inst]
   : //e.g. instance-of/jumbo v0, v1, Ljava/lang/String;
     ^(I_STATEMENT_FORMAT52c_TYPE INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
     {
-         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+         System.err.println("insn_format52c_type: can not find in dalvik bytecode" );
     }; 
 // can not find
 insn_format52c_field returns [ast.stm.T inst]
   : //e.g. iput-object/jumbo v1, v0, Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
     ^(I_STATEMENT_FORMAT52c_FIELD INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
     {
-         System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+         System.err.println("insn_format52c_field: can not find in dalvik bytecode" );
     }; 
 // can not find
 insn_format5rc_method returns [ast.stm.T inst]
   : //e.g. invoke-virtual/jumbo {} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
     ^(I_STATEMENT_FORMAT5rc_METHOD INSTRUCTION_FORMAT5rc_METHOD register_range fully_qualified_method)
     {
-       System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+       System.err.println("insn_format5rc_method: can not find in dalvik bytecode" );
     };
 // can not find
 insn_format5rc_type returns [ast.stm.T inst]
   : //e.g. filled-new-array/jumbo {} I
     ^(I_STATEMENT_FORMAT5rc_TYPE INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor)
     {
-      System.out.println("insn_format20bc: can not find in dalvik bytecode" );
+      System.err.println("insn_format5rc_type: can not find in dalvik bytecode" );
     }; 
+
+insn_array_data_directive returns [ast.stm.T inst]
+  : //e.g. .array-data 4 1000000 .end array-data
+    ^(I_STATEMENT_ARRAY_DATA ^(I_ARRAY_ELEMENT_SIZE a=short_integral_literal) b=array_elements)
+    {
+      $inst = new ast.stm.Instruction.ArrayDataDirective($a.value,$b.elementList);
+    };
+
+insn_packed_switch_directive returns [ast.stm.T inst]
+  :
+    ^(I_STATEMENT_PACKED_SWITCH ^(I_PACKED_SWITCH_START_KEY a=fixed_32bit_literal)
+      b=packed_switch_targets)
+    {
+        $inst = new ast.stm.Instruction.PackedSwitchDirective($a.value,$b.count,$b.labList);
+    };
+
+insn_sparse_switch_directive returns [ast.stm.T inst]
+  :
+    ^(I_STATEMENT_SPARSE_SWITCH a=sparse_switch_target_count b=sparse_switch_keys c=sparse_switch_targets)
+    {
+        $inst = new ast.stm.Instruction.SparseSwitchDirective($a.txt,$b.keyList,$c.labList);
+    };
+
+
 
 nonvoid_type_descriptor returns [String type_desc]
   : a=(PRIMITIVE_TYPE

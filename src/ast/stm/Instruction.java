@@ -1622,13 +1622,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public Sget(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public Sget(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1641,13 +1641,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetWide(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetWide(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1660,13 +1660,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetObject(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetObject(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1679,13 +1679,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetBoolean(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetBoolean(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1698,13 +1698,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetByte(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetByte(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1717,13 +1717,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetChar(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetChar(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1736,13 +1736,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public ast.classs.FieldItem ref;
-		public SgetShort(String op, String dest, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SgetShort(String op, String dest, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1756,13 +1756,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public Sput(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public Sput(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1775,13 +1775,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputWide(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputWide(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1794,13 +1794,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputObject(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputObject(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1813,13 +1813,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputBoolean(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputBoolean(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1832,13 +1832,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputByte(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputByte(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1851,13 +1851,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputChar(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputChar(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -1870,13 +1870,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String src;
-		public ast.classs.FieldItem ref;
-		public SputShort(String op, String src, FieldItem ref)
+		public ast.classs.FieldItem type;
+		public SputShort(String op, String src, FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.src = src;
-			this.ref = ref;
+			this.type = type;
 		}
 		@Override
 		public void accept(Visitor v)
@@ -2108,14 +2108,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public AddIntLit8(String op, String dest, String source, String value)
+		public AddIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		
@@ -2130,14 +2130,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public RsubIntLit8(String op, String dest, String source, String value)
+		public RsubIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2151,14 +2151,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public MulIntLit8(String op, String dest, String source, String value)
+		public MulIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2172,14 +2172,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public DivIntLit8(String op, String dest, String source, String value)
+		public DivIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2193,14 +2193,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public RemIntLit8(String op, String dest, String source, String value)
+		public RemIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2214,14 +2214,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public AndIntLit8(String op, String dest, String source, String value)
+		public AndIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2235,14 +2235,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public OrIntLit8(String op, String dest, String source, String value)
+		public OrIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2256,14 +2256,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public XorIntLit8(String op, String dest, String source, String value)
+		public XorIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2277,14 +2277,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public ShlIntLit8(String op, String dest, String source, String value)
+		public ShlIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2298,14 +2298,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public ShrIntLit8(String op, String dest, String source, String value)
+		public ShrIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2319,14 +2319,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String source;
+		public String src;
 		public String value;
-		public UshrIntLit8(String op, String dest, String source, String value)
+		public UshrIntLit8(String op, String dest, String src, String value)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.source = source;
+			this.src = src;
 			this.value = value;
 		}
 		@Override
@@ -2398,14 +2398,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public Iget(String op, String dest, String obj, ast.classs.FieldItem type)
+		public Iget(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2419,14 +2419,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetWide(String op, String dest, String obj, ast.classs.FieldItem type)
+		public IgetWide(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2435,19 +2435,19 @@ public class Instruction{ /* This is just a opspace. YKG */
 			v.visit(this);
 		}
 	}
-	//54: iget-object
+	//54: iget-fieldect
 	public static  class IgetOjbect extends T
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetOjbect(String op, String dest, String obj, ast.classs.FieldItem  type)
+		public IgetOjbect(String op, String dest, String field, ast.classs.FieldItem  type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2461,14 +2461,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetBoolean(String op, String dest, String obj, ast.classs.FieldItem type)
+		public IgetBoolean(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2482,14 +2482,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetByte(String op, String dest, String obj, ast.classs.FieldItem type)
+		public IgetByte(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2503,14 +2503,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetChar(String op, String dest, String obj, ast.classs.FieldItem type)
+		public IgetChar(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2524,14 +2524,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	{
 		public String op;
 		public String dest;
-		public String obj;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IgetShort(String op, String dest, String obj, ast.classs.FieldItem type)
+		public IgetShort(String op, String dest, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
 			this.dest = dest;
-			this.obj = obj;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2544,15 +2544,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class Iput extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public Iput(String op, String source, String obj, ast.classs.FieldItem type)
+		public Iput(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2565,15 +2565,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputWide extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IputWide(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputWide(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2587,15 +2587,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputObject extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IputObject(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputObject(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2608,16 +2608,16 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputBoolean extends T
 	{
 		public String op;
-		public String source;
+		public String src;
 		public String obj;
 		public String field;
 		public ast.classs.FieldItem type;
-		public IputBoolean(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputBoolean(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2630,15 +2630,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputByte extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IputByte(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputByte(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2651,15 +2651,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputChar extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IputChar(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputChar(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2672,15 +2672,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static  class IputShort extends T
 	{
 		public String op;
-		public String source;
-		public String obj;
+		public String src;
+		public String field;
 		public ast.classs.FieldItem type;
-		public IputShort(String op, String source, String obj, ast.classs.FieldItem type)
+		public IputShort(String op, String src, String field, ast.classs.FieldItem type)
 		{
 			super();
 			this.op = op;
-			this.source = source;
-			this.obj = obj;
+			this.src = src;
+			this.field = field;
 			this.type = type;
 		}
 		@Override
@@ -2703,15 +2703,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public AddIntLit16(String op, String dest, String source,
+			public AddIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2725,14 +2725,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public RsubInt(String op, String dest, String source, String value)
+			public RsubInt(String op, String dest, String src, String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2746,15 +2746,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public MulIntLit16(String op, String dest, String source,
+			public MulIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2768,15 +2768,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public DivIntLit16(String op, String dest, String source,
+			public DivIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2790,15 +2790,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public RemIntLit16(String op, String dest, String source,
+			public RemIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2812,15 +2812,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public AndIntLit16(String op, String dest, String source,
+			public AndIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2834,15 +2834,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public OrIntLit16(String op, String dest, String source,
+			public OrIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -2856,15 +2856,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public String dest;
-			public String source;
+			public String src;
 			public String value;
-			public XorIntLit16(String op, String dest, String source,
+			public XorIntLit16(String op, String dest, String src,
 					String value)
 			{
 				super();
 				this.op = op;
 				this.dest = dest;
-				this.source = source;
+				this.src = src;
 				this.value = value;
 			}
 			@Override
@@ -4292,10 +4292,13 @@ public class Instruction{ /* This is just a opspace. YKG */
 			public String op;
 			public String test;
 			public String offset;
-			public PackedSwitch() //throws Exception
+			public PackedSwitch(String op, String test, String offset)//throws Exception
 			{
-				//throw new Exception();
-				System.out.println("Instruction: packed-switch");
+				super();
+				//throw new Exception();			
+				this.op = op;
+				this.test = test;
+				this.offset = offset;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4314,11 +4317,16 @@ public class Instruction{ /* This is just a opspace. YKG */
 			public String op;
 			public String test;
 			public String offset;
-			public SparseSwitch() //throws Exception
+			public SparseSwitch(String op, String test, String offset) //throws Exception
 			{
+				super();
 				//throw new Exception();
-				System.out.println("Instruction: sparse-switch");
+				
+				this.op = op;
+				this.test = test;
+				this.offset = offset;
 			}
+
 			@Override
 			public void accept(Visitor v)
 			{
@@ -4394,7 +4402,7 @@ public class Instruction{ /* This is just a opspace. YKG */
 		//insn_format35c_method:INSTRUCTION_FORMAT35c_METHOD register_list fully_qualified_method
 		//e.g. invoke-virtual {} java/io/PrintStream/print(Ljava/lang/Stream;)V
 
-		//insn_format35c_type £º:INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor
+		//insn_format35c_type:INSTRUCTION_FORMAT35c_TYPE register_list nonvoid_type_descriptor
 		//e.g. filled-new-array {}, I
 
 	    
@@ -4405,11 +4413,16 @@ public class Instruction{ /* This is just a opspace. YKG */
 			public List<String> argList;
 			public String type;
 			
-			public FilledNewArray() //throws Exception 
+			
+			public FilledNewArray(String op, List<String> argList, String type)
 			{
-				//throw new Exception();
-				System.out.println("Instruction: filled-new-array");
+				super();
+				this.op = op;
+				this.argList = argList;
+				this.type = type;
 			}
+
+
 			@Override
 			public void accept(Visitor v)
 			{
@@ -4430,14 +4443,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public List<String> argList;
-			public ast.classs.MethodItem methodRef;
+			public ast.classs.MethodItem type;
 			public InvokeVirtual(String op, List<String> argList,
-					MethodItem methodRef)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.argList = argList;
-				this.methodRef = methodRef;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4451,14 +4464,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public List<String> argList;
-			public ast.classs.MethodItem methodRef;
+			public ast.classs.MethodItem type;
 			public InvokeSuper(String op, List<String> argList,
-					MethodItem methodRef)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.argList = argList;
-				this.methodRef = methodRef;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4471,14 +4484,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public List<String> argList;
-			public ast.classs.MethodItem methodRef;
+			public ast.classs.MethodItem type;
 			public InvokeDirect(String op, List<String> argList,
-					MethodItem methodRef)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.argList = argList;
-				this.methodRef = methodRef;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4491,14 +4504,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public List<String> argList;
-			public ast.classs.MethodItem methodRef;
+			public ast.classs.MethodItem type;
 			public InvokeStatic(String op, List<String> argList,
-					MethodItem methodRef)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.argList = argList;
-				this.methodRef = methodRef;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4511,14 +4524,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 		{
 			public String op;
 			public List<String> argList;
-			public ast.classs.MethodItem methodRef;
+			public ast.classs.MethodItem type;
 			public InvokeInterface(String op, List<String> argList,
-					MethodItem methodRef)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.argList = argList;
-				this.methodRef = methodRef;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4547,16 +4560,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String op;
 	        public String start;
 	        public String end;
-	        public ast.classs.MethodItem methodItem;
+	        public ast.classs.MethodItem type;
 			public InvokeVirtualRange(String op, String start, String end,
-					MethodItem methodItem)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.start = start;
 				this.end = end;
-				this.methodItem = methodItem;
-			}
+				this.type = type;}
 			@Override
 			public void accept(Visitor v)
 			{
@@ -4569,15 +4581,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String op;
 	        public String start;
 	        public String end;
-	        public ast.classs.MethodItem methodItem;
+	        public ast.classs.MethodItem type;
 			public InvokeSuperRange(String op, String start, String end,
-					MethodItem methodItem)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.start = start;
 				this.end = end;
-				this.methodItem = methodItem;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4591,15 +4603,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String op;
 	        public String start;
 	        public String end;
-	        public ast.classs.MethodItem methodItem;
+	        public ast.classs.MethodItem type;
 			public InvokeDirectRange(String op, String start, String end,
-					MethodItem methodItem)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.start = start;
 				this.end = end;
-				this.methodItem = methodItem;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4613,15 +4625,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String op;
 	        public String start;
 	        public String end;
-	        public ast.classs.MethodItem methodItem;
+	        public ast.classs.MethodItem type;
 			public InvokeStaticRange(String op, String start, String end,
-					MethodItem methodItem)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.start = start;
 				this.end = end;
-				this.methodItem = methodItem;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4635,15 +4647,15 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String op;
 	        public String start;
 	        public String end;
-	        public ast.classs.MethodItem methodItem;
+	        public ast.classs.MethodItem type;
 			public InvokeInterfaceRange(String op, String start, String end,
-					MethodItem methodItem)
+					MethodItem type)
 			{
 				super();
 				this.op = op;
 				this.start = start;
 				this.end = end;
-				this.methodItem = methodItem;
+				this.type = type;
 			}
 			@Override
 			public void accept(Visitor v)
@@ -4698,8 +4710,66 @@ public class Instruction{ /* This is just a opspace. YKG */
 			}
 	    }
 		
-
-		
 	    
+	    // add by myself
 	    
+	    public static class ArrayDataDirective extends T
+	    {
+	    	public String size;
+	    	public List<String> elementList;
+			public ArrayDataDirective(String size, List<String> elementList)
+			{
+				super();
+				this.size = size;
+				this.elementList = elementList;
+			}
+			@Override
+			public void accept(Visitor v)
+			{
+				v.visit(this);
+			}
+	    }
+	    public static class PackedSwitchDirective extends T
+	    {
+	    	public String key;
+	    	public String count;
+	    	public List<String>labList;
+			public PackedSwitchDirective(String key, String count,
+					List<String> labList)
+			{
+				super();
+				this.key = key;
+				this.count = count;
+				this.labList = labList;
+			}
+			@Override
+			public void accept(Visitor v)
+			{
+				v.visit(this);
+				
+			} 	
+	    }
+	    
+	    public static class SparseSwitchDirective extends T
+	    {
+	    	
+	    	public String count;
+	    	public List<String> keyList;
+	    	public List<String> labList;
+			public SparseSwitchDirective(String count, List<String> keyList,
+					List<String> labList)
+			{
+				super();
+				this.count = count;
+				this.keyList = keyList;
+				this.labList = labList;
+			}
+			@Override
+			public void accept(Visitor v)
+			{
+				v.visit(this);
+			}
+	    	
+	    }
+    
 }

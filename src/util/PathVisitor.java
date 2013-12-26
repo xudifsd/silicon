@@ -65,7 +65,6 @@ public class PathVisitor {
 
 		TranslateWalker walker = new TranslateWalker(treeStream);
 		ast.classs.Class clazz = walker.smali_file();
-		System.out.println(clazz.source);
 		PrettyPrintVisitor ppv = new PrettyPrintVisitor();
 		clazz.accept(ppv);
 		return tree;

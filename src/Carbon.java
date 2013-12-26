@@ -48,17 +48,16 @@ public class Carbon {
 			InterruptedException, org.antlr.runtime.RecognitionException {
 		carbon = new Carbon();
 		// cmd = new CommandLine();
-
 		if (args.length != 1) {
 			System.err.println("Usage: java -cp bin Carbon A.apk");
 			System.exit(1);
 		}
 		String fname = args[0];
-	//	executeInShell("java -jar jar/apktool.jar d " + fname + " output",
-		//		System.out, System.err);
+		executeInShell("java -jar jar/apktool.jar d " + fname + " output",
+				System.out, System.err);
 
 		List<CommonTree> allAst = forEachFile(new File("output"), new PathVisitor());
-		for (CommonTree ct: allAst)
-			System.out.println(ct.toStringTree());
+//		for (CommonTree ct: allAst)
+//			System.out.println(ct.toStringTree());
 	}
 }

@@ -20,7 +20,11 @@ public class T {
         version=20
     )
     public float c;
-    
+
+    @AnnotationCons
+    public T() {
+    }
+
     @AnnotationField
     @AnnotationFieldWithValue(version=30)
     public float fieldWithTwoAnnotation;
@@ -35,5 +39,14 @@ public class T {
 
     @InProgressWithRuntimeVisibility
     public void bar() {
+    }
+
+    public int functionWithParmeter(
+            @ParmeterType("int") int i,
+            @ParmeterType("String") String s) {
+        @AnnotationLocal
+        int j;
+        j = 1 + i;
+        return j;
     }
 }

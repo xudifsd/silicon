@@ -10,13 +10,9 @@ import org.antlr.runtime.CommonTokenStream;
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.CommonTreeNodeStream;
 import org.jf.smali.LexerErrorInterface;
 import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.smaliParser;
-
-import antlr3.TranslateWalker;
-import ast.PrettyPrintVisitor;
 
 public class PathVisitor {
 	public CommonTree visit(String path) throws RecognitionException {
@@ -60,13 +56,6 @@ public class PathVisitor {
 			System.out.println("return false");
 
 		CommonTree tree = (CommonTree) result.getTree();
-		CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
-		treeStream.setTokenStream(tokens);
-
-		TranslateWalker walker = new TranslateWalker(treeStream);
-		ast.classs.Class clazz = walker.smali_file();
-		PrettyPrintVisitor ppv = new PrettyPrintVisitor();
-		clazz.accept(ppv);
 		return tree;
 	}
 }

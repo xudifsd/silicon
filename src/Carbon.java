@@ -3,8 +3,15 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.LinkedList;
+
 import util.PathVisitor;
+
+import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
+import org.antlr.runtime.tree.CommonTreeNodeStream;
+
+import antlr3.TranslateWalker;
+import ast.PrettyPrintVisitor;
 
 public class Carbon {
 	static Carbon carbon;
@@ -30,7 +37,8 @@ public class Carbon {
 		return p.exitValue();
 	}
 
-	public static List<CommonTree> forEachFile(File path, PathVisitor visitor) throws org.antlr.runtime.RecognitionException {
+	public static List<CommonTree> forEachFile(File path, PathVisitor visitor)
+			throws RecognitionException {
 		List<CommonTree> list = new LinkedList<CommonTree>();
 		File[] result = path.listFiles();
 		for (int i = 0; i < result.length; i++) {
@@ -44,6 +52,18 @@ public class Carbon {
 		return list;
 	}
 
+	public static void prettyPrint(List<CommonTree> allAst)
+			throws RecognitionException {
+		for (CommonTree tree : allAst) {
+			CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
+
+			TranslateWalker walker = new TranslateWalker(treeStream);
+			ast.classs.Class clazz = walker.smali_file();
+			PrettyPrintVisitor ppv = new PrettyPrintVisitor();
+			clazz.accept(ppv);
+		}
+	}
+
 	public static void main(String[] args) throws IOException,
 			InterruptedException, org.antlr.runtime.RecognitionException {
 		carbon = new Carbon();
@@ -53,11 +73,11 @@ public class Carbon {
 			System.exit(1);
 		}
 		String fname = args[0];
-		executeInShell("java -jar jar/apktool.jar d " + fname + " output",
+		executeInShell("java -jar jar/apktool.jar d -f " + fname + " output",
 				System.out, System.err);
 
-		List<CommonTree> allAst = forEachFile(new File("output"), new PathVisitor());
-//		for (CommonTree ct: allAst)
-//			System.out.println(ct.toStringTree());
+		List<CommonTree> allAst = forEachFile(new File("output"),
+				new PathVisitor());
+		prettyPrint(allAst);
 	}
 }

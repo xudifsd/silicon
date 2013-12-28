@@ -22,7 +22,7 @@ public class PrettyPrintVisitor implements Visitor
 	private FileWriter fileWrite;
 	
 	
-	// create file： *.smali
+	// create *.smali
 	private void createFile(String fullyQualifiedName) throws IOException
 	{
 		
@@ -31,8 +31,11 @@ public class PrettyPrintVisitor implements Visitor
 						+ ".smali";
 		int index = fullyQualifiedName.lastIndexOf('/');
 		
-		this.folderName = "smalioutput/"
-		                  + fullyQualifiedName.substring(1,index);
+		if (index != -1)
+			this.folderName = "smalioutput/"
+	                  + fullyQualifiedName.substring(1,index);
+		else
+			this.folderName = "smalioutput/";
 		
 		File file = new File(this.folderName);
 		//create folder

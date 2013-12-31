@@ -45,6 +45,10 @@ public class PrettyPrintVisitor implements Visitor {
 		this.fileWrite = new FileWriter(this.filePath, true);
 	}
 
+	/* *
+	 * handle string literal escape, panic when meet escaped ASCII code eg.
+	 * System.out.println("a'b\'c"); will output a'b'c
+	 */
 	private String processString(String str) {
 		String ret = str.substring(1, str.length() - 1);
 		StringBuilder sb = new StringBuilder(ret.length());
@@ -54,10 +58,9 @@ public class PrettyPrintVisitor implements Visitor {
 			case '\\':
 				sb.append("\\\\");
 				break;
-			/*
-			 * case '\'': System.err.format("encounted ', original is %s\n",
-			 * str); sb.append("\\\'"); break;
-			 */
+			case '\'':
+				sb.append("\\\'");
+				break;
 			case '\"':
 				sb.append("\\\"");
 				break;
@@ -71,16 +74,19 @@ public class PrettyPrintVisitor implements Visitor {
 				sb.append("\\t");
 				break;
 			default:
+				if (c >= 0 && c < 0x20) {
+					System.err
+							.println("=================================================");
+					System.err
+							.println("panic in PrettyPrintVisitor.java: processString()");
+					System.err
+							.println("=================================================");
+					System.exit(0x20);
+				}
 				sb.append(c);
 			}
 		}
 		return "\"" + sb.toString() + "\"";
-		/*
-		 * ret = ret.replace("\\", "\\\\"); ret = ret.replace("\'", "\\\'"); ret
-		 * = ret.replace("\"", "\\\""); ret = ret.replace("\n", "\\n");// "\n"
-		 * ret = ret.replace("\r", "\\r"); ret = ret.replace("\t", "\\t");
-		 * return "\"" + ret + "\"";
-		 */
 	}
 
 	private void indent() {
@@ -181,9 +187,9 @@ public class PrettyPrintVisitor implements Visitor {
 				for (ast.annotation.Annotation annotation : field.annotationList) {
 					this.sayln(annotation.toString());
 				}
+				if (field.annotationList.size() > 0)
+					this.sayln(".end field");
 			}
-			if (field.initValue != null || field.annotationList != null)
-				this.sayln(".end field");
 		}
 		for (ast.method.Method method : classs.methods) {
 			this.position = 0;
@@ -199,10 +205,13 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(ast.method.Method method) {
 
+		boolean isAbstract = false;
 		Collections.sort(method.catchList);
 		Collections.sort(method.labelList);
 		this.say(".method ");
 		for (String access : method.accessList) {
+			if (access.equals("abstract"))
+				isAbstract = true;
 			this.say(access + " ");
 		}
 		this.say(method.name);
@@ -213,11 +222,6 @@ public class PrettyPrintVisitor implements Visitor {
 			this.say(method.registers_directive + " ");
 			this.sayln(method.registers_directive_count + "");
 		}
-		// annotations
-		if (method.annotationList != null)
-			for (ast.annotation.Annotation annotation : method.annotationList) {
-				this.sayln(annotation.toString());
-			}
 		// parameters
 		for (ast.method.Method.Parameter parameter : method.parameterList) {
 			this.printSpace();
@@ -233,8 +237,16 @@ public class PrettyPrintVisitor implements Visitor {
 					this.sayln(".end parameter");
 				}
 			}
-
 		}
+		if (!isAbstract) {
+			this.printSpace();
+			this.sayln(".prologue");
+		}
+		// annotations
+		if (method.annotationList != null)
+			for (ast.annotation.Annotation annotation : method.annotationList) {
+				this.sayln(annotation.toString());
+			}
 		this.sayln("");
 
 		List<ast.method.Method.Label> labelList = method.labelList;
@@ -334,6 +346,37 @@ public class PrettyPrintVisitor implements Visitor {
 				this.printSpace();
 				stm.accept(this);
 				this.sayln("");
+			}
+		}
+
+		/* (source)
+		 * current version    |         prev version(b25fa6c)
+		 *---------------------------------------------------
+		 * instruction        |         instruction
+		 * :try_end_3         |         .end method
+		 * .catch....         |
+		 * .end method        |
+		 */
+		while (labelIndex < method.labelList.size()
+				&& this.position == labelValue) {
+			this.printSpace();
+			this.sayln(currentLab.toString());
+			if (currentLab.lab.startsWith("try_end")) {
+				while (catchIndex < method.catchList.size()
+						&& this.position == catchValue) {
+					this.printSpace();
+					this.sayln(currentCatch.toString());
+					catchIndex++;
+					if (catchIndex < method.catchList.size()) {
+						currentCatch = method.catchList.get(catchIndex);
+						catchValue = Integer.parseInt(currentCatch.add);
+					}
+				}
+			}
+			labelIndex++;
+			if (labelIndex < method.labelList.size()) {
+				currentLab = method.labelList.get(labelIndex);
+				labelValue = Integer.parseInt(currentLab.add);
 			}
 		}
 

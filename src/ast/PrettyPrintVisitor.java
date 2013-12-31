@@ -22,7 +22,6 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// create *.smali
 	private void createFile(String fullyQualifiedName) throws IOException {
-
 		this.filePath = "smalioutput/"
 				+ fullyQualifiedName.substring(1,
 						fullyQualifiedName.length() - 1) + ".smali";
@@ -51,42 +50,8 @@ public class PrettyPrintVisitor implements Visitor {
 	 */
 	private String processString(String str) {
 		String ret = str.substring(1, str.length() - 1);
-		StringBuilder sb = new StringBuilder(ret.length());
-		for (int i = 0; i < ret.length(); i++) {
-			char c = ret.charAt(i);
-			switch (c) {
-			case '\\':
-				sb.append("\\\\");
-				break;
-			case '\'':
-				sb.append("\\\'");
-				break;
-			case '\"':
-				sb.append("\\\"");
-				break;
-			case '\n':
-				sb.append("\\n");
-				break;
-			case '\r':
-				sb.append("\\r");
-				break;
-			case '\t':
-				sb.append("\\t");
-				break;
-			default:
-				if (c >= 0 && c < 0x20) {
-					System.err
-							.println("=================================================");
-					System.err
-							.println("panic in PrettyPrintVisitor.java: processString()");
-					System.err
-							.println("=================================================");
-					System.exit(0x20);
-				}
-				sb.append(c);
-			}
-		}
-		return "\"" + sb.toString() + "\"";
+		ret = util.StringUtils.escapeString(ret);
+		return "\"" + ret + "\"";
 	}
 
 	private void indent() {
@@ -111,8 +76,6 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	private void say(String s) {
-		// System.err.print(s);
-		// System.out.print(s);
 		try {
 			this.fileWrite.write(s);
 		} catch (IOException e) {
@@ -121,8 +84,6 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	private void sayln(String s) {
-		// System.err.println(s);
-		// System.out.println(s);
 		try {
 			this.fileWrite.write(s + "\n");
 		} catch (IOException e) {
@@ -141,6 +102,7 @@ public class PrettyPrintVisitor implements Visitor {
 			this.createFile(clazz.FullyQualifiedName);
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.exit(1);
 		}
 		ast.classs.Class classs = (ast.classs.Class) clazz;
 		this.say(".class ");
@@ -204,14 +166,13 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(ast.method.Method method) {
-
-		boolean isAbstract = false;
+		boolean ignorePrologue = false;
 		Collections.sort(method.catchList);
 		Collections.sort(method.labelList);
 		this.say(".method ");
 		for (String access : method.accessList) {
-			if (access.equals("abstract"))
-				isAbstract = true;
+			if (access.equals("abstract") || access.equals("native"))
+				ignorePrologue = true;
 			this.say(access + " ");
 		}
 		this.say(method.name);
@@ -238,7 +199,7 @@ public class PrettyPrintVisitor implements Visitor {
 				}
 			}
 		}
-		if (!isAbstract) {
+		if (!ignorePrologue) {
 			this.printSpace();
 			this.sayln(".prologue");
 		}
@@ -350,12 +311,12 @@ public class PrettyPrintVisitor implements Visitor {
 		}
 
 		/* (source)
-		 * current version    |         prev version(b25fa6c)
+		 * current version     |         prev version(b25fa6c)
 		 *---------------------------------------------------
-		 * instruction        |         instruction
-		 * :try_end_3         |         .end method
-		 * .catch....         |
-		 * .end method        |
+		 * instruction         |         instruction
+		 * :try_end_3          |         .end method
+		 * .catch....          |
+		 * .end method         |
 		 */
 		while (labelIndex < method.labelList.size()
 				&& this.position == labelValue) {
@@ -2006,7 +1967,6 @@ public class PrettyPrintVisitor implements Visitor {
 		this.unIndent();
 		this.printSpace();
 		this.sayln(".end sparse-switch");
-
 	}
 
 	public PrettyPrintVisitor() {
@@ -2480,5 +2440,4 @@ public class PrettyPrintVisitor implements Visitor {
 		//
 		// e3..ff 10x (unused)///
 	}
-
 }

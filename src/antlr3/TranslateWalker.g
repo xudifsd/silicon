@@ -40,7 +40,7 @@ package antlr3;
 
 smali_file returns [ast.classs.Class clazz]
   : ^(I_CLASS_DEF header methods fields annotations)
-  
+
   {
   	  $clazz = new ast.classs.Class();
   	  $clazz.FullyQualifiedName = $header.className;
@@ -50,6 +50,7 @@ smali_file returns [ast.classs.Class clazz]
       $clazz.implementsList = $header.implementsList;
   	  $clazz.methods = $methods.methodList;
       $clazz.fieldList = $fields.fieldList;
+      $clazz.annotationList = $annotations.annotationList;
   }
   ;
 
@@ -58,9 +59,9 @@ header returns [String className, String superName, String source, List<String> 
 @init{
 	$superName = "Ljava/lang/Object;";
 }
-  : class_spec super_spec? implements_list source_spec 
+  : class_spec super_spec? implements_list source_spec
   {
-  	$className = $class_spec.className; 
+  	$className = $class_spec.className;
   	$accessList =  $class_spec.accessList;
   	$superName = $super_spec.className;
   	$source = $source_spec.source;
@@ -96,7 +97,7 @@ implements_list returns [List<String> implementsList]
 }
   : (implements_spec {$implementsList.add($implements_spec.className);} )*
   {
-    
+
   };
 
 source_spec returns [String source]
@@ -125,14 +126,14 @@ fields returns[List<ast.classs.Class.Field> fieldList]
   fieldList = new ArrayList<ast.classs.Class.Field>();
 }
   : ^(I_FIELDS
-      (a= field 
+      (a= field
       {
         $fieldList.add($a.fieldd);
       })*);
 
 methods returns [List<ast.method.Method> methodList]
 @init{
-	$methodList = new ArrayList<ast.method.Method>(); 
+	$methodList = new ArrayList<ast.method.Method>();
 }
   : ^(I_METHODS
       (method
@@ -141,34 +142,33 @@ methods returns [List<ast.method.Method> methodList]
       })*);
 
 field returns[ast.classs.Class.Field fieldd]
-  :^(I_FIELD a=SIMPLE_NAME b=access_list ^(I_FIELD_TYPE c=nonvoid_type_descriptor) field_initial_value annotations?)
+  :^(I_FIELD a=SIMPLE_NAME b=access_list ^(I_FIELD_TYPE c=nonvoid_type_descriptor) d=field_initial_value annotations?)
   {
-      $fieldd = new ast.classs.Class.Field($a.text,$b.accessList,$c.type_desc);
+        $fieldd = new ast.classs.Class.Field($a.text,$b.accessList,$c.type_desc,$d.value,$annotations.annotationList);
   };
 
 
-field_initial_value
-  : ^(I_FIELD_INITIAL_VALUE literal) {}
+field_initial_value returns [String value]
+  : ^(I_FIELD_INITIAL_VALUE a=literal) {$value = $a.value;}
   | /*epsilon*/;
 
-literal 
-  : integer_literal {} 
-  | long_literal {}
-  | short_literal {}
-  | byte_literal {}
-  | float_literal {}
-  | double_literal {}
-  | char_literal {}
-  | string_literal {}
-  | bool_literal {}
-  | NULL_LITERAL {}
-  | type_descriptor {}
-  | array_literal {} 
-  | subannotation {}
-  | field_literal {}
-  | method_literal {} 
-  | enum_literal {};  
-
+literal returns [String value]
+  : integer_literal { $value = $integer_literal.value;}
+  | long_literal { $value = $long_literal.value;}
+  | short_literal {$value = $short_literal.value;}
+  | byte_literal { $value = $byte_literal.value;}
+  | float_literal { $value = $float_literal.value;}
+  | double_literal { $value = $double_literal.value;}
+  | char_literal { $value = $char_literal.value;}
+  | string_literal { $value = $string_literal.value;}
+  | bool_literal { $value = $bool_literal.value;}
+  | NULL_LITERAL { $value = $NULL_LITERAL.text;}
+  | type_descriptor { $value = $type_descriptor.value;}
+  | array_literal { $value = $array_literal.value;}
+  | subannotation { $value = $subannotation.value;}
+  | field_literal { $value = $field_literal.value;}
+  | method_literal { $value = $method_literal.value;}
+  | enum_literal { $value = $enum_literal.value;};
 
 //everything but string
 fixed_size_literal returns [String value]
@@ -293,7 +293,7 @@ method returns [ast.method.Method method]
       {
         $method.pSwitchDecList = $packed_switch_declarations.pSwitchDecList;
       }
-      sparse_switch_declarations 
+      sparse_switch_declarations
       {
         $method.sSwitchDecList = $sparse_switch_declarations.sSwitchDecList;
       }
@@ -304,16 +304,23 @@ method returns [ast.method.Method method]
       catches
       {
         $method.catchList = $catches.catchList;
-      } 
-      parameters 
+      }
+      parameters
       {
-        
+        $method.parameterList = $parameters.parameterList;
       }
       ordered_debug_directives
+      {
+        $method.debugList = $ordered_debug_directives.debugList;
+      }
       annotations
+      {
+        if($annotations.annotationList !=  null)
+          $method.annotationList = $annotations.annotationList;
+      }
     )
   {
-  
+
   };
 
 method_prototype returns [ast.method.Method.MethodPrototype prototype]
@@ -391,7 +398,7 @@ packed_switch_declarations returns[List<ast.method.Method.PSwitchDec> pSwitchDec
 {
   pSwitchDecList = new ArrayList<ast.method.Method.PSwitchDec>();
 }
-  : ^(I_PACKED_SWITCH_DECLARATIONS 
+  : ^(I_PACKED_SWITCH_DECLARATIONS
      (a=packed_switch_declaration{$pSwitchDecList.add($a.pSwitchDec);})*);
 
 packed_switch_declaration returns[ast.method.Method.PSwitchDec pSwitchDec]
@@ -405,7 +412,7 @@ sparse_switch_declarations returns[List<ast.method.Method.SSwitchDec> sSwitchDec
 {
   sSwitchDecList = new ArrayList<ast.method.Method.SSwitchDec>();
 }
-  : ^(I_SPARSE_SWITCH_DECLARATIONS 
+  : ^(I_SPARSE_SWITCH_DECLARATIONS
     (a=sparse_switch_declaration{$sSwitchDecList.add($a.sSwitchDec);})*);
 
 sparse_switch_declaration returns[ast.method.Method.SSwitchDec sSwitchDec]
@@ -419,8 +426,8 @@ catches returns[List<ast.method.Method.Catch> catchList]
 {
   catchList = new ArrayList<ast.method.Method.Catch>();
 }
- : ^(I_CATCHES 
-     (a=catch_directive{catchList.add($a.catchh);})* 
+ : ^(I_CATCHES
+     (a=catch_directive{catchList.add($a.catchh);})*
      (b=catchall_directive{catchList.add($b.catchh);})*);
 
 catch_directive returns[ast.method.Method.Catch catchh]
@@ -437,27 +444,40 @@ catchall_directive returns[ast.method.Method.Catch catchh]
 
 address returns[String add]
   : I_ADDRESS
-    { 
+    {
       $add=$I_ADDRESS.text;
     };
 
-parameters
-  : ^(I_PARAMETERS (parameter
+parameters returns[List<ast.method.Method.Parameter> parameterList]
+@init{
+  parameterList = new ArrayList<ast.method.Method.Parameter>();
+}
+  : ^(I_PARAMETERS (a=parameter
         {
+          $parameterList.add($a.para);
         })*
     )
   ;
 
-parameter 
-  : ^(I_PARAMETER (string_literal {}| {}) annotations {}
+parameter returns[ast.method.Method.Parameter para]
+@init{
+  String str =  null;
+}
+  : ^(I_PARAMETER (string_literal{ str = new String($string_literal.value);}|) b=annotations
+    {
+        para = new ast.method.Method.Parameter(str,$b.annotationList);
+    }
     );
 
-ordered_debug_directives
+ordered_debug_directives returns[List<ast.method.Method.Debug> debugList]
+@init{
+  debugList = new ArrayList<ast.method.Method.Debug>();
+}
   : ^(I_ORDERED_DEBUG_DIRECTIVES
        ( line
-       | local
-       | end_local
-       | restart_local
+       | a=local{$debugList.add(new ast.method.Method.Debug(ast.method.Method.Debug.Type.LOCAL,$a.local,null,null,$a.addr));}
+       | b=end_local{$debugList.add(new ast.method.Method.Debug(ast.method.Method.Debug.Type.ENDLOCAL,null,$b.endLocal,null,$b.addr));}
+       | c=restart_local{$debugList.add(new ast.method.Method.Debug(ast.method.Method.Debug.Type.RESTARTLOCAL,null,null,$c.restartLocal,$c.addr));}
        | prologue
        | epilogue
        | source
@@ -469,21 +489,26 @@ line
     {
     };
 
-local
-  : ^(I_LOCAL REGISTER SIMPLE_NAME nonvoid_type_descriptor string_literal? address)
+local returns[ast.method.Method.Debug.Local local,String addr]
+  : ^(I_LOCAL a=REGISTER b=SIMPLE_NAME c=nonvoid_type_descriptor d=string_literal? address)
     {
+      $local = new ast.method.Method.Debug.Local($a.text,$b.text,$c.type_desc,$d.value);
+      $addr = $address.add;
     };
 
-end_local
-  : ^(I_END_LOCAL REGISTER address)
+end_local returns[ast.method.Method.Debug.EndLocal endLocal,String addr]
+  : ^(I_END_LOCAL a=REGISTER address)
     {
+      $endLocal = new ast.method.Method.Debug.EndLocal($a.text);
+      $addr = $address.add;
     };
 
-restart_local
-  : ^(I_RESTART_LOCAL REGISTER address)
+restart_local returns[ast.method.Method.Debug.RestartLocal restartLocal,String addr]
+  : ^(I_RESTART_LOCAL a=REGISTER address)
     {
+      $restartLocal = new ast.method.Method.Debug.RestartLocal($a.text);
+      $addr = $address.add;
     };
-
 prologue
   : ^(I_PROLOGUE address)
     {
@@ -510,7 +535,7 @@ statements returns [List<ast.stm.T> instList]
 
 label_ref returns[String txt]
   : a=SIMPLE_NAME
-    { 
+    {
         $txt = $a.text;
     };
 
@@ -615,7 +640,7 @@ instruction returns [ast.stm.T inst]
 
 
 
-insn_format10t returns [ast.stm.T inst] 
+insn_format10t returns [ast.stm.T inst]
 
   : //e.g. goto endloop:
     {}
@@ -689,7 +714,7 @@ insn_format12x returns [ast.stm.T inst]
       {
         switch($a.text)
         {
-          
+
             //01 12x move Move
             case "move": $inst =  new ast.stm.Instruction.Move($a.text,$b.text,$c.text);break;
             //04 12x move-wide MoveWide
@@ -743,7 +768,7 @@ insn_format12x returns [ast.stm.T inst]
 
             //b0: add-int/2addr AddInt2Addr
             case "add-int/2addr": $inst =  new ast.stm.Instruction.AddInt2Addr($a.text,$b.text,$c.text);break;
-            //b1: sub-int/2addr SubInt2Addr    
+            //b1: sub-int/2addr SubInt2Addr
             case "sub-int/2addr": $inst =  new ast.stm.Instruction.SubInt2Addr($a.text,$b.text,$c.text);break;
             //b2: mul-int/2addr MulInt2Addr
             case "mul-int/2addr": $inst =  new ast.stm.Instruction.MulInt2Addr($a.text,$b.text,$c.text);break;
@@ -790,7 +815,7 @@ insn_format12x returns [ast.stm.T inst]
             //c7: sub-float/2addr SubFloat2Addr
             case "sub-float/2addr": $inst =  new ast.stm.Instruction.SubFloat2Addr($a.text,$b.text,$c.text);break;
             //c8: mul-float/2addr MulFloat2Addr
-            case "mul-float/2addr": $inst =  new ast.stm.Instruction.SubFloat2Addr($a.text,$b.text,$c.text);break; 
+            case "mul-float/2addr": $inst =  new ast.stm.Instruction.SubFloat2Addr($a.text,$b.text,$c.text);break;
             //c9: div-float/2addr DivFloat2Addr
             case "div-float/2addr": $inst =  new ast.stm.Instruction.DivFloat2Addr($a.text,$b.text,$c.text);break;
             //ca: rem-float/2addr RemFloat2Addr
@@ -810,7 +835,7 @@ insn_format12x returns [ast.stm.T inst]
       }
       ;
 //can not find
-insn_format20bc returns [ast.stm.T inst]  
+insn_format20bc returns [ast.stm.T inst]
   : //e.g. throw-verification-error generic-error, Lsome/class;
     ^(I_STATEMENT_FORMAT20bc INSTRUCTION_FORMAT20bc verification_error_type verification_error_reference)
     {
@@ -821,7 +846,7 @@ insn_format20t returns [ast.stm.T inst]
   : //e.g. goto/16 endloop:
     ^(I_STATEMENT_FORMAT20t a=INSTRUCTION_FORMAT20t b=offset_or_label)
     {
-        
+
         switch($a.text)
         {
            case "goto/16": $inst = new ast.stm.Instruction.Goto16($a.text,$b.offorlab);break;
@@ -836,7 +861,7 @@ insn_format21c_field returns [ast.stm.T inst]
     {
         switch($a.text)
         {
-          
+
           //60: sget Sget
           case"sget" : $inst = new ast.stm.Instruction.Sget($a.text,$b.text,$c.fieldItem);break;
           //61: sget-wide SgetWide
@@ -874,7 +899,7 @@ insn_format21c_string returns [ast.stm.T inst]
   : //e.g. const-string v1, "Hello World!"
     ^(I_STATEMENT_FORMAT21c_STRING a=INSTRUCTION_FORMAT21c_STRING b=REGISTER c=string_literal)
     {
-      
+
       switch($a.text)
       {
         //1a 21c  const-string ConstString
@@ -886,7 +911,7 @@ insn_format21c_string returns [ast.stm.T inst]
 
 insn_format21c_type returns [ast.stm.T inst]
   : //e.g. const-class v2, org/jf/HelloWorld2/HelloWorld2
-    ^(I_STATEMENT_FORMAT21c_TYPE a=INSTRUCTION_FORMAT21c_TYPE b=REGISTER c=reference_type_descriptor) 
+    ^(I_STATEMENT_FORMAT21c_TYPE a=INSTRUCTION_FORMAT21c_TYPE b=REGISTER c=reference_type_descriptor)
     {
 
         switch($a.text)
@@ -927,7 +952,7 @@ insn_format21s returns [ast.stm.T inst]
         case "const-wide/16" : $inst = new ast.stm.Instruction.ConstWide16($a.text,$b.text,$c.value);break;
         default: System.err.println("insn_format21s: " + $a.text + " unknown");
       }
-      
+
     };
 
 insn_format21t returns [ast.stm.T inst]
@@ -936,7 +961,7 @@ insn_format21t returns [ast.stm.T inst]
     {
       switch($a.text)
       {
-        //38..3d 21t 
+        //38..3d 21t
         //38: if-eqz IfEqz
         case "if-eqz" : $inst = new ast.stm.Instruction.IfEqz($a.text,$b.text,$c.offorlab);break;
         //39: if-nez IfNez
@@ -992,7 +1017,7 @@ insn_format22c_field returns [ast.stm.T inst]
     {
        switch($a.text)
        {
-          //52..5f 22c  
+          //52..5f 22c
           //iinstanceop vA, vB, field@CCCC
           //52: iget  Iget
           case "iget" : $inst = new ast.stm.Instruction.Iget($a.text,$b.text,$c.text,$d.fieldItem);break;
@@ -1010,7 +1035,7 @@ insn_format22c_field returns [ast.stm.T inst]
           case "iget-short" : $inst = new ast.stm.Instruction.IgetShort($a.text,$b.text,$c.text,$d.fieldItem);break;
           //59: iput Iput
           case "iput" : $inst = new ast.stm.Instruction.Iput($a.text,$b.text,$c.text,$d.fieldItem);break;
-          //5a: iput-wide IputWide 
+          //5a: iput-wide IputWide
           case "iput-wide" : $inst = new ast.stm.Instruction.IputWide($a.text,$b.text,$c.text,$d.fieldItem);break;
           //5b: iput-object IputObject
           case "iput-object" : $inst = new ast.stm.Instruction.IputObject($a.text,$b.text,$c.text,$d.fieldItem);break;
@@ -1075,17 +1100,17 @@ insn_format22t returns [ast.stm.T inst]
       {
         //32..37 22t  if-test vA, vB, +CCCC
         //32: if-eq IfEq
-        case "if-eq" : $inst = new ast.stm.Instruction.IfEq($a.text,$b.text,$c.text,$d.text);break;
+        case "if-eq" : $inst = new ast.stm.Instruction.IfEq($a.text,$b.text,$c.text,$d.offorlab);break;
         //33: if-ne IfNe
-        case "if-ne" : $inst = new ast.stm.Instruction.IfNe($a.text,$b.text,$c.text,$d.text);break;
+        case "if-ne" : $inst = new ast.stm.Instruction.IfNe($a.text,$b.text,$c.text,$d.offorlab);break;
         //34: if-lt IfLt
-        case "if-lt" : $inst = new ast.stm.Instruction.IfLt($a.text,$b.text,$c.text,$d.text);break;
+        case "if-lt" : $inst = new ast.stm.Instruction.IfLt($a.text,$b.text,$c.text,$d.offorlab);break;
         //35: if-ge IfGe
-        case "if-ge" : $inst = new ast.stm.Instruction.IfGe($a.text,$b.text,$c.text,$d.text);break;
+        case "if-ge" : $inst = new ast.stm.Instruction.IfGe($a.text,$b.text,$c.text,$d.offorlab);break;
         //36: if-gt IfGt
-        case "if-gt" : $inst = new ast.stm.Instruction.IfGt($a.text,$b.text,$c.text,$d.text);break;
+        case "if-gt" : $inst = new ast.stm.Instruction.IfGt($a.text,$b.text,$c.text,$d.offorlab);break;
         //37: if-le IfLe
-        case "if-le" : $inst = new ast.stm.Instruction.IfLe($a.text,$b.text,$c.text,$d.text);break;
+        case "if-le" : $inst = new ast.stm.Instruction.IfLe($a.text,$b.text,$c.text,$d.offorlab);break;
         default: System.err.println("insn_format22t: " + $a.text + " unknown");
       }
     };
@@ -1219,7 +1244,7 @@ insn_format23x returns [ast.stm.T inst]
           case "div-double" : $inst = new ast.stm.Instruction.DivDouble($a.text,$b.text,$c.text,$d.text);break;
           //af: rem-double RemDouble
           case "rem-double" : $inst = new ast.stm.Instruction.RemDouble($a.text,$b.text,$c.text,$d.text);break;
- 
+
 
           default: System.err.println("insn_format23x: " + $a.text + " unknown");
 
@@ -1277,9 +1302,9 @@ insn_format31t returns [ast.stm.T inst]
       {
         //26 31t  fill-array-data  FillArrayData
         case "fill-array-data":$inst = new ast.stm.Instruction.FillArrayData($a.text,$b.text,$c.offorlab);break;
-        //2b 31t  packed-switch vAA, +BBBBBBBB 
+        //2b 31t  packed-switch vAA, +BBBBBBBB
         case "packed-switch":$inst = new ast.stm.Instruction.PackedSwitch($a.text,$b.text,$c.offorlab);break;
-        //2c 31t  sparse-switch vAA, +BBBBBBBB 
+        //2c 31t  sparse-switch vAA, +BBBBBBBB
         case "sparse-switch":$inst = new ast.stm.Instruction.SparseSwitch($a.text,$b.text,$c.offorlab);break;
         default: System.err.println("insn_format31t: " + $a.text + " unknown");
       }
@@ -1289,9 +1314,9 @@ insn_format32x returns [ast.stm.T inst]
   : //e.g. move/16 v5678, v1234
     ^(I_STATEMENT_FORMAT32x a=INSTRUCTION_FORMAT32x b=REGISTER c=REGISTER)
     {
-      
+
        switch($a.text)
-       { 
+       {
 
          //03 32x  move/16 Move16
          case "move/16" : $inst = new ast.stm.Instruction.Move16($a.text,$b.text,$c.text);break;
@@ -1326,7 +1351,7 @@ insn_format35c_method returns [ast.stm.T inst]
         case "invoke-interface" : $inst = new ast.stm.Instruction.InvokeInterface($a.text,$b.argList,$c.methodItem);break;
         default: System.err.println("insn_format35c_method: " + $a.text + " unknown");
       }
-     
+
     };
 
 insn_format35c_type returns [ast.stm.T inst]
@@ -1339,7 +1364,7 @@ insn_format35c_type returns [ast.stm.T inst]
         case "filled-new-array" : $inst = new ast.stm.Instruction.FilledNewArray($a.text,$b.argList,$c.type_desc);break;
         default: System.err.println("insn_format35c_type: " + $a.text + " unknown");
       }
-      
+
     };
 
 insn_format3rc_method returns [ast.stm.T inst]
@@ -1384,14 +1409,14 @@ insn_format41c_type returns [ast.stm.T inst]
     ^(I_STATEMENT_FORMAT41c_TYPE INSTRUCTION_FORMAT41c_TYPE REGISTER reference_type_descriptor)
     {
          System.err.println("insn_format20bc: can not find in dalvik bytecode" );
-    };  
+    };
 // can not find
 insn_format41c_field returns [ast.stm.T inst]
   : //e.g. sget-object/jumbo v0, Ljava/lang/System;->out:LJava/io/PrintStream;
     ^(I_STATEMENT_FORMAT41c_FIELD INSTRUCTION_FORMAT41c_FIELD REGISTER fully_qualified_field)
     {
          System.err.println("insn_format20bc: can not find in dalvik bytecode" );
-    };  
+    };
 
 insn_format51l_type returns [ast.stm.T inst]
   : //e.g. const-wide v0, 5000000000L
@@ -1403,7 +1428,7 @@ insn_format51l_type returns [ast.stm.T inst]
           case "const-wide" : $inst = new ast.stm.Instruction.ConstWide($a.text,$b.text,$c.value);break;
           default: System.err.println("insn_format51l_type: " + $a.text + " unknown");
       }
-        
+
     };
 // can not find
 insn_format52c_type returns [ast.stm.T inst]
@@ -1411,14 +1436,14 @@ insn_format52c_type returns [ast.stm.T inst]
     ^(I_STATEMENT_FORMAT52c_TYPE INSTRUCTION_FORMAT52c_TYPE REGISTER REGISTER nonvoid_type_descriptor)
     {
          System.err.println("insn_format52c_type: can not find in dalvik bytecode" );
-    }; 
+    };
 // can not find
 insn_format52c_field returns [ast.stm.T inst]
   : //e.g. iput-object/jumbo v1, v0, Lorg/jf/HelloWorld2/HelloWorld2;->helloWorld:Ljava/lang/String;
     ^(I_STATEMENT_FORMAT52c_FIELD INSTRUCTION_FORMAT52c_FIELD REGISTER REGISTER fully_qualified_field)
     {
          System.err.println("insn_format52c_field: can not find in dalvik bytecode" );
-    }; 
+    };
 // can not find
 insn_format5rc_method returns [ast.stm.T inst]
   : //e.g. invoke-virtual/jumbo {} java/lang/StringBuilder/append(Ljava/lang/String;)Ljava/lang/StringBuilder;
@@ -1432,7 +1457,7 @@ insn_format5rc_type returns [ast.stm.T inst]
     ^(I_STATEMENT_FORMAT5rc_TYPE INSTRUCTION_FORMAT5rc_TYPE register_range nonvoid_type_descriptor)
     {
       System.err.println("insn_format5rc_type: can not find in dalvik bytecode" );
-    }; 
+    };
 
 insn_array_data_directive returns [ast.stm.T inst]
   : //e.g. .array-data 4 1000000 .end array-data
@@ -1475,20 +1500,15 @@ reference_type_descriptor returns [String ref_desc]
   }
   ;
 
-
-
-
-
-
 class_type_descriptor returns [String className]
   : CLASS_DESCRIPTOR
   {
   	$className = $CLASS_DESCRIPTOR.text;
   };
 
-type_descriptor returns [String type_desc]
+type_descriptor returns [String type_desc,String value]
   : VOID_TYPE { $type_desc = "V"; /* void */ }
-  | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; }
+  | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; $value =  $nonvoid_type_descriptor.type_desc; }
   ;
 
 short_integral_literal returns [String value]
@@ -1496,7 +1516,7 @@ short_integral_literal returns [String value]
   | a=integer_literal{$value = $a.value;}
   | a=short_literal {$value = $a.value;}
   | a=char_literal {$value = $a.value;}
-  | a=byte_literal {$value = $a.value;} 
+  | a=byte_literal {$value = $a.value;}
   ;
 
 integral_literal returns[String value]
@@ -1534,52 +1554,76 @@ string_literal returns [String value]
 bool_literal returns [String value]
   :  a=BOOL_LITERAL {$value = $a.text;};
 
-array_literal
+array_literal returns [String value]
+@init{
+  value = new String();
+  value  = "{ ";
+}  : {}
+    ^(I_ENCODED_ARRAY (a=literal { value = value + $a.value + " ,";})*)
+    {
+        $value = $value.substring(0,$value.length()-1);
+        $value = $value + " }";
+    };
+
+
+annotations returns [List<ast.annotation.Annotation> annotationList]
+@init{
+  annotationList = new ArrayList<ast.annotation.Annotation>();
+}
   : {}
-    ^(I_ENCODED_ARRAY (literal {})*)
+    ^(I_ANNOTATIONS (a=annotation { $annotationList.add($a.anno);} )*)
     {
     };
 
 
-annotations
-  : {}
-    ^(I_ANNOTATIONS (annotation {} )*)
+annotation returns [ast.annotation.Annotation anno]
+  : ^(I_ANNOTATION a=ANNOTATION_VISIBILITY b=subannotation)
     {
+      $anno  = new ast.annotation.Annotation($a.text,$b.subAnno);
     };
 
-
-annotation
-  : ^(I_ANNOTATION ANNOTATION_VISIBILITY subannotation)
-    {
-    };
-
-annotation_element
-  : ^(I_ANNOTATION_ELEMENT SIMPLE_NAME literal)
-    {
-    };
-
-subannotation
+subannotation returns [ast.annotation.Annotation.SubAnnotation subAnno,String value]
+@init{
+  List<ast.annotation.Annotation.AnnotationElement> elementList  = new ArrayList<ast.annotation.Annotation.AnnotationElement>();
+}
   :
     ^(I_SUBANNOTATION
-        class_type_descriptor
-        (annotation_element
+        a=class_type_descriptor {}
+        (b=annotation_element
         {
+          elementList.add($b.element);
         }
         )*
      )
-    ;
+     {
+        $subAnno = new ast.annotation.Annotation.SubAnnotation($a.className,elementList);
+        $value = ".subannotation " + $subAnno.toString() + ".end subannotation";
+     };
 
-field_literal
-  : ^(I_ENCODED_FIELD fully_qualified_field)
+annotation_element returns [ast.annotation.Annotation.AnnotationElement element]
+  : ^(I_ANNOTATION_ELEMENT a=SIMPLE_NAME b=literal)
     {
+      $element = new ast.annotation.Annotation.AnnotationElement($a.text,$b.value);
     };
 
-method_literal
-  : ^(I_ENCODED_METHOD fully_qualified_method)
+field_literal returns [String value]
+@init{
+  System.out.println("-----------find field-----------");
+}
+  : ^(I_ENCODED_FIELD a=fully_qualified_field)
     {
+      $value = $a.fieldItem.toString();
     };
 
-enum_literal
-  : ^(I_ENCODED_ENUM fully_qualified_field)
+method_literal returns [String value]
+  : ^(I_ENCODED_METHOD a=fully_qualified_method)
     {
+      $value = $a.methodItem.toString();
+      //$value = "La/a/a/a/a/a/a/e/a;->a(Ljava/io/OutputStream;)V";
+    };
+
+enum_literal returns [String value]
+  : ^(I_ENCODED_ENUM a=fully_qualified_field)
+    {
+       $value = ".enum " + $a.fieldItem.toString();
     };

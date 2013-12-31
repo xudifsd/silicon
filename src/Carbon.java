@@ -1,16 +1,14 @@
 import java.io.File;
 import java.io.IOException;
-
 import java.io.PrintStream;
-import java.util.List;
 import java.util.LinkedList;
-
-import util.PathVisitor;
+import java.util.List;
 
 import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
 
+import util.PathVisitor;
 import antlr3.TranslateWalker;
 import ast.PrettyPrintVisitor;
 

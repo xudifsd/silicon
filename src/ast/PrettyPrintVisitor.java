@@ -47,13 +47,40 @@ public class PrettyPrintVisitor implements Visitor {
 
 	private String processString(String str) {
 		String ret = str.substring(1, str.length() - 1);
-		ret = ret.replace("\n", "\\n");
-		ret = ret.replace("\r", "\\r");
-		ret = ret.replace("\t", "\\t");
-		ret = ret.replace("\\", "\\\\");
-		ret = ret.replace("\'", "\\\'");
-		ret = ret.replace("\"", "\\\"");
-		return "\"" + ret + "\"";
+		StringBuilder sb = new StringBuilder(ret.length());
+		for (int i = 0; i < ret.length(); i++) {
+			char c = ret.charAt(i);
+			switch (c) {
+			case '\\':
+				sb.append("\\\\");
+				break;
+			/*
+			 * case '\'': System.err.format("encounted ', original is %s\n",
+			 * str); sb.append("\\\'"); break;
+			 */
+			case '\"':
+				sb.append("\\\"");
+				break;
+			case '\n':
+				sb.append("\\n");
+				break;
+			case '\r':
+				sb.append("\\r");
+				break;
+			case '\t':
+				sb.append("\\t");
+				break;
+			default:
+				sb.append(c);
+			}
+		}
+		return "\"" + sb.toString() + "\"";
+		/*
+		 * ret = ret.replace("\\", "\\\\"); ret = ret.replace("\'", "\\\'"); ret
+		 * = ret.replace("\"", "\\\""); ret = ret.replace("\n", "\\n");// "\n"
+		 * ret = ret.replace("\r", "\\r"); ret = ret.replace("\t", "\\t");
+		 * return "\"" + ret + "\"";
+		 */
 	}
 
 	private void indent() {
@@ -128,13 +155,35 @@ public class PrettyPrintVisitor implements Visitor {
 			this.sayln(".implements " + s);
 		}
 
+		// annotations
+		for (ast.annotation.Annotation annotation : clazz.annotationList) {
+			this.sayln(annotation.toString());
+		}
+
 		// fileds
 		for (ast.classs.Class.Field field : clazz.fieldList) {
 			this.say(".field ");
 			for (String str : field.accessList)
 				this.say(str + " ");
 			this.say(field.name + ":");
-			this.sayln(field.type);
+			this.say(field.type);
+			// initialvalue
+			if (field.initValue != null) {
+				if (field.initValue.startsWith("\""))
+					field.initValue = this.processString(field.initValue);
+				this.sayln(" = " + field.initValue);
+			}
+
+			else
+				this.sayln("");
+			// annotations
+			if (field.annotationList != null) {
+				for (ast.annotation.Annotation annotation : field.annotationList) {
+					this.sayln(annotation.toString());
+				}
+			}
+			if (field.initValue != null || field.annotationList != null)
+				this.sayln(".end field");
 		}
 		for (ast.method.Method method : classs.methods) {
 			this.position = 0;
@@ -164,20 +213,42 @@ public class PrettyPrintVisitor implements Visitor {
 			this.say(method.registers_directive + " ");
 			this.sayln(method.registers_directive_count + "");
 		}
-		for (int i = 0; i < method.prototype.argsType.size(); i++) {
+		// annotations
+		if (method.annotationList != null)
+			for (ast.annotation.Annotation annotation : method.annotationList) {
+				this.sayln(annotation.toString());
+			}
+		// parameters
+		for (ast.method.Method.Parameter parameter : method.parameterList) {
 			this.printSpace();
-			this.sayln(".parameter");
+			if (parameter.value != null)
+				this.sayln(".parameter " + parameter.value);
+			else
+				this.sayln(".parameter");
+			// annotations
+			for (ast.annotation.Annotation annotation : parameter.annotationList) {
+				this.sayln(annotation.toString());
+				if (parameter.annotationList.size() > 0) {
+					this.printSpace();
+					this.sayln(".end parameter");
+				}
+			}
+
 		}
 		this.sayln("");
 
 		List<ast.method.Method.Label> labelList = method.labelList;
 		List<ast.method.Method.Catch> catchList = method.catchList;
+		List<ast.method.Method.Debug> debugList = method.debugList;
 		int labelIndex = 0;
 		int catchIndex = 0;
+		int debugIndex = 0;
 		int labelValue = -1;
 		int catchValue = -1;
+		int debugValue = -1;
 		ast.method.Method.Label currentLab = null;
 		ast.method.Method.Catch currentCatch = null;
+		ast.method.Method.Debug currentDebug = null;
 		if (method.labelList.size() != 0) {
 			currentLab = labelList.get(labelIndex);
 			labelValue = Integer.parseInt(currentLab.add);
@@ -186,13 +257,27 @@ public class PrettyPrintVisitor implements Visitor {
 			currentCatch = catchList.get(catchIndex);
 			catchValue = Integer.parseInt(currentCatch.add);
 		}
-
+		if (method.debugList.size() != 0) {
+			currentDebug = debugList.get(debugIndex);
+			debugValue = Integer.parseInt(currentDebug.addr);
+		}
 		// int instIndex;
 		// ast.stm.T stm;
 		if (method.labelList.size() == 0) {
 			for (ast.stm.T stm : method.statements) {
+				while (debugIndex < method.debugList.size()
+						&& this.position == debugValue) {
+					this.printSpace();
+					this.sayln(currentDebug.toString());
+					debugIndex++;
+					if (debugIndex < method.debugList.size()) {
+						currentDebug = method.debugList.get(debugIndex);
+						debugValue = Integer.parseInt(currentDebug.addr);
+					}
+				}
 				this.printSpace();
 				stm.accept(this);
+				this.sayln("");
 			}
 		} else {
 			for (ast.stm.T stm : method.statements) {
@@ -210,6 +295,16 @@ public class PrettyPrintVisitor implements Visitor {
 						labelValue = Integer.parseInt(currentLab.add);
 					}
 				} else {
+					while (debugIndex < method.debugList.size()
+							&& this.position == debugValue) {
+						this.printSpace();
+						this.sayln(currentDebug.toString());
+						debugIndex++;
+						if (debugIndex < method.debugList.size()) {
+							currentDebug = method.debugList.get(debugIndex);
+							debugValue = Integer.parseInt(currentDebug.addr);
+						}
+					}
 					while (labelIndex < method.labelList.size()
 							&& this.position == labelValue) {
 						this.printSpace();
@@ -234,15 +329,17 @@ public class PrettyPrintVisitor implements Visitor {
 							labelValue = Integer.parseInt(currentLab.add);
 						}
 					}
+
 				}
 				this.printSpace();
 				stm.accept(this);
+				this.sayln("");
 			}
 		}
 
 		this.unIndent();
-		this.sayln("");
 		this.sayln(".end method");
+		this.sayln(""); // to make diff cleaner
 	}
 
 	@Override
@@ -511,7 +608,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}
@@ -620,42 +717,42 @@ public class PrettyPrintVisitor implements Visitor {
 	// 32: if-eq
 	public void visit(ast.stm.Instruction.IfEq inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 33: if-ne
 	public void visit(ast.stm.Instruction.IfNe inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 34: if-lt
 	public void visit(ast.stm.Instruction.IfLt inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 35: if-ge
 	public void visit(ast.stm.Instruction.IfGe inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 36: if-gt
 	public void visit(ast.stm.Instruction.IfGt inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 37: if-le
 	public void visit(ast.stm.Instruction.IfLe inst) {
 		this.position += this.instLen.get(inst.op);
-		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", "
+		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
@@ -998,7 +1095,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}
@@ -1015,7 +1112,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}
@@ -1032,7 +1129,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}
@@ -1049,7 +1146,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}
@@ -1066,7 +1163,7 @@ public class PrettyPrintVisitor implements Visitor {
 		for (String s : inst.argList) {
 			cnt++;
 			if (cnt < inst.argList.size())
-				this.say(s + ",");
+				this.say(s + ", ");
 			else
 				this.say(s);
 		}

@@ -740,9 +740,9 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static class FloatToDouble extends T
 	{
 		public String op;
-		public String src;
 		public String dest;
-		public FloatToDouble(String op, String src, String dest)
+		public String src;
+		public FloatToDouble(String op, String dest, String src)
 		{
 			super();
 			this.op = op;
@@ -972,9 +972,9 @@ public class Instruction{ /* This is just a opspace. YKG */
 	public static class AndInt2Addr extends T
 	{
 		public String op;
-		public String src;
 		public String dest;
-		public AndInt2Addr(String op, String src, String dest)
+		public String src;
+		public AndInt2Addr(String op, String dest, String src)
 		{
 			super();
 			this.op = op;

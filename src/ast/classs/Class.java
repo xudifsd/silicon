@@ -1,46 +1,47 @@
 package ast.classs;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import ast.Visitor;
+import ast.annotation.Annotation;
 
 public class Class extends T {
-	//public boolean isMain;
+	// public boolean isMain;
 	public String FullyQualifiedName;
 	public List<String> accessList;
 	public String superName;
 	public String source;
-	//
 	public List<String> implementsList;
-	//methods
+	// methods
 	public List<ast.method.Method> methods;
-	
-	
-	//fields
+	// fields
 	public List<Field> fieldList;
-	//annotations
-	
-	
-	public static class Field
-	{
+	// annotations
+	public List<ast.annotation.Annotation> annotationList;
+
+	public static class Field {
 		public String name;
 		public List<String> accessList;
 		public String type;
-		public Field(String name, List<String> accessList, String type)
-		{
+		public String initValue;
+		public List<ast.annotation.Annotation> annotationList;
+
+		public Field(String name, List<String> accessList, String type,
+				String initValue, List<Annotation> annotationList) {
 			super();
 			this.name = name;
 			this.accessList = accessList;
 			this.type = type;
+			this.initValue = initValue;
+			this.annotationList = annotationList;
 		}
-		
+
 	}
+
 	public Class() {
-		//isMain = false;
+		// isMain = false;
 		methods = new LinkedList<ast.method.Method>();
 		implementsList = new ArrayList<String>();
 	}

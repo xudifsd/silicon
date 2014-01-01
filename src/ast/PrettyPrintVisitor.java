@@ -3,6 +3,7 @@ package ast;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +23,8 @@ public class PrettyPrintVisitor implements Visitor {
 	private String filePath;
 	private String folderName;
 	private FileWriter fileWrite;
-
+	//store the .catch and .catchall
+	private List<String> catchList;
 	// create *.smali
 	private void createFile(String fullyQualifiedName) throws IOException {
 		this.filePath = "smalioutput/"
@@ -59,6 +61,26 @@ public class PrettyPrintVisitor implements Visitor {
 				System.err.println("name conflicting " + fullyQualifiedName);
 				System.exit(1);
 			}
+		}
+	}
+	
+	/*
+	 * the format I get from the method.catchList: catch,catch, ,catchall,catchall
+	 * the output for diff in smalifile should be: catchall,catchall,...,catch,catch 
+	 */
+	private void printCatchList()
+	{
+		for(int i = 0; i<this.catchList.size();i++) {
+			if(this.catchList.get(i).startsWith(".catchall")) {
+				this.printSpace();
+				this.sayln(this.catchList.get(i));
+			}
+		}
+		for(int i = 0; i<this.catchList.size();i++) {
+			if(this.catchList.get(i).startsWith(".catchall"))
+				break;
+			this.printSpace();
+			this.sayln(this.catchList.get(i));
 		}
 	}
 
@@ -301,10 +323,13 @@ public class PrettyPrintVisitor implements Visitor {
 						this.printSpace();
 						this.sayln(currentLab.toString());
 						if (currentLab.lab.startsWith("try_end")) {
+							this.catchList = new ArrayList<String>();
 							while (catchIndex < method.catchList.size()
 									&& this.position == catchValue) {
-								this.printSpace();
-								this.sayln(currentCatch.toString());
+								//this.printSpace();
+								//this.sayln(currentCatch.toString());
+								this.catchList.add(currentCatch.toString());
+								
 								catchIndex++;
 								if (catchIndex < method.catchList.size()) {
 									currentCatch = method.catchList
@@ -313,6 +338,7 @@ public class PrettyPrintVisitor implements Visitor {
 											.parseInt(currentCatch.add);
 								}
 							}
+							this.printCatchList();
 						}
 						labelIndex++;
 						if (labelIndex < method.labelList.size()) {
@@ -341,16 +367,19 @@ public class PrettyPrintVisitor implements Visitor {
 			this.printSpace();
 			this.sayln(currentLab.toString());
 			if (currentLab.lab.startsWith("try_end")) {
+				this.catchList = new ArrayList<String>();
 				while (catchIndex < method.catchList.size()
 						&& this.position == catchValue) {
-					this.printSpace();
-					this.sayln(currentCatch.toString());
+					//this.printSpace();
+					//this.sayln(currentCatch.toString());
+					this.catchList.add(currentCatch.toString());
 					catchIndex++;
 					if (catchIndex < method.catchList.size()) {
 						currentCatch = method.catchList.get(catchIndex);
 						catchValue = Integer.parseInt(currentCatch.add);
 					}
 				}
+				this.printCatchList();
 			}
 			labelIndex++;
 			if (labelIndex < method.labelList.size()) {

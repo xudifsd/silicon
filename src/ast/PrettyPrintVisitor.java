@@ -10,6 +10,9 @@ import java.util.Map;
 
 import ast.stm.Instruction;
 
+/* *
+ * This class should be thread safe
+ * */
 public class PrettyPrintVisitor implements Visitor {
 	private final static int TAB = 4;
 	private int indents = 0;

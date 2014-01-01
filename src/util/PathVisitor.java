@@ -15,10 +15,10 @@ import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.smaliParser;
 
 public class PathVisitor {
+	/* *
+	 * visit should be thread safe, because we have multi-thread call this
+	 */
 	public CommonTree visit(String path) throws RecognitionException {
-		if (!path.endsWith(".smali"))
-			return null;
-
 		CommonTokenStream tokens;
 
 		LexerErrorInterface lexer;

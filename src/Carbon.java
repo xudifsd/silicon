@@ -1,19 +1,19 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-import org.antlr.runtime.RecognitionException;
 import org.antlr.runtime.tree.CommonTree;
-import org.antlr.runtime.tree.CommonTreeNodeStream;
 
 import util.PathVisitor;
-import antlr3.TranslateWalker;
-import ast.PrettyPrintVisitor;
 
 public class Carbon {
+	final int numWorkers = 6;
 	static Carbon carbon;
+	ExecutorService executor;
 
 	public static int executeInShell(String cmd, PrintStream stdout,
 			PrintStream stderr) throws IOException, InterruptedException {
@@ -36,37 +36,10 @@ public class Carbon {
 		return p.exitValue();
 	}
 
-	public static List<CommonTree> forEachFile(File path, PathVisitor visitor)
-			throws RecognitionException {
-		List<CommonTree> list = new LinkedList<CommonTree>();
-		File[] result = path.listFiles();
-		for (int i = 0; i < result.length; i++) {
-			if (result[i].isFile()) {
-				CommonTree ct = visitor.visit(result[i].getAbsolutePath());
-				if (ct != null)
-					list.add(ct);
-			} else if (result[i].isDirectory())
-				list.addAll(forEachFile(result[i], visitor));
-		}
-		return list;
-	}
-
-	public static void prettyPrint(List<CommonTree> allAst)
-			throws RecognitionException {
-		for (CommonTree tree : allAst) {
-			CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
-
-			TranslateWalker walker = new TranslateWalker(treeStream);
-			ast.classs.Class clazz = walker.smali_file();
-			PrettyPrintVisitor ppv = new PrettyPrintVisitor();
-			clazz.accept(ppv);
-		}
-	}
-
-	public static void main(String[] args) throws IOException,
-			InterruptedException, org.antlr.runtime.RecognitionException {
-		carbon = new Carbon();
+	public void run(String[] args) throws IOException, InterruptedException,
+			org.antlr.runtime.RecognitionException, ExecutionException {
 		// cmd = new CommandLine();
+		executor = Executors.newFixedThreadPool(numWorkers);
 		if (args.length != 1) {
 			System.err.println("Usage: java -cp bin Carbon A.apk");
 			System.exit(1);
@@ -75,8 +48,23 @@ public class Carbon {
 		executeInShell("java -jar jar/apktool.jar d -f " + fname + " output",
 				System.out, System.err);
 
-		List<CommonTree> allAst = forEachFile(new File("output"),
+		List<CommonTree> allAst;
+		allAst = CompilePass.parseSmaliFile(executor, new File("output"),
 				new PathVisitor());
-		prettyPrint(allAst);
+
+		List<ast.classs.Class> classes;
+		classes = CompilePass.translate(executor, allAst);
+
+		CompilePass.prettyPrint(executor, classes);
+		executor.shutdown();
+	}
+
+	public static void main(String[] args) {
+		try {
+			carbon = new Carbon();
+			carbon.run(args);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }

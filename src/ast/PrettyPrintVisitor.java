@@ -27,7 +27,17 @@ public class PrettyPrintVisitor implements Visitor {
 	private void createFile(String fullyQualifiedName) throws IOException {
 		this.filePath = "smalioutput/"
 				+ fullyQualifiedName.substring(1,
-						fullyQualifiedName.length() - 1) + ".smali";
+						fullyQualifiedName.length() - 1);
+
+		String alterName = this.filePath;
+
+		if (System.getProperty("os.name").equals("Mac OS X"))
+			alterName += ".2.smali";
+		else
+			alterName += ".smali";
+
+		this.filePath += ".smali";
+
 		int index = fullyQualifiedName.lastIndexOf('/');
 
 		if (index != -1)
@@ -37,14 +47,19 @@ public class PrettyPrintVisitor implements Visitor {
 			this.folderName = "smalioutput/";
 
 		File file = new File(this.folderName);
-		// create folder
 		file.mkdirs();
-		// create file
 		file = new File(this.filePath);
-		file.createNewFile();
-
-		// create filewrite
-		this.fileWrite = new FileWriter(this.filePath, true);
+		if (file.createNewFile()) {
+			this.fileWrite = new FileWriter(file, true);
+		} else {
+			file = new File(alterName);
+			if (file.createNewFile()) {
+				this.fileWrite = new FileWriter(file, true);
+			} else {
+				System.err.println("name conflicting " + fullyQualifiedName);
+				System.exit(1);
+			}
+		}
 	}
 
 	/* *

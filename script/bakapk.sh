@@ -11,7 +11,7 @@
     rm -r $dest$folder
 
     # will generate output/ and smalioutput/
-    java -Xmx1g -Xms1g -cp .:./bin:$CLASSPATH Carbon ./test/apk/$1
+    java -Xmx2g -Xms2g -cp .:./bin:$CLASSPATH Carbon ./test/apk/$1
 
     cp -r output /tmp/
     mv  output $dest$folder

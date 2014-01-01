@@ -62,11 +62,14 @@ public class MultiThreadUtils {
 		}
 	}
 
+	/* *
+	 * WARNING, this function will destroy it's argument
+	 * */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static List getFutureResult(List list) throws ExecutionException {
 		List result = new LinkedList();
-		List<Future> tasks = list;
-		for (Future task : tasks) {
+		while (list.size() > 0) {
+			Future task = (Future) list.remove(0);
 			while (true) {
 				if (task.isDone()) {
 					Object obj;

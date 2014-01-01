@@ -10,6 +10,12 @@
     rm -r /tmp/output 2>/dev/null
     rm -r $dest$folder
 
+    export CLASSPATH="."
+    for i in jar/*.jar
+    do
+        export CLASSPATH="$CLASSPATH":$i
+    done
+
     # will generate output/ and smalioutput/
     java -Xmx2g -Xms2g -cp .:./bin:$CLASSPATH Carbon ./test/apk/$1
 

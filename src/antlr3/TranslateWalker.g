@@ -1546,7 +1546,13 @@ double_literal returns[String value]
   :  a=DOUBLE_LITERAL { $value = $a.text; };
 
 char_literal returns[String value]
-  :  a=CHAR_LITERAL { $value = $a.text; };
+  :  a=CHAR_LITERAL 
+  { 
+    $value = $a.text; 
+    $value = $value.substring(1, $value.length() - 1);
+    $value = util.StringUtils.escapeString($value);
+    $value = "\'" + $value + "\'";
+  };
 
 string_literal returns [String value]
   :  a=STRING_LITERAL { $value = $a.text;};

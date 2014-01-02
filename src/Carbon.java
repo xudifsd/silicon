@@ -8,10 +8,11 @@ import java.util.concurrent.Executors;
 
 import org.antlr.runtime.tree.CommonTree;
 
+import control.CommandLine;
+import control.Control;
 import util.PathVisitor;
 
 public class Carbon {
-	final int numWorkers = 6;
 	static Carbon carbon;
 	ExecutorService executor;
 
@@ -38,19 +39,16 @@ public class Carbon {
 
 	public void run(String[] args) throws IOException, InterruptedException,
 			org.antlr.runtime.RecognitionException, ExecutionException {
-		// cmd = new CommandLine();
-		executor = Executors.newFixedThreadPool(numWorkers);
-		if (args.length != 1) {
-			System.err.println("Usage: java -cp bin Carbon A.apk");
-			System.exit(1);
-		}
-		String fname = args[0];
-		executeInShell("java -jar jar/apktool.jar d -f " + fname + " output",
-				System.out, System.err);
+		Control.fileName = CommandLine.scan(args);
+		executor = Executors.newFixedThreadPool(Control.numWorkers);
+
+		String apktoolCMD = "java -jar jar/apktool.jar d -f "
+				+ Control.fileName + " " + Control.apkoutput;
+		executeInShell(apktoolCMD, System.out, System.err);
 
 		List<CommonTree> allAst;
-		allAst = CompilePass.parseSmaliFile(executor, new File("output"),
-				new PathVisitor());
+		allAst = CompilePass.parseSmaliFile(executor, new File(
+				Control.apkoutput), new PathVisitor());
 
 		List<ast.classs.Class> classes;
 

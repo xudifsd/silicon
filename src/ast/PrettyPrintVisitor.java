@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import control.Control;
 import ast.stm.Instruction;
 
 /* *
@@ -25,9 +26,11 @@ public class PrettyPrintVisitor implements Visitor {
 	private FileWriter fileWrite;
 	//store the .catch and .catchall
 	private List<String> catchList;
+
 	// create *.smali
 	private void createFile(String fullyQualifiedName) throws IOException {
-		this.filePath = "smalioutput/"
+		this.filePath = Control.ppoutput
+				+ "/"
 				+ fullyQualifiedName.substring(1,
 						fullyQualifiedName.length() - 1);
 
@@ -43,10 +46,10 @@ public class PrettyPrintVisitor implements Visitor {
 		int index = fullyQualifiedName.lastIndexOf('/');
 
 		if (index != -1)
-			this.folderName = "smalioutput/"
+			this.folderName = Control.ppoutput + "/"
 					+ fullyQualifiedName.substring(1, index);
 		else
-			this.folderName = "smalioutput/";
+			this.folderName = Control.ppoutput + "/";
 
 		File file = new File(this.folderName);
 		file.mkdirs();
@@ -63,21 +66,20 @@ public class PrettyPrintVisitor implements Visitor {
 			}
 		}
 	}
-	
+
 	/*
 	 * the format I get from the method.catchList: catch,catch, ,catchall,catchall
 	 * the output for diff in smalifile should be: catchall,catchall,...,catch,catch 
 	 */
-	private void printCatchList()
-	{
-		for(int i = 0; i<this.catchList.size();i++) {
-			if(this.catchList.get(i).startsWith(".catchall")) {
+	private void printCatchList() {
+		for (int i = 0; i < this.catchList.size(); i++) {
+			if (this.catchList.get(i).startsWith(".catchall")) {
 				this.printSpace();
 				this.sayln(this.catchList.get(i));
 			}
 		}
-		for(int i = 0; i<this.catchList.size();i++) {
-			if(this.catchList.get(i).startsWith(".catchall"))
+		for (int i = 0; i < this.catchList.size(); i++) {
+			if (this.catchList.get(i).startsWith(".catchall"))
 				break;
 			this.printSpace();
 			this.sayln(this.catchList.get(i));
@@ -329,7 +331,7 @@ public class PrettyPrintVisitor implements Visitor {
 								//this.printSpace();
 								//this.sayln(currentCatch.toString());
 								this.catchList.add(currentCatch.toString());
-								
+
 								catchIndex++;
 								if (catchIndex < method.catchList.size()) {
 									currentCatch = method.catchList

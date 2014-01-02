@@ -2,6 +2,7 @@ package control;
 
 import java.util.LinkedList;
 
+@SuppressWarnings("unchecked")
 public class CommandLine {
 	static interface F<X> {
 		public void f(X x);
@@ -26,124 +27,30 @@ public class CommandLine {
 			this.kind = kind;
 			this.action = action;
 		}
-
 	}
 
-	private LinkedList<Arg<Object>> args;
+	private final static LinkedList<Arg<Object>> args;
 
-	@SuppressWarnings("unchecked")
-	public CommandLine() {
-		/*
-		this.args = new util.Flist<Arg<Object>>().addAll(new Arg<Object>(
-				"codegen", "{bytecode|C|dalvik|x86}",
-				"which code generator to use", Kind.String, new F<Object>() {
-					@Override
-					public void f(Object ss) {
-						String s = (String) ss;
-						if (s.equals("bytecode")) {
-							control.Control.codegen = control.Control.Codegen_Kind_t.Bytecode;
-						} else if (s.equals("C")) {
-							control.Control.codegen = control.Control.Codegen_Kind_t.C;
-						} else if (s.equals("dalvik")) {
-							control.Control.codegen = control.Control.Codegen_Kind_t.Dalvik;
-						} else if (s.equals("x86")) {
-							control.Control.codegen = control.Control.Codegen_Kind_t.X86;
-						} else {
-							System.out.println("bad argument: " + s);
-							output();
-							System.exit(1);
-						}
-						return;
-					}
-				}), new Arg<Object>("dump", "<ir>",
-				"dump information about the ir", Kind.String, new F<Object>() {
-					@Override
-					public void f(Object ss) {
-						String s = (String) ss;
-						if (s.equals("ast")) {
-							control.Control.dumpAst = true;
-						} else if (s.equals("c") || s.equals("C")) {
-							control.Control.dumpC = true;
-						} else if (s.equals("cyclone")) {
-							control.Control.dumpCyclone = true;
-						} else if (s.equals("dot")) {
-							control.Control.dumpDot = true;
-						} else {
-							System.out.println("bad argument: " + s);
-							output();
-							System.exit(1);
-						}
-						return;
-					}
-				}), new Arg<Object>("elab", "<arg>",
-				"dump information about elaboration", Kind.String,
-				new F<Object>() {
-					@Override
-					public void f(Object ss) {
-						String s = (String) ss;
-						if (s.equals("classTable")) {
-							control.Control.elabClassTable = true;
-						} else if (s.equals("methodTable"))
-							Control.elabMethodTable = true;
-						else {
-							System.out.println("bad argument: " + s);
-							output();
-							System.exit(1);
-						}
-						return;
-					}
-				}), new Arg<Object>("help", null, "show this help information",
-				Kind.Empty, new F<Object>() {
+	static {
+		args = new util.Flist<Arg<Object>>().addAll(new Arg<Object>("ppoutput",
+				"<outfile>", "set the output dir of the pretty print",
+				Kind.String, new F<Object>() {
 					@Override
 					public void f(Object s) {
-						usage();
-						System.exit(1);
-						return;
+						Control.ppoutput = (String) s;
 					}
-				}), new Arg<Object>("lex", null,
-				"show the result of lexical analysis", Kind.Empty,
+				}), new Arg<Object>("apkoutput", "<outfile>",
+				"set the name of dir output by apktool", Kind.String,
 				new F<Object>() {
 					@Override
 					public void f(Object s) {
-						Control.lex = true;
-						return;
+						Control.apkoutput = (String) s;
 					}
-				}), new Arg<Object>("output", "<outfile>",
-				"set the name of the output file", Kind.String,
-				new F<Object>() {
+				}), new Arg<Object>("worker", "<num>",
+				"how many worker to spawn", Kind.Int, new F<Object>() {
 					@Override
-					public void f(Object s) {
-						Control.outputName = (String) s;
-						return;
-					}
-				}), new Arg<Object>("skip", "<pass>",
-				"which compile pass to skip", Kind.String, new F<Object>() {
-					@Override
-					public void f(Object s) {
-						Control.addPass((String) s);
-						return;
-					}
-				}), new Arg<Object>("testFac", null,
-				"whether or not to test Fac.java", Kind.Empty, new F<Object>() {
-					@Override
-					public void f(Object s) {
-						Control.testFac = true;
-						return;
-					}
-				}), new Arg<Object>("testlexer", null,
-				"whether or not to test the lexer", Kind.Empty,
-				new F<Object>() {
-					@Override
-					public void f(Object s) {
-						Control.testlexer = true;
-						return;
-					}
-				}), new Arg<Object>("trace", "<method>",
-				"which method to trace", Kind.String, new F<Object>() {
-					@Override
-					public void f(Object s) {
-						Control.addTrace((String) s);
-						return;
+					public void f(Object i) {
+						Control.numWorkers = (Integer) i;
 					}
 				}), new Arg<Object>("verbose", "{0|1|2}", "how verbose to be",
 				Kind.Int, new F<Object>() {
@@ -161,35 +68,13 @@ public class CommandLine {
 							Control.verbose = Control.Verbose_t.Detailed;
 							break;
 						}
-						return;
-					}
-				}), new Arg<Object>("visualize", "<bmp|pdf|ps|jpg>",
-				"to visualize a graph", Kind.String, new F<Object>() {
-					@Override
-					public void f(Object ss) {
-						String s = (String) ss;
-						if (s.equals("bmp")) {
-							control.Control.visualize = control.Control.Visualize_Kind_t.Bmp;
-						} else if (s.equals("pdf")) {
-							control.Control.visualize = control.Control.Visualize_Kind_t.Pdf;
-						} else if (s.equals("ps")) {
-							control.Control.visualize = control.Control.Visualize_Kind_t.Ps;
-						} else if (s.equals("jpg")) {
-							control.Control.visualize = control.Control.Visualize_Kind_t.Jpg;
-						} else {
-							System.out.println("bad argument: " + s);
-							output();
-							System.exit(1);
-						}
-						return;
 					}
 				}));
-				*/
 	}
 
 	// scan the command line arguments, return the file name
 	// in it. The file name should be unique.
-	public String scan(String[] cargs) {
+	public static String scan(String[] cargs) {
 		String filename = null;
 
 		for (int i = 0; i < cargs.length; i++) {
@@ -199,14 +84,13 @@ public class CommandLine {
 					continue;
 				} else {
 					System.out
-							.println("Error: can only compile one Java file a time");
+							.println("Error: can only decompile one apk file a time");
 					System.exit(1);
 				}
-			} else
-				;
+			}
 
 			boolean found = false;
-			for (Arg<Object> arg : this.args) {
+			for (Arg<Object> arg : args) {
 				if (!arg.name.equals(cargs[i].substring(1)))
 					continue;
 
@@ -219,7 +103,7 @@ public class CommandLine {
 				default:
 					if (i >= cargs.length - 1) {
 						System.out.println(arg.name + ": requires an argument");
-						this.output();
+						output();
 						System.exit(1);
 					}
 					theArg = cargs[++i];
@@ -233,7 +117,7 @@ public class CommandLine {
 						arg.action.f(new Boolean(false));
 					else {
 						System.out.println(arg.name + ": requires a boolean");
-						this.output();
+						output();
 						System.exit(1);
 					}
 					break;
@@ -243,7 +127,7 @@ public class CommandLine {
 						num = Integer.parseInt(theArg);
 					} catch (java.lang.NumberFormatException e) {
 						System.out.println(arg.name + ": requires an integer");
-						this.output();
+						output();
 						System.exit(1);
 					}
 					arg.action.f(num);
@@ -261,56 +145,50 @@ public class CommandLine {
 				break;
 			}
 			if (!found) {
-				System.out.println("undefined switch: " + cargs[i]);
-				this.output();
+				System.out.println("undefined option: " + cargs[i]);
+				output();
 				System.exit(1);
 			}
 		}
+		if (filename == null)
+			usage();
 		return filename;
 	}
 
-	private void outputSpace(int n) {
+	private static void outputSpace(int n) {
 		if (n < 0)
 			util.Error.bug();
 
 		while (n-- != 0)
 			System.out.print(" ");
-		return;
 	}
 
-	public void output() {
+	private static void output() {
 		int max = 0;
-		for (Arg<Object> a : this.args) {
+		for (Arg<Object> a : args) {
 			int current = a.name.length();
 			if (a.option != null)
 				current += a.option.length();
-			else
-				;
 			if (current > max)
 				max = current;
-			else
-				;
 		}
 		System.out.println("Available options:");
-		for (Arg<Object> a : this.args) {
+		for (Arg<Object> a : args) {
 			int current = a.name.length();
 			System.out.print("   -" + a.name + " ");
 			if (a.option != null) {
 				current += a.option.length();
 				System.out.print(a.option);
-			} else
-				;
+			}
 			outputSpace(max - current + 1);
 			System.out.println(a.desription);
 		}
-		return;
 	}
 
-	public void usage() {
-		System.out
-				.println("The Carbon. Copyright (C) 2013-, SSE of USTC.\n"
-						+ "Usage: java Carbon [options] <filename>\n");
+	private static void usage() {
+		System.out.println("The Carbon. Copyright (C) 2013-, SSE of USTC.\n"
+				+ "Usage: java Carbon [options] <filename>\n");
 		output();
-		return;
+		System.exit(2);
 	}
 }

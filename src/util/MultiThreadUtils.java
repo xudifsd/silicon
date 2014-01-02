@@ -1,44 +1,88 @@
 package util;
 
 import java.io.File;
-import java.util.LinkedList;
-import java.util.List;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
+import org.antlr.runtime.CommonTokenStream;
+import org.antlr.runtime.RecognitionException;
+import org.antlr.runtime.TokenSource;
 import org.antlr.runtime.tree.CommonTree;
 import org.antlr.runtime.tree.CommonTreeNodeStream;
+import org.jf.smali.LexerErrorInterface;
+import org.jf.smali.smaliFlexLexer;
+import org.jf.smali.smaliParser;
 
 import antlr3.TranslateWalker;
 import ast.PrettyPrintVisitor;
-import ast.classs.Class;
 
 public class MultiThreadUtils {
 	public static class ParserWorker implements Callable<CommonTree> {
-		PathVisitor visitor;
-		File f;
+		public String path;
 
-		public ParserWorker(PathVisitor visitor, File f) {
-			this.visitor = visitor;
-			this.f = f;
+		public ParserWorker(String path) {
+			this.path = path;
 		}
 
 		@Override
 		public CommonTree call() throws Exception {
-			return visitor.visit(f.getAbsolutePath());
+			CommonTokenStream tokens;
+
+			LexerErrorInterface lexer;
+			File smaliFile = new File(path);
+
+			FileInputStream fis = null;
+			try {
+				fis = new FileInputStream(smaliFile.getAbsolutePath());
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
+			InputStreamReader reader = null;
+			try {
+				reader = new InputStreamReader(fis, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+
+			lexer = new smaliFlexLexer(reader);
+			// ((smaliFlexLexer)lexer).setSourceFile(smaliFile);
+			tokens = new CommonTokenStream((TokenSource) lexer);
+
+			smaliParser parser = new smaliParser(tokens);
+			parser.setVerboseErrors(true);
+
+			smaliParser.smali_file_return result = null;
+			try {
+				result = parser.smali_file();
+			} catch (RecognitionException e) {
+				e.printStackTrace();
+			}
+
+			if (parser.getNumberOfSyntaxErrors() > 0
+					|| lexer.getNumberOfSyntaxErrors() > 0)
+				System.out.println("return false");
+
+			CommonTree tree = (CommonTree) result.getTree();
+			return tree;
 		}
 	}
 
+	/* *
+	 * Laziness is a programmer's prime virtue, so does some memory consumers
+	 * */
 	public static class TranslateWorker implements Callable<ast.classs.Class> {
-		CommonTree tree;
+		public ParserWorker parserWorker;
 
-		public TranslateWorker(CommonTree tree) {
-			this.tree = tree;
+		public TranslateWorker(ParserWorker parserWorker) {
+			this.parserWorker = parserWorker;
 		}
 
 		@Override
 		public ast.classs.Class call() throws Exception {
+			CommonTree tree = parserWorker.call();
 			CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
 
 			TranslateWalker walker = new TranslateWalker(treeStream);
@@ -46,43 +90,21 @@ public class MultiThreadUtils {
 		}
 	}
 
-	public static class PrettyPrintWorker implements Callable<Void> {
-		ast.classs.Class clazz;
+	public static class PrettyPrintWorker implements Runnable {
+		TranslateWorker worker;
 
-		public PrettyPrintWorker(Class clazz) {
-			super();
-			this.clazz = clazz;
+		public PrettyPrintWorker(TranslateWorker worker) {
+			this.worker = worker;
 		}
 
 		@Override
-		public Void call() throws Exception {
+		public void run() {
 			PrettyPrintVisitor ppv = new PrettyPrintVisitor();
-			clazz.accept(ppv);
-			return null;
-		}
-	}
-
-	/* *
-	 * WARNING, this function will destroy it's argument
-	 * */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static List getFutureResult(List list) throws ExecutionException {
-		List result = new LinkedList();
-		while (list.size() > 0) {
-			Future task = (Future) list.remove(0);
-			while (true) {
-				if (task.isDone()) {
-					Object obj;
-					try {
-						obj = task.get();
-					} catch (InterruptedException e) {
-						continue;
-					}
-					result.add(obj);
-					break;
-				}
+			try {
+				worker.call().accept(ppv);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 		}
-		return result;
 	}
 }

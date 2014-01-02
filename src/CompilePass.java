@@ -1,16 +1,17 @@
 import java.io.File;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.antlr.runtime.RecognitionException;
-import org.antlr.runtime.tree.CommonTree;
 
-import util.PathVisitor;
-import util.MultiThreadUtils;
+import control.Control;
+import util.MultiThreadUtils.ParserWorker;
+import util.MultiThreadUtils.TranslateWorker;
+import util.MultiThreadUtils.PrettyPrintWorker;
 
 public class CompilePass {
 	private static ArrayList<File> getAllSmali(File startPoint) {
@@ -24,53 +25,45 @@ public class CompilePass {
 		return result;
 	}
 
-	@SuppressWarnings("unchecked")
-	public static List<CommonTree> parseSmaliFile(ExecutorService executor,
-			File path, PathVisitor visitor) throws RecognitionException,
-			ExecutionException {
-		List<Future<CommonTree>> tasks = new LinkedList<Future<CommonTree>>();
-
+	/* *
+	 * NOTE, we don't do the real work here, because if we do, it will consume
+	 * a lot of memory.
+	 * */
+	public static List<ParserWorker> parseSmaliFile(File path) {
 		ArrayList<File> files = getAllSmali(path);
+		ArrayList<ParserWorker> result = new ArrayList<ParserWorker>();
 
 		for (File f : files)
-			tasks.add(executor.submit(new MultiThreadUtils.ParserWorker(
-					visitor, f)));
+			result.add(new ParserWorker(f.getAbsolutePath()));
 
-		files = null;
-
-		return util.MultiThreadUtils.getFutureResult(tasks);
+		return result;
 	}
 
-	/* *
-	 * WARNING, this function will destroy it's argument
-	 * */
-	@SuppressWarnings("unchecked")
-	public static List<ast.classs.Class> translate(ExecutorService executor,
-			List<CommonTree> allAst) throws ExecutionException {
-		ArrayList<Future<ast.classs.Class>> tasks = new ArrayList<Future<ast.classs.Class>>();
+	public static List<TranslateWorker> translate(List<ParserWorker> workers) {
+		ArrayList<TranslateWorker> result = new ArrayList<TranslateWorker>();
 
-		while (allAst.size() > 0) {
-			CommonTree tree = allAst.remove(0);
-			tasks.add(executor
-					.submit(new MultiThreadUtils.TranslateWorker(tree)));
+		for (ParserWorker parserWorker : workers)
+			result.add(new TranslateWorker(parserWorker));
+
+		return result;
+	}
+
+	public static void prettyPrint(List<TranslateWorker> workers)
+			throws RecognitionException, ExecutionException {
+		ExecutorService executor = Executors
+				.newFixedThreadPool(Control.numWorkers);
+
+		for (TranslateWorker worker : workers)
+			executor.submit(new PrettyPrintWorker(worker));
+
+		executor.shutdown();
+		while (true) {
+			try {
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+				break;
+			} catch (InterruptedException e) {
+				continue;
+			}
 		}
-
-		allAst = null;
-
-		return util.MultiThreadUtils.getFutureResult(tasks);
-	}
-
-	public static void prettyPrint(ExecutorService executor,
-			List<ast.classs.Class> allAst) throws RecognitionException,
-			ExecutionException {
-		ArrayList<Future<Void>> tasks = new ArrayList<Future<Void>>();
-
-		for (ast.classs.Class clazz : allAst)
-			tasks.add(executor.submit(new MultiThreadUtils.PrettyPrintWorker(
-					clazz)));
-
-		allAst = null;
-
-		util.MultiThreadUtils.getFutureResult(tasks);
 	}
 }

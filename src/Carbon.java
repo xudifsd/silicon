@@ -3,18 +3,14 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
-import org.antlr.runtime.tree.CommonTree;
 
 import control.CommandLine;
 import control.Control;
-import util.PathVisitor;
+import util.MultiThreadUtils.TranslateWorker;
+import util.MultiThreadUtils.ParserWorker;
 
 public class Carbon {
 	static Carbon carbon;
-	ExecutorService executor;
 
 	public static int executeInShell(String cmd, PrintStream stdout,
 			PrintStream stderr) throws IOException, InterruptedException {
@@ -40,24 +36,19 @@ public class Carbon {
 	public void run(String[] args) throws IOException, InterruptedException,
 			org.antlr.runtime.RecognitionException, ExecutionException {
 		Control.fileName = CommandLine.scan(args);
-		executor = Executors.newFixedThreadPool(Control.numWorkers);
 
 		String apktoolCMD = "java -jar jar/apktool.jar d -f "
 				+ Control.fileName + " " + Control.apkoutput;
 		executeInShell(apktoolCMD, System.out, System.err);
 
-		List<CommonTree> allAst;
-		allAst = CompilePass.parseSmaliFile(executor, new File(
-				Control.apkoutput), new PathVisitor());
+		List<ParserWorker> workers;
+		workers = CompilePass.parseSmaliFile(new File(Control.apkoutput));
 
-		List<ast.classs.Class> classes;
+		List<TranslateWorker> classes;
+		classes = CompilePass.translate(workers);
+		workers = null;
 
-		// WARNING, CompilePass.translate() will destroy allAst
-		classes = CompilePass.translate(executor, allAst);
-		allAst = null;
-
-		CompilePass.prettyPrint(executor, classes);
-		executor.shutdown();
+		CompilePass.prettyPrint(classes);
 	}
 
 	public static void main(String[] args) {

@@ -8,7 +8,7 @@
     rm -r smalioutput 2>/dev/null
     rm -r output 2>/dev/null
     rm -r /tmp/output 2>/dev/null
-    rm -r $dest$folder
+    rm -r $dest$folder 2>/dev/null
 
     export CLASSPATH="."
     for i in jar/*.jar

@@ -36,17 +36,26 @@ public class CompilePass {
 			tasks.add(executor.submit(new MultiThreadUtils.ParserWorker(
 					visitor, f)));
 
+		files = null;
+
 		return util.MultiThreadUtils.getFutureResult(tasks);
 	}
 
+	/* *
+	 * WARNING, this function will destroy it's argument
+	 * */
 	@SuppressWarnings("unchecked")
 	public static List<ast.classs.Class> translate(ExecutorService executor,
 			List<CommonTree> allAst) throws ExecutionException {
 		ArrayList<Future<ast.classs.Class>> tasks = new ArrayList<Future<ast.classs.Class>>();
 
-		for (CommonTree tree : allAst)
+		while (allAst.size() > 0) {
+			CommonTree tree = allAst.remove(0);
 			tasks.add(executor
 					.submit(new MultiThreadUtils.TranslateWorker(tree)));
+		}
+
+		allAst = null;
 
 		return util.MultiThreadUtils.getFutureResult(tasks);
 	}
@@ -59,6 +68,8 @@ public class CompilePass {
 		for (ast.classs.Class clazz : allAst)
 			tasks.add(executor.submit(new MultiThreadUtils.PrettyPrintWorker(
 					clazz)));
+
+		allAst = null;
 
 		util.MultiThreadUtils.getFutureResult(tasks);
 	}

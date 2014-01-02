@@ -17,7 +17,7 @@ import ast.stm.Instruction;
 public class PrettyPrintVisitor implements Visitor {
 	private final static int TAB = 4;
 	private int indents = 0;
-	private Map<String, Integer> instLen;
+	public static final Map<String, Integer> instLen;
 	// record the position for current method
 	private int position;
 	private String filePath;
@@ -420,231 +420,231 @@ public class PrettyPrintVisitor implements Visitor {
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 00 10x nop
 	public void visit(ast.stm.Instruction.Nop inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op);
 	}
 
 	// 01 12x move vA, vB
 	public void visit(ast.stm.Instruction.Move inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 02 22x move/from16 vAA, vBBBB
 	public void visit(ast.stm.Instruction.MoveFrom16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 03 32x move/16 vAAAA, vBBBB ------
 	public void visit(ast.stm.Instruction.Move16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 04 12x move-wide vA, vB
 	public void visit(ast.stm.Instruction.MoveWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 05 22x move-wide/from16 vAA, vBBBB
 	public void visit(ast.stm.Instruction.MoveWideFrom16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 06 32x move-wide/16 vAAAA, vBBBB -----
 	public void visit(ast.stm.Instruction.MoveWide16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 07 12x move-object vA, vB
 	public void visit(ast.stm.Instruction.MoveObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 
 	}
 
 	// 08 22x move-object/from16 vAA, vBBBB --
 	public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 
 	}
 
 	// 09 32x move-object/16 vAAAA, vBBBB
 	public void visit(ast.stm.Instruction.MoveObject16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 
 	}
 
 	// 0a 11x move-result vAA
 	public void visit(ast.stm.Instruction.MoveResult inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest);
 
 	}
 
 	// 0b 11x move-result-wide vAA
 	public void visit(ast.stm.Instruction.MoveResultWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest);
 
 	}
 
 	// 0c 11x move-result-object vAA
 	public void visit(ast.stm.Instruction.MoveResultObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest);
 
 	}
 
 	// 0d 11x move-exception vAA
 	public void visit(ast.stm.Instruction.MoveException inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest);
 
 	}
 
 	// 0e 10x return-void
 	public void visit(ast.stm.Instruction.ReturnVoid inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op);
 
 	}
 
 	// 0f 11x return vAA
 	public void visit(ast.stm.Instruction.Return inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ret);
 
 	}
 
 	// 10 11x return-wide vAA
 	public void visit(ast.stm.Instruction.ReturnWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ret);
 	}
 
 	// 11 11x return-object vAA
 	public void visit(ast.stm.Instruction.ReturnObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ret);
 
 	}
 
 	// 12 11n const/4 vA, #+B
 	public void visit(ast.stm.Instruction.Const4 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 13 21s const/16 vAA, #+BBBB
 	public void visit(ast.stm.Instruction.Const16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 14 31i const vAA, #+BBBBBBBB
 	public void visit(ast.stm.Instruction.Const inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 15 21h const/high16 vAA, #+BBBB0000
 	public void visit(ast.stm.Instruction.ConstHigh16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 16 21s const-wide/16 vAA, #+BBBB
 	public void visit(ast.stm.Instruction.ConstWide16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 17 31i const-wide/32 vAA, #+BBBBBBBB
 	public void visit(ast.stm.Instruction.ConstWide32 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 18 51l const-wide vAA, #+BBBBBBBBBBBBBBBB
 	public void visit(ast.stm.Instruction.ConstWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 19 21h const-wide/high16 vAA, #+BBBB000000000000
 	public void visit(ast.stm.Instruction.ConstWideHigh16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 1a 21c const-string vAA, string@BBBB
 	public void visit(ast.stm.Instruction.ConstString inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		inst.str = this.processString(inst.str);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.str);
 	}
 
 	// 1b 31c const-string/jumbo vAA, string@BBBBBBBB
 	public void visit(ast.stm.Instruction.ConstStringJumbo inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		inst.str = this.processString(inst.str);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.str);
 	}
 
 	// 1c 21c const-class vAA, type@BBBB
 	public void visit(ast.stm.Instruction.ConstClass inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type);
 	}
 
 	// 1d 11x monitor-enter vAA
 	public void visit(ast.stm.Instruction.MonitorEnter inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ref);
 	}
 
 	// 1e 11x monitor-exit vAA
 	public void visit(ast.stm.Instruction.MonitorExit inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ref);
 	}
 
 	// 1f 21c check-cast vAA, type@BBBB
 	public void visit(ast.stm.Instruction.CheckCast inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.ref + ", " + inst.type);
 	}
 
 	// 20 22c instance-of vA, vB, type@CCCC
 	public void visit(ast.stm.Instruction.InstanceOf inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.ref + ", "
 				+ inst.type);
 	}
 
 	// 21 12x array-length vA, vB
 	public void visit(ast.stm.Instruction.arrayLength inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 22 21c new-instance vAA, type@BBBB
 	public void visit(ast.stm.Instruction.NewInstance inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type);
 	}
 
 	// 23 22c new-array vA, vB, type@CCCC
 	// new-array v0,p1 [Landro......
 	public void visit(ast.stm.Instruction.NewArray inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.size + ", "
 				+ inst.type);
 	}
@@ -652,7 +652,7 @@ public class PrettyPrintVisitor implements Visitor {
 	// 24 35c filled-new-array {vC, vD, vE, vF, vG}, type@BBBB
 	// filled-new-array {v7, v9}, [I
 	public void visit(ast.stm.Instruction.FilledNewArray inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -669,7 +669,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 25 3rc filled-new-array/range {vCCCC .. vNNNN}, type@BBBB ----
 	public void visit(ast.stm.Instruction.FilledNewArrayRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -680,39 +680,39 @@ public class PrettyPrintVisitor implements Visitor {
 	// 26 31t fill-array-data vAA, +BBBBBBBB (with supplemental data as
 	// specified below in "fill-array-data-payloadFormat") ------
 	public void visit(ast.stm.Instruction.FillArrayData inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", :" + inst.src);
 	}
 
 	// 27 11x throw vAA
 	public void visit(ast.stm.Instruction.Throw inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.kind);
 	}
 
 	// 28 10t goto +AA ??
 	// !!!!! goto :goto_0
 	public void visit(ast.stm.Instruction.Goto inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " :" + inst.dest);
 	}
 
 	// 29 20t goto/16 +AAAA ??
 	public void visit(ast.stm.Instruction.Goto16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " :" + inst.dest);
 	}
 
 	// 2a 30t goto/32 +AAAAAAAA ??
 	public void visit(ast.stm.Instruction.Goto32 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " :" + inst.dest);
 	}
 
 	// 2b 31t packed-switch vAA, +BBBBBBBB (with supplemental data as specified
 	// below in "packed-switch- ??????????
 	public void visit(ast.stm.Instruction.PackedSwitch inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.offset);
 		// System.out.println(inst.op + " " + inst.test + ", :" + inst.offset);
 	}
@@ -720,7 +720,7 @@ public class PrettyPrintVisitor implements Visitor {
 	// 2c 31t sparse-switch vAA, +BBBBBBBB (with supplemental data as specified
 	// below in "sparse-switch-payloadFormat") ??????????
 	public void visit(ast.stm.Instruction.SparseSwitch inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.offset);
 		// System.out.println(inst.op + " " + inst.test + ", " + inst.offset);
 	}
@@ -729,35 +729,35 @@ public class PrettyPrintVisitor implements Visitor {
 	// 2d..31 23x cmpkind vAA, vBB, vCC
 	// 2d: cmpl-float (lt bias)
 	public void visit(ast.stm.Instruction.CmplFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 2e: cmpg-float (gt bias)
 	public void visit(ast.stm.Instruction.CmpgFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 2f: cmpl-double (lt bias)
 	public void visit(ast.stm.Instruction.CmplDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 30: cmpg-double (gt bias)
 	public void visit(ast.stm.Instruction.Cmpgdouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 31: cmp-long
 	public void visit(ast.stm.Instruction.CmpLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
@@ -767,42 +767,42 @@ public class PrettyPrintVisitor implements Visitor {
 	// !!!!!!! if-eq v1, v0, :cond_1
 	// 32: if-eq
 	public void visit(ast.stm.Instruction.IfEq inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 33: if-ne
 	public void visit(ast.stm.Instruction.IfNe inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 34: if-lt
 	public void visit(ast.stm.Instruction.IfLt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 35: if-ge
 	public void visit(ast.stm.Instruction.IfGe inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 36: if-gt
 	public void visit(ast.stm.Instruction.IfGt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
 
 	// 37: if-le
 	public void visit(ast.stm.Instruction.IfLe inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.first + ", " + inst.second + ", :"
 				+ inst.dest);
 	}
@@ -813,37 +813,37 @@ public class PrettyPrintVisitor implements Visitor {
 	// !!!! if-eqz v0, :cond_0
 	// 38: if-eqz
 	public void visit(ast.stm.Instruction.IfEqz inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
 	// 39: if-nez
 	public void visit(ast.stm.Instruction.IfNez inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
 	// 3a: if-ltz
 	public void visit(ast.stm.Instruction.IfLtz inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
 	// 3b: if-gez
 	public void visit(ast.stm.Instruction.IfGez inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
 	// 3c: if-gtz
 	public void visit(ast.stm.Instruction.IfGtz inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
 	// 3d: if-lez
 	public void visit(ast.stm.Instruction.IfLez inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.test + ", :" + inst.dest);
 	}
 
@@ -854,98 +854,98 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 44: aget
 	public void visit(ast.stm.Instruction.Aget inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 45: aget-wide
 	public void visit(ast.stm.Instruction.AgetWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 46: aget-object
 	public void visit(ast.stm.Instruction.AgetObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 47: aget-boolean
 	public void visit(ast.stm.Instruction.AgetBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 48: aget-byte
 	public void visit(ast.stm.Instruction.AgetByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 49: aget-char
 	public void visit(ast.stm.Instruction.AgetChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4a: aget-short\
 	public void visit(ast.stm.Instruction.AgetShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4b: aput
 	public void visit(ast.stm.Instruction.Aput inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4c: aput-wide
 	public void visit(ast.stm.Instruction.AputWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4d: aput-object
 	public void visit(ast.stm.Instruction.AputObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4e: aput-boolean
 	public void visit(ast.stm.Instruction.AputBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 4f: aput-byte
 	public void visit(ast.stm.Instruction.AputByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 50: aput-char
 	public void visit(ast.stm.Instruction.AputChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
 
 	// 51: aput-short
 	public void visit(ast.stm.Instruction.AputShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
 				+ inst.index);
 	}
@@ -954,98 +954,98 @@ public class PrettyPrintVisitor implements Visitor {
 	// 52..5f 22c iinstanceop vA, vB, field@CCCC
 	// 52: iget
 	public void visit(ast.stm.Instruction.Iget inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 53: iget-wide
 	public void visit(ast.stm.Instruction.IgetWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 54: iget-object
 	public void visit(ast.stm.Instruction.IgetOjbect inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 55: iget-boolean
 	public void visit(ast.stm.Instruction.IgetBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 56: iget-byte
 	public void visit(ast.stm.Instruction.IgetByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 57: iget-char
 	public void visit(ast.stm.Instruction.IgetChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 58: iget-short
 	public void visit(ast.stm.Instruction.IgetShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 59: iput
 	public void visit(ast.stm.Instruction.Iput inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5a: iput-wide
 	public void visit(ast.stm.Instruction.IputWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5b: iput-object
 	public void visit(ast.stm.Instruction.IputObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5c: iput-boolean
 	public void visit(ast.stm.Instruction.IputBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5d: iput-byte
 	public void visit(ast.stm.Instruction.IputByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5e: iput-char
 	public void visit(ast.stm.Instruction.IputChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
 
 	// 5f: iput-short
 	public void visit(ast.stm.Instruction.IputShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
 				+ inst.type.toString());
 	}
@@ -1054,92 +1054,92 @@ public class PrettyPrintVisitor implements Visitor {
 	// 60..6d 21c sstaticop vAA, field@BBBB
 	// 60: sget
 	public void visit(ast.stm.Instruction.Sget inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 61: sget-wide
 	public void visit(ast.stm.Instruction.SgetWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 62: sget-object
 	public void visit(ast.stm.Instruction.SgetObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 63: sget-boolean
 	public void visit(ast.stm.Instruction.SgetBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 64: sget-byte
 	public void visit(ast.stm.Instruction.SgetByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 65: sget-char
 	public void visit(ast.stm.Instruction.SgetChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 66: sget-short
 	public void visit(ast.stm.Instruction.SgetShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.type.toString());
 	}
 
 	// 67: sput
 	public void visit(ast.stm.Instruction.Sput inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 68: sput-wide
 	public void visit(ast.stm.Instruction.SputWide inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 69: sput-object
 	public void visit(ast.stm.Instruction.SputObject inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 6a: sput-boolean
 	public void visit(ast.stm.Instruction.SputBoolean inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 6b: sput-byte
 	public void visit(ast.stm.Instruction.SputByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 6c: sput-char
 	public void visit(ast.stm.Instruction.SputChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 6d: sput-short
 	public void visit(ast.stm.Instruction.SputShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.src + ", " + inst.type.toString());
 	}
 
 	// 6e..72 35c invoke-kind {vC, vD, vE, vF, vG}, meth@BBBB
 	// 6e: invoke-virtual
 	public void visit(ast.stm.Instruction.InvokeVirtual inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -1156,7 +1156,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 6f: invoke-super
 	public void visit(ast.stm.Instruction.InvokeSuper inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -1173,7 +1173,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 70: invoke-direct
 	public void visit(ast.stm.Instruction.InvokeDirect inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -1190,7 +1190,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 71: invoke-static
 	public void visit(ast.stm.Instruction.InvokeStatic inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -1207,7 +1207,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 72: invoke-interface
 	public void visit(ast.stm.Instruction.InvokeInterface inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		int cnt = 0;
@@ -1228,7 +1228,7 @@ public class PrettyPrintVisitor implements Visitor {
 	// 74..78 3rc invoke-kind/range {vCCCC .. vNNNN}, meth@BBBB
 	// 74: invoke-virtual/range
 	public void visit(ast.stm.Instruction.InvokeVirtualRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -1238,7 +1238,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 75: invoke-super/range
 	public void visit(ast.stm.Instruction.InvokeSuperRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -1248,7 +1248,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 76: invoke-direct/range
 	public void visit(ast.stm.Instruction.InvokeDirectRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -1258,7 +1258,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 77: invoke-static/range
 	public void visit(ast.stm.Instruction.InvokeStaticRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -1268,7 +1268,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// 78: invoke-interface/range
 	public void visit(ast.stm.Instruction.InvokeInterfaceRange inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op);
 		this.say(" {");
 		this.say(inst.start + " .. " + inst.end);
@@ -1281,127 +1281,127 @@ public class PrettyPrintVisitor implements Visitor {
 	// 7b..8f 12x unop vA, vB
 	// 7b: neg-int
 	public void visit(ast.stm.Instruction.NegInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 7c: not-int
 	public void visit(ast.stm.Instruction.NotInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 7d: neg-long
 	public void visit(ast.stm.Instruction.NegLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 7e: not-long
 	public void visit(ast.stm.Instruction.NotLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 7f: neg-float
 	public void visit(ast.stm.Instruction.NegFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 80: neg-double
 	public void visit(ast.stm.Instruction.NegDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 81: int-to-long
 	public void visit(ast.stm.Instruction.IntToLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 82: int-to-float
 	public void visit(ast.stm.Instruction.IntToFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 83: int-to-double
 	public void visit(ast.stm.Instruction.IntToDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 84: long-to-int
 	public void visit(ast.stm.Instruction.LongToInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 85: long-to-float
 	public void visit(ast.stm.Instruction.LongToFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 86: long-to-double
 	public void visit(ast.stm.Instruction.LongToDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 87: float-to-int
 	public void visit(ast.stm.Instruction.FloatToInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 88: float-to-long
 	public void visit(ast.stm.Instruction.FloatToLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 89: float-to-double
 	public void visit(ast.stm.Instruction.FloatToDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8a: double-to-int
 	public void visit(ast.stm.Instruction.DoubleToInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8b: double-to-long
 	public void visit(ast.stm.Instruction.DoubleToLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8c: double-to-float
 	public void visit(ast.stm.Instruction.DoubleToFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8d: int-to-byte
 	public void visit(ast.stm.Instruction.IntToByte inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8e: int-to-char
 	public void visit(ast.stm.Instruction.IntToChar inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// 8f: int-to-short
 	public void visit(ast.stm.Instruction.IntToShort inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.say(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
@@ -1409,224 +1409,224 @@ public class PrettyPrintVisitor implements Visitor {
 	// 90..af 23x binop vAA, vBB, vCC
 	// 90: add-int
 	public void visit(ast.stm.Instruction.AddInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 91: sub-int public void visit(ast.stm.Instruction.AddInt inst)
 	public void visit(ast.stm.Instruction.SubInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 92: mul-int
 	public void visit(ast.stm.Instruction.MulInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 93: div-int
 	public void visit(ast.stm.Instruction.DivInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 94: rem-int
 	public void visit(ast.stm.Instruction.RemInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 95: and-int
 	public void visit(ast.stm.Instruction.AndInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 96: or-int
 	public void visit(ast.stm.Instruction.OrInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 97: xor-int
 	public void visit(ast.stm.Instruction.XorInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 98: shl-int
 	public void visit(ast.stm.Instruction.ShlInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 99: shr-int
 	public void visit(ast.stm.Instruction.ShrInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9a: ushr-int
 	public void visit(ast.stm.Instruction.UshrInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9b: add-long
 	public void visit(ast.stm.Instruction.AddLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9c: sub-long
 	public void visit(ast.stm.Instruction.SubLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9d: mul-long
 	public void visit(ast.stm.Instruction.MulLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9e: div-long
 	public void visit(ast.stm.Instruction.DivLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// 9f: rem-long
 	public void visit(ast.stm.Instruction.RemLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a0: and-long
 	public void visit(ast.stm.Instruction.AndLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a1: or-long
 	public void visit(ast.stm.Instruction.OrLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a2: xor-long
 	public void visit(ast.stm.Instruction.XorLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a3: shl-long
 	public void visit(ast.stm.Instruction.ShlLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a4: shr-long
 	public void visit(ast.stm.Instruction.ShrLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a5: ushr-long
 	public void visit(ast.stm.Instruction.UshrLong inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a6: add-float
 	public void visit(ast.stm.Instruction.AddFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a7: sub-float
 	public void visit(ast.stm.Instruction.SubFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a8: mul-float
 	public void visit(ast.stm.Instruction.MulFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// a9: div-float
 	public void visit(ast.stm.Instruction.DivFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// aa: rem-float
 	public void visit(ast.stm.Instruction.RemFloat inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// ab: add-double
 	public void visit(ast.stm.Instruction.AddDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// ac: sub-double
 	public void visit(ast.stm.Instruction.SubDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// ad: mul-double
 	public void visit(ast.stm.Instruction.MulDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// ae: div-double
 	public void visit(ast.stm.Instruction.DivDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
 
 	// af: rem-double
 	public void visit(ast.stm.Instruction.RemDouble inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.first + ", "
 				+ inst.second);
 	}
@@ -1636,193 +1636,193 @@ public class PrettyPrintVisitor implements Visitor {
 
 	// b0: add-int/2addr
 	public void visit(ast.stm.Instruction.AddInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b1: sub-int/2addr
 	public void visit(ast.stm.Instruction.SubInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b2: mul-int/2addr
 	public void visit(ast.stm.Instruction.MulInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b3: div-int/2addr
 	public void visit(ast.stm.Instruction.DivInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b4: rem-int/2addr
 	public void visit(ast.stm.Instruction.RemInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b5: and-int/2addr
 	public void visit(ast.stm.Instruction.AndInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b6: or-int/2addr
 	public void visit(ast.stm.Instruction.OrInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b7: xor-int/2addr
 	public void visit(ast.stm.Instruction.XorInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b8: shl-int/2addr
 	public void visit(ast.stm.Instruction.ShlInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// b9: shr-int/2addr
 	public void visit(ast.stm.Instruction.ShrInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// ba: ushr-int/2addr
 	public void visit(ast.stm.Instruction.UshrInt2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// bb: add-long/2addr
 	public void visit(ast.stm.Instruction.AddLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// bc: sub-long/2addr
 	public void visit(ast.stm.Instruction.SubLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// bd: mul-long/2addr
 	public void visit(ast.stm.Instruction.MulLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// be: div-long/2addr
 	public void visit(ast.stm.Instruction.DivLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// bf: rem-long/2addr
 	public void visit(ast.stm.Instruction.RemLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c0: and-long/2addr
 	public void visit(ast.stm.Instruction.AndLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c1: or-long/2addr
 	public void visit(ast.stm.Instruction.OrLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c2: xor-long/2addr
 	public void visit(ast.stm.Instruction.XorLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c3: shl-long/2addr
 	public void visit(ast.stm.Instruction.ShlLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c4: shr-long/2addr
 	public void visit(ast.stm.Instruction.ShrLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c5: ushr-long/2addr
 	public void visit(ast.stm.Instruction.UshrLong2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c6: add-float/2addr
 	public void visit(ast.stm.Instruction.AddFloat2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c7: sub-float/2addr
 	public void visit(ast.stm.Instruction.SubFloat2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c8: mul-float/2addr
 	public void visit(ast.stm.Instruction.MulFloat2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// c9: div-float/2addr
 	public void visit(ast.stm.Instruction.DivFloat2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// ca: rem-float/2addr
 	public void visit(ast.stm.Instruction.RemFloat2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// cb: add-double/2addr
 	public void visit(ast.stm.Instruction.AddDouble2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// cc: sub-double/2addr
 	public void visit(ast.stm.Instruction.SubDouble2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// cd: mul-double/2addr
 	public void visit(ast.stm.Instruction.MulDouble2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// ce: div-double/2addr
 	public void visit(ast.stm.Instruction.DivDouble2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
 	// cf: rem-double/2addr
 	public void visit(ast.stm.Instruction.RemDouble2Addr inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 	}
 
@@ -1830,56 +1830,56 @@ public class PrettyPrintVisitor implements Visitor {
 	// d0..d7 22s binop/lit16 vA, vB, #+CCCC
 	// d0: add-int/lit16
 	public void visit(ast.stm.Instruction.AddIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d1: rsub-int (reverse subtract)
 	public void visit(ast.stm.Instruction.RsubInt inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d2: mul-int/lit16
 	public void visit(ast.stm.Instruction.MulIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d3: div-int/lit16
 	public void visit(ast.stm.Instruction.DivIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d4: rem-int/lit16
 	public void visit(ast.stm.Instruction.RemIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d5: and-int/lit16
 	public void visit(ast.stm.Instruction.AndIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d6: or-int/lit16
 	public void visit(ast.stm.Instruction.OrIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d7: xor-int/lit16
 	public void visit(ast.stm.Instruction.XorIntLit16 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1888,77 +1888,77 @@ public class PrettyPrintVisitor implements Visitor {
 	// d8..e2 22b binop/lit8 vAA, vBB, #+CC
 	// d8: add-int/lit8
 	public void visit(ast.stm.Instruction.AddIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// d9: rsub-int/lit8
 	public void visit(ast.stm.Instruction.RsubIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// da: mul-int/lit8
 	public void visit(ast.stm.Instruction.MulIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// db: div-int/lit8
 	public void visit(ast.stm.Instruction.DivIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// dc: rem-int/lit8
 	public void visit(ast.stm.Instruction.RemIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// dd: and-int/lit8
 	public void visit(ast.stm.Instruction.AndIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// de: or-int/lit8
 	public void visit(ast.stm.Instruction.OrIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// df: xor-int/lit8
 	public void visit(ast.stm.Instruction.XorIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// e0: shl-int/lit8
 	public void visit(ast.stm.Instruction.ShlIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// e1: shr-int/lit8
 	public void visit(ast.stm.Instruction.ShrIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
 
 	// e2: ushr-int/lit8
 	public void visit(ast.stm.Instruction.UshrIntLit8 inst) {
-		this.position += this.instLen.get(inst.op);
+		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1966,7 +1966,6 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(Instruction instruction) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -2017,9 +2016,16 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	public PrettyPrintVisitor() {
-		instLen = new HashMap<String, Integer>();
 		this.filePath = null;
 		this.folderName = null;
+	}
+
+	/* *
+	 * static body is thread safe according to
+	 * http://docs.oracle.com/javase/specs/jls/se7/html/jls-12.html#jls-12.4.2
+	 */
+	static {
+		instLen = new HashMap<String, Integer>();
 		// 00 10x nop
 		instLen.put("nop", 1);
 		// 01 12x move

@@ -53,7 +53,10 @@ public class Carbon {
 				new PathVisitor());
 
 		List<ast.classs.Class> classes;
+
+		// WARNING, CompilePass.translate() will destroy allAst
 		classes = CompilePass.translate(executor, allAst);
+		allAst = null;
 
 		CompilePass.prettyPrint(executor, classes);
 		executor.shutdown();

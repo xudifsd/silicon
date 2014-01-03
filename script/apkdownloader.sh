@@ -42,7 +42,6 @@ do
 
 	for page in {1..3}
 	do
-		if 
 
 		 wget -q -O- http://www.appchina.com/category/3${category}/1_1_${page}_1_0_0_0.html | grep -o -i  http://www.appchina.com/market/[^\']* | head -18     >>${categoryName[$category]}.txt
 		 wget -q -O- http://www.appchina.com/category/3${category}/1_1_${page}_1_0_0_0.html | egrep -o -i  'app_name\sch.+' |head -18 | sed -e "s/.\+>\(.\+\)<\/a>.\+/\1/" >>${categoryName[$category]}_Name.txt
@@ -56,8 +55,8 @@ do
 done
 
 #game is special
-mkdir $16_${categoryName[16]}_APK
-cd $16_${categoryName[16]}_APK
+mkdir 16_${categoryName[16]}_APK
+cd 16_${categoryName[16]}_APK
 
 for page in {1..3}
 do

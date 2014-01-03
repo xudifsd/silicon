@@ -42,6 +42,10 @@ while(<>){
                         chomp;
                 }
         }
+        if(/^value = {.*}$/){
+                s/ //g;
+        }
+
         # Our PrettyPrinter. Delete SPACE.
         if(/^resName = {.+}$/){
                 s/ //g;

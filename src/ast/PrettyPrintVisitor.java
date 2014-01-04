@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 import control.Control;
+import ast.annotation.Annotation;
+import ast.annotation.Annotation.ElementLiteral;
+import ast.annotation.Annotation.SubAnnotation;
 import ast.stm.Instruction;
 
 /* *
@@ -95,7 +98,30 @@ public class PrettyPrintVisitor implements Visitor {
 		ret = util.StringUtils.escapeString(ret);
 		return "\"" + ret + "\"";
 	}
-
+	/* *
+	 * handle char literal escape, panic when meet escaped ASCII code eg.
+	 * char_literal: '\n'
+	 */
+	private String processChar(String str) {
+		String ret = str.substring(1, str.length() - 1);
+		ret = util.StringUtils.escapeString(ret);
+		return "\'" + ret + "\'";
+	}
+	/*
+	 * print literal except subannotation and array_literal
+	 */
+	private void printLiteral(String literal,String type) {
+		if(literal.startsWith("\""))
+			this.sayln(this.processString(literal));
+		else if(literal.startsWith("\'"))
+			this.sayln(this.processChar(literal));
+		else {
+			if(type.equals("enum"))
+				this.sayln(".enum " + literal);
+			else
+				this.sayln(literal);
+		}
+	}
 	private void indent() {
 		indents += TAB;
 	}
@@ -166,9 +192,8 @@ public class PrettyPrintVisitor implements Visitor {
 		}
 
 		// annotations
-		for (ast.annotation.Annotation annotation : clazz.annotationList) {
-			this.sayln(annotation.toString());
-		}
+		for(ast.annotation.Annotation annotation: clazz.annotationList)
+				annotation.accept(this);
 
 		// fileds
 		for (ast.classs.Class.Field field : clazz.fieldList) {
@@ -189,7 +214,7 @@ public class PrettyPrintVisitor implements Visitor {
 			// annotations
 			if (field.annotationList != null) {
 				for (ast.annotation.Annotation annotation : field.annotationList) {
-					this.sayln(annotation.toString());
+					annotation.accept(this);
 				}
 				if (field.annotationList.size() > 0)
 					this.sayln(".end field");
@@ -234,7 +259,7 @@ public class PrettyPrintVisitor implements Visitor {
 				this.sayln(".parameter");
 			// annotations
 			for (ast.annotation.Annotation annotation : parameter.annotationList) {
-				this.sayln(annotation.toString());
+				annotation.accept(this);
 				if (parameter.annotationList.size() > 0) {
 					this.printSpace();
 					this.sayln(".end parameter");
@@ -248,7 +273,7 @@ public class PrettyPrintVisitor implements Visitor {
 		// annotations
 		if (method.annotationList != null)
 			for (ast.annotation.Annotation annotation : method.annotationList) {
-				this.sayln(annotation.toString());
+				annotation.accept(this);
 			}
 		this.sayln("");
 
@@ -419,6 +444,82 @@ public class PrettyPrintVisitor implements Visitor {
 		say(item.fieldType);
 	}
 
+	@Override
+	public void visit(Annotation annotation) {
+		this.printSpace();
+		this.say(".annotation ");
+		this.say(annotation.visibility + " ");
+		annotation.subAnnotation.accept(this);
+		this.printSpace();
+		this.sayln(".end annotation");
+	}
+	
+	@Override
+	public void visit(SubAnnotation subAnnotation) {
+		this.sayln(subAnnotation.classType);
+		this.indent();
+		for(ast.annotation.Annotation.AnnotationElement element : subAnnotation.elementList) {
+			this.printSpace();
+			this.say(element.name + " = ");
+			element.elementLiteral.accept(this);
+		}
+		this.unIndent();
+	}
+	
+	@Override
+	public void visit(ElementLiteral elementLiteral) {
+		//subannotation
+		if(elementLiteral.type.equals("subannotation")) {
+			this.say(".subannotation ");
+			((ast.annotation.Annotation.SubAnnotation)elementLiteral.element.get(0)).accept(this);
+			this.printSpace();
+			this.sayln(".end subannotation");
+		}
+		//array
+		else if(elementLiteral.type.equals("array")) {
+			if(elementLiteral.element.size() == 0)
+				this.sayln("{ }");
+			else {
+				this.sayln("{");
+				if(elementLiteral.arrayLiteralType.equals("subannotation")) {
+					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out.println("W:find subannotation in array_literal in PrettyPrint");
+					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");				
+				}
+				else if(elementLiteral.arrayLiteralType.equals("subannotation")) {
+					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out.println("W:find array in array_literal in PrettyPrint");
+					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");	
+				}
+				this.indent();
+				for(int i = 0 ;i<elementLiteral.element.size();i++) {
+					Object object = elementLiteral.element.get(i);
+					String arrayLiteralTypet = elementLiteral.arrayLiteralType.get(i);
+					this.printSpace();
+					if(arrayLiteralTypet.equals("subannotation")) {
+						this.say(".subannotation ");
+						((ast.annotation.Annotation.SubAnnotation)object).accept(this);
+						this.printSpace();
+						this.sayln(".end subannotation");
+					}
+					else {
+						String str = new String();
+						str = (String)(object);
+						this.printLiteral(str, arrayLiteralTypet);
+					}
+					if(i<elementLiteral.element.size()-1)
+						this.sayln(",");
+				}
+				this.printSpace();
+				this.sayln("}");
+				this.unIndent();
+			}
+		}
+		//others
+		else {
+			this.printLiteral(((String)elementLiteral.element.get(0)),elementLiteral.type);
+		}
+	}
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 00 10x nop
 	public void visit(ast.stm.Instruction.Nop inst) {
@@ -2495,4 +2596,5 @@ public class PrettyPrintVisitor implements Visitor {
 		//
 		// e3..ff 10x (unused)///
 	}
+
 }

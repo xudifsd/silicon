@@ -152,56 +152,140 @@ field_initial_value returns [String value]
   : ^(I_FIELD_INITIAL_VALUE a=literal) {$value = $a.value;}
   | /*epsilon*/;
 
-literal returns [String value]
-  : integer_literal { $value = $integer_literal.value;}
-  | long_literal { $value = $long_literal.value;}
-  | short_literal {$value = $short_literal.value;}
-  | byte_literal { $value = $byte_literal.value;}
-  | float_literal { $value = $float_literal.value;}
-  | double_literal { $value = $double_literal.value;}
-  | char_literal { $value = $char_literal.value;}
-  | string_literal { $value = $string_literal.value;}
-  | bool_literal { $value = $bool_literal.value;}
-  | NULL_LITERAL { $value = $NULL_LITERAL.text;}
-  | type_descriptor { $value = $type_descriptor.value;}
-  | array_literal { $value = $array_literal.value;}
-  | subannotation { $value = $subannotation.value;}
-  | field_literal { $value = $field_literal.value;}
-  | method_literal { $value = $method_literal.value;}
-  | enum_literal { $value = $enum_literal.value;};
+literal returns[ast.annotation.Annotation.ElementLiteral elementLiteral,String value,String type,Object object]
+@init{
+  $elementLiteral = new ast.annotation.Annotation.ElementLiteral();
+}
+  : integer_literal { 
+  $value = $integer_literal.value;
+  $object = $integer_literal.value;
+  $elementLiteral.element.add($integer_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$integer_literal.type,null);$type = $integer_literal.type;}
+
+  | long_literal { 
+  $value = $long_literal.value;
+  $object = $long_literal.value;
+  $elementLiteral.element.add($long_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$long_literal.type,null);$type = $long_literal.type;}
+
+  | short_literal {
+  $value = $short_literal.value;
+  $object = $short_literal.value;
+  $elementLiteral.element.add($short_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$short_literal.type,null);$type = $short_literal.type;}
+
+  | byte_literal { 
+  $value = $byte_literal.value;
+  $object = $byte_literal.value;
+  $elementLiteral.element.add($byte_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$byte_literal.type,null);$type = $byte_literal.type;}
+
+  | float_literal { 
+  $value = $float_literal.value;
+  $object = $float_literal.value;
+  $elementLiteral.element.add($float_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$float_literal.type,null);$type = $float_literal.type;}
+
+
+  | double_literal { 
+  $value = $double_literal.value;
+  $object = $double_literal.value;
+  $elementLiteral.element.add($double_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$double_literal.type,null);$type = $double_literal.type;}
+
+  | char_literal { 
+  $value = $char_literal.value;
+  $object = $char_literal.value;
+  $elementLiteral.element.add($char_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$char_literal.type,null);$type = $char_literal.type;}
+
+  | string_literal { 
+  $value = $string_literal.value;
+  $object = $string_literal.value;
+  $elementLiteral.element.add($string_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$string_literal.type,null);$type = $string_literal.type;}
+
+  | bool_literal { 
+  $value = $bool_literal.value;
+  $object = $bool_literal.value;
+  $elementLiteral.element.add($bool_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$bool_literal.type,null);$type = $bool_literal.type;}
+
+  | NULL_LITERAL { 
+  $value = $NULL_LITERAL.text;
+  $object = $NULL_LITERAL.text;
+  $elementLiteral.element.add($NULL_LITERAL.text);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,"null",null);$type = "null";}
+
+  | type_descriptor { 
+  $value = $type_descriptor.value;
+  $object = $type_descriptor.value;
+  $elementLiteral.element.add($type_descriptor.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$type_descriptor.type,null);$type = $type_descriptor.type;}
+  
+
+  | array_literal { 
+  $value = $array_literal.value;
+  $object = $array_literal.value;
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($array_literal.element,"array",$array_literal.arrayLiteralType);$type = "array";}
+  
+ 
+  | subannotation {
+  $value = $subannotation.value;
+  $object = $subannotation.subAnno;
+  $elementLiteral.element.add($subannotation.subAnno);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$subannotation.type,null);$type = $subannotation.type;}
+
+  | field_literal { 
+  $value = $field_literal.value;
+  $object = $field_literal.value;
+  $elementLiteral.element.add($field_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$field_literal.type,null);$type = $field_literal.type;}
+
+  | method_literal { 
+  $value = $method_literal.value;
+  $object = $method_literal.value;
+  $elementLiteral.element.add($method_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$method_literal.type,null);$type = $method_literal.type;}
+
+  | enum_literal { 
+  $value = $enum_literal.value;
+  $object = $enum_literal.value;
+  $elementLiteral.element.add($enum_literal.value);
+  $elementLiteral =  new ast.annotation.Annotation.ElementLiteral($elementLiteral.element,$enum_literal.type,null);$type = $enum_literal.type;};
 
 //everything but string
 fixed_size_literal returns [String value]
-  :a=integer_literal {$value = $a.value;}
-  |a=long_literal {$value = $a.value;}
-  |a=short_literal {$value = $a.value;}
-  |a=byte_literal {$value = $a.value;}
-  |a=float_literal {$value = $a.value;}
-  |a=double_literal {$value = $a.value;}
-  |a=char_literal {$value = $a.value;}
-  |a=bool_literal {$value = $a.value;};
+  :integer_literal {$value = $integer_literal.value;}
+  |long_literal {$value = $long_literal.value;}
+  |short_literal {$value = $short_literal.value;}
+  |byte_literal {$value = $byte_literal.value;}
+  |float_literal {$value = $float_literal.value;}
+  |double_literal {$value = $double_literal.value;}
+  |char_literal {$value = $char_literal.value;}
+  |bool_literal {$value = $bool_literal.value;};
 
 //everything but string
   fixed_64bit_literal returns [String value]
-  : a=long_literal {$value = $a.value;}
-  | a=integer_literal {$value = $a.value;}
-  | a=short_literal {$value = $a.value;}
-  | a=byte_literal {$value = $a.value;}
-  | a=float_literal {$value = $a.value;}
-  | a=double_literal {$value = $a.value;}
-  | a=char_literal {$value = $a.value;}
-  | a=bool_literal {$value = $a.value;}
+  :long_literal {$value = $long_literal.value;}
+  |integer_literal {$value = $integer_literal.value;}
+  |short_literal {$value = $short_literal.value;}
+  |byte_literal {$value = $byte_literal.value;}
+  |float_literal {$value = $float_literal.value;}
+  |double_literal {$value = $double_literal.value;}
+  |char_literal {$value = $char_literal.value;}
+  |bool_literal {$value = $bool_literal.value;}
   ;
 //everything but string and double
 //long is allowed, but it must fit into an int
 fixed_32bit_literal returns [String value]
-  : a=integer_literal {$value = $a.value;}
-  | a=long_literal {$value = $a.value;}
-  | a=short_literal {$value = $a.value;}
-  | a=byte_literal {$value = $a.value;}
-  | a=float_literal {$value = $a.value;}
-  | a=char_literal {$value = $a.value;}
-  | a=bool_literal {$value = $a.value;}
+  :integer_literal {$value = $integer_literal.value;}
+  |long_literal {$value = $long_literal.value;}
+  |short_literal {$value = $short_literal.value;}
+  |byte_literal {$value = $byte_literal.value;}
+  |float_literal {$value = $float_literal.value;}
+  |char_literal {$value = $char_literal.value;}
+  |bool_literal {$value = $bool_literal.value;}
   ;
 
 array_elements returns[List<String> elementList]
@@ -1505,69 +1589,72 @@ class_type_descriptor returns [String className]
   	$className = $CLASS_DESCRIPTOR.text;
   };
 
-type_descriptor returns [String type_desc,String value]
+type_descriptor returns [String type_desc,String value,String type]
   : VOID_TYPE { $type_desc = "V"; /* void */ }
-  | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; $value =  $nonvoid_type_descriptor.type_desc; }
+  | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; $value =  $nonvoid_type_descriptor.type_desc;$type = "type"; }
   ;
 
 short_integral_literal returns [String value]
-  : a=long_literal{$value = $a.value;}
-  | a=integer_literal{$value = $a.value;}
-  | a=short_literal {$value = $a.value;}
-  | a=char_literal {$value = $a.value;}
-  | a=byte_literal {$value = $a.value;}
+  :long_literal{$value = $long_literal.value;}
+  |integer_literal{$value = $integer_literal.value;}
+  |short_literal {$value = $short_literal.value;}
+  |char_literal {$value = $char_literal.value;}
+  |byte_literal {$value = $byte_literal.value;}
   ;
 
 integral_literal returns[String value]
-  : a=long_literal{$value = $a.value;}
-  | a=integer_literal {$value = $a.value;}
-  | a=short_literal {$value = $a.value;}
-  | a=byte_literal {$value = $a.value;}
+  :long_literal{$value = $long_literal.value;}
+  |integer_literal {$value = $integer_literal.value;}
+  |short_literal {$value = $short_literal.value;}
+  |byte_literal {$value = $byte_literal.value;}
   ;
 
 
-integer_literal returns[String value]
-  : a=INTEGER_LITERAL { $value = $a.text;  };
+integer_literal returns[String value,String type]
+  : a=INTEGER_LITERAL { $value = $a.text; $type =  "integer";};
 
-long_literal returns[String value]
-  : a=LONG_LITERAL { $value = $a.text; };
+long_literal returns[String value,String type]
+  : a=LONG_LITERAL { $value = $a.text; $type = "long";};
 
-short_literal returns[String value]
-  :  a=SHORT_LITERAL { $value = $a.text; };
+short_literal returns[String value,String type]
+  :  a=SHORT_LITERAL { $value = $a.text;$type = "short"; };
 
-byte_literal returns[String value]
-  :  a=BYTE_LITERAL { $value = $a.text;};
+byte_literal returns[String value,String type]
+  :  a=BYTE_LITERAL { $value = $a.text;$type = "byte";};
 
-float_literal returns[String value]
-  :  a=FLOAT_LITERAL { $value = $a.text; };
+float_literal returns[String value,String type]
+  :  a=FLOAT_LITERAL { $value = $a.text; $type = "float"; };
 
-double_literal returns[String value]
-  :  a=DOUBLE_LITERAL { $value = $a.text; };
+double_literal returns[String value,String type]
+  :  a=DOUBLE_LITERAL { $value = $a.text; $type = "double";};
 
-char_literal returns[String value]
+char_literal returns[String value,String type]
   :  a=CHAR_LITERAL 
   { 
     $value = $a.text; 
     $value = $value.substring(1, $value.length() - 1);
     $value = util.StringUtils.escapeString($value);
-    $value = "\'" + $value + "\'";
+    $value = "\'" + $value + "\'";$type = "char";
   };
 
-string_literal returns [String value]
-  :  a=STRING_LITERAL { $value = $a.text;};
+string_literal returns [String value,String type]
+  :  a=STRING_LITERAL { $value = $a.text;$type = "string"; };
 
-bool_literal returns [String value]
-  :  a=BOOL_LITERAL {$value = $a.text;};
+bool_literal returns [String value,String type]
+  :  a=BOOL_LITERAL {$value = $a.text;$type = "bool";};
 
-array_literal returns [String value]
+array_literal returns [String value,List<Object> element,List<String> arrayLiteralType]
 @init{
-  value = new String();
-  value  = "{ ";
+  $element = new ArrayList<Object>();
+  $arrayLiteralType = new ArrayList<String>();
 }  : {}
-    ^(I_ENCODED_ARRAY (a=literal { value = value + $a.value + " ,";})*)
+    ^(I_ENCODED_ARRAY (a=literal {
+    $element.add($a.object); 
+    $arrayLiteralType.add($a.type);
+    if($a.type.equals("array"))
+      System.out.println("find array_literal in array_literal in TranslateWalker.g file");
+    })*)
     {
-        $value = $value.substring(0,$value.length()-1);
-        $value = $value + " }";
     };
 
 
@@ -1587,7 +1674,7 @@ annotation returns [ast.annotation.Annotation anno]
       $anno  = new ast.annotation.Annotation($a.text,$b.subAnno);
     };
 
-subannotation returns [ast.annotation.Annotation.SubAnnotation subAnno,String value]
+subannotation returns [ast.annotation.Annotation.SubAnnotation subAnno,String type,String value]
 @init{
   List<ast.annotation.Annotation.AnnotationElement> elementList  = new ArrayList<ast.annotation.Annotation.AnnotationElement>();
 }
@@ -1602,33 +1689,37 @@ subannotation returns [ast.annotation.Annotation.SubAnnotation subAnno,String va
      )
      {
         $subAnno = new ast.annotation.Annotation.SubAnnotation($a.className,elementList);
-        $value = ".subannotation " + $subAnno.toString() + ".end subannotation";
+        $type = "subannotation";
+        $value = "subannotation's value";
      };
 
 annotation_element returns [ast.annotation.Annotation.AnnotationElement element]
   : ^(I_ANNOTATION_ELEMENT a=SIMPLE_NAME b=literal)
     {
-      $element = new ast.annotation.Annotation.AnnotationElement($a.text,$b.value);
+      $element = new ast.annotation.Annotation.AnnotationElement($a.text,$b.elementLiteral);
     };
 
-field_literal returns [String value]
+field_literal returns [String value,String type]
 @init{
   System.out.println("-----------find field-----------");
 }
   : ^(I_ENCODED_FIELD a=fully_qualified_field)
     {
       $value = $a.fieldItem.toString();
+      $type = "field";
     };
 
-method_literal returns [String value]
+method_literal returns [String value,String type]
   : ^(I_ENCODED_METHOD a=fully_qualified_method)
     {
       $value = $a.methodItem.toString();
       //$value = "La/a/a/a/a/a/a/e/a;->a(Ljava/io/OutputStream;)V";
+      $type = "method";
     };
 
-enum_literal returns [String value]
+enum_literal returns [String value,String type]
   : ^(I_ENCODED_ENUM a=fully_qualified_field)
     {
-       $value = ".enum " + $a.fieldItem.toString();
+       $value = $a.fieldItem.toString();
+       $type = "enum";
     };

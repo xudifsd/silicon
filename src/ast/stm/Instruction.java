@@ -4675,11 +4675,14 @@ public class Instruction{ /* This is just a opspace. YKG */
 	        public String start;
 	        public String end;
 	        public String type;
-	        public FilledNewArrayRange() //throws Exception
-	        {
-	        	//throw new Exception();
-	        	System.out.println("Instruction:filled-new-array/range");
-	        }
+			public FilledNewArrayRange(String op, String start, String end,
+					String type) {
+				super();
+				this.op = op;
+				this.start = start;
+				this.end = end;
+				this.type = type;
+			}
 			public void accept(Visitor v)
 			{
 				v.visit(this);

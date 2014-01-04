@@ -1391,16 +1391,15 @@ insn_format3rc_method returns [ast.stm.T inst]
 
 insn_format3rc_type returns [ast.stm.T inst]
   : //e.g. filled-new-array/range {} I
-    ^(I_STATEMENT_FORMAT3rc_TYPE a=INSTRUCTION_FORMAT3rc_TYPE register_range nonvoid_type_descriptor)//type_desc
+    ^(I_STATEMENT_FORMAT3rc_TYPE a=INSTRUCTION_FORMAT3rc_TYPE b=register_range c=nonvoid_type_descriptor)//type_desc
     {
       switch($a.text)
       {
         //25 3rc filled-new-array/range
         //FilledNewArrayRange
-        case "filled-new-array/range" : $inst = new ast.stm.Instruction.FilledNewArrayRange();break;
+        case "filled-new-array/range" : $inst = new ast.stm.Instruction.FilledNewArrayRange($a.text,$b.started,$b.ended,$c.type_desc);break;
         default: System.err.println("insn_format3rc_type: " + $a.text + " unknown");
       }
-
     };
 
 //can not find

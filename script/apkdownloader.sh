@@ -34,6 +34,7 @@ do
 	done
 	cd ..
 done
+
 #10 to 15...becasue of the url...
 for category in {10..15}
 do
@@ -42,7 +43,6 @@ do
 
 	for page in {1..3}
 	do
-
 		 wget -q -O- http://www.appchina.com/category/3${category}/1_1_${page}_1_0_0_0.html | grep -o -i  http://www.appchina.com/market/[^\']* | head -18     >>${categoryName[$category]}.txt
 		 wget -q -O- http://www.appchina.com/category/3${category}/1_1_${page}_1_0_0_0.html | egrep -o -i  'app_name\sch.+' |head -18 | sed -e "s/.\+>\(.\+\)<\/a>.\+/\1/" >>${categoryName[$category]}_Name.txt
 	done
@@ -60,8 +60,6 @@ cd 16_${categoryName[16]}_APK
 
 for page in {1..3}
 do
-	if 
-
 	 wget -q -O- http://www.appchina.com/category/40/1_1_${page}_1_0_0_0.html | grep -o -i  http://www.appchina.com/market/[^\']* | head -18     >>${categoryName[16]}.txt
 	 wget -q -O- http://www.appchina.com/category/40/1_1_${page}_1_0_0_0.html | egrep -o -i  'app_name\sch.+' |head -18 | sed -e "s/.\+>\(.\+\)<\/a>.\+/\1/" >>${categoryName[16]}_Name.txt
 done
@@ -70,8 +68,3 @@ do
 	name=`echo $i| sed -e "s/.\+\([0-9]\+\)\/\(.\+\)?.\+/\2/"`
 	wget "$i" -O $name 
 done
-cd ..
-
-
-
-

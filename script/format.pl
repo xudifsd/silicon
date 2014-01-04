@@ -11,75 +11,104 @@ $mapping1 = 0;
 $mapping2 = 0;
 $resName = 0;
 while(<>){
-        #s/#.*//;
-        s/\r//;
-        s/^\s*//;
-        s/\s+$/\n/;
+    #s/#.*//;
+    s/\r//;
+    s/^\s*//;
+    s/\s+$/\n/;
 
-        # commnets
-        s/^#.*//;
+    # commnets
+    s/^#.*//;
 
-        # debug info
-        s/^\.line\s+\d+.*$//;
-        s/^\.local\s.+//;
-        s/^\.end local.+//;
-        s/^\.restart local.+//;
+    # debug info
+    s/^\.line\s+\d+.*$//;
+    s/^\.local\s.+//;
+    s/^\.end local.+//;
+    s/^\.restart local.+//;
 
-        # ?
-        s/^\.prologue.*//;
-        s/^\.end field.*//;
+    # ?
+    s/^\.prologue.*//;
+    s/^\.end field.*//;
 
 
-        # join value = {....}. Apktool
-        if(/^value = {$/){
-                $value = 1;
+    # join value = {....}. Apktool
+    if(/^value = {$/){
+        $value = 1;
+    }
+    if($value == 1){
+        if (/^}$/) {
+            $value = 0;
+        }else{
+            s/ //g;
+            chomp;
         }
-        if($value == 1){
-                if (/^}$/) {
-                        $value = 0;
-                }else{
-                        s/ //g;
-                        chomp;
-                }
-        }
-        if(/^value = {.*}$/){
-                s/ //g;
-        }
+    }
+    # Our PrettyPrinter. Delete SPACE.
+    if(/^value = {.*}$/){
+        s/ //g;
+    }
 
-        # Our PrettyPrinter. Delete SPACE.
-        if(/^resName = {.+}$/){
-                s/ //g;
-        }
-        # join value = {....}. Apktool
-        if(/^resName = {$/){
-                $resName = 1;
-        }
-        if($resName == 1){
-                if (/^}$/) {
-                        $resName = 0;
-                }else{
-                        s/ //g;
-                        chomp;
-                }
-        }
 
-        if(/^parseFeatures = {.*}$/){
-                s/ //g;
+    # join mapping = {....}. Ours
+    if(/^mapping = {.+/){
+        $mapping2 = 1;
+        s/ //g;
+    }
+    if($mapping2 == 1){
+        if (/^.end subannotation  }$/) {
+            $mapping2 = 0;
+            s/ //g;
+        }else{
+            s/ //g;
+            chomp;
         }
-        if(/^serialzeFeatures = {.*}$/){
-                s/ //g;
+    }
+    # join mapping = {....}. Apktool
+    if(/^mapping = {$/){
+        $mapping1 = 1;
+        s/ //g;
+    }
+    if($mapping1 == 1){
+        if (/^}$/) {
+            $mapping1 = 0;
+        }else{
+            s/ //g;
+            chomp;
         }
-        if(/^ignores = {.*}$/){
-                s/ //g;
-        }
-        if(/^orders = {.*}$/){
-                s/ //g;
-        }
+    }
 
+    # Our PrettyPrinter. Delete SPACE.
+    if(/^resName = {.+}$/){
+        s/ //g;
+    }
+    # join value = {....}. Apktool
+    if(/^resName = {$/){
+        $resName = 1;
+    }
+    if($resName == 1){
+        if (/^}$/) {
+            $resName = 0;
+        }else{
+            s/ //g;
+            chomp;
+        }
+    }
+
+    if(/^parseFeatures = {.*}$/){
+        s/ //g;
+    }
+    if(/^serialzeFeatures = {.*}$/){
+        s/ //g;
+    }
+    if(/^ignores = {.*}$/){
+        s/ //g;
+    }
+    if(/^orders = {.*}$/){
+        s/ //g;
+    }
 
 ## .catchall .catch
 # s/^\.catchall.*//;
 # s/^\.catch.*//;
 
-        print if /\S/;
+    print if /\S/;
 }

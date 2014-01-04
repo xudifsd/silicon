@@ -1,54 +1,55 @@
 #!/bin/sh
 
+panic () {
+    echo panic
+    > $1/panic
+    exit 1
+}
+
 if [ $# != 1 ]
 then
-        echo "Usage: $0 name.apk(under test/apk/)"
+    echo "Usage: $0 name.apk"
 else
-        apkname=`basename $1`
-#       echo $apkname
-        apkname="${apkname%.*}"
-#       echo $apkname
-        folder=~/result/$apkname
-        apkoutput=$folder/apkoutput
-        ppoutput=$folder/ppoutput
+    apkname=`basename $1`
+    apkname="${apkname%.*}"
+    folder=~/result/$apkname
+    apkoutput=$folder/apkoutput
+    ppoutput=$folder/ppoutput
 
-        rm -r $folder 2>/dev/null
-        mkdir -p $apkoutput
-        mkdir -p $ppoutput
-#        echo $apkoutput
-#        echo $ppoutput
-#       exit;
+    rm -r $folder 2>/dev/null
+    mkdir -p $apkoutput
+    mkdir -p $ppoutput
 
-        (cd ..
-        export CLASSPATH="."
-        for i in jar/*.jar
-        do
-                export CLASSPATH="$CLASSPATH":$i
-        done
+    (cd ..
+    export CLASSPATH="."
+    for i in jar/*.jar
+    do
+        export CLASSPATH="$CLASSPATH":$i
+    done
 
-        # will generate /tmp/output/ and /tmp/smalioutput/
-        java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput
+    java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput >$folder/carbon.stdout 2>$folder/carbon.stderr || panic $folder
+    )
 
-        )
-
+    if [ -e $folder/panic ]
+        exit 1
+    else
         (cd $folder
-        >$apkname.stdout
-        >$apkname.stderr
+        >$apkname.apk.smali
         for i in `find $apkoutput/smali -type f`
         do
-                cat $i 1>>$apkname.stdout 2>>$apkname.stderr;
+            cat $i >>$apkname.apk.smali
         done
 
-        >my$apkname.stdout
-        >my$apkname.stderr
+        >$apkname.pp.smali
         for i in `find $ppoutput -type f`
         do
-                cat $i 1>>my$apkname.stdout 2>>my$apkname.stderr;
+            cat $i >>$apkname.pp.smali
         done
 
-        perl ~/carbon/script/format.pl $apkname.stdout
-        perl ~/carbon/script/format.pl my$apkname.stdout
-        diff $apkname.stdout my$apkname.stdout 1>$apkname.diff 2>$apkname.diff.err
+        perl ~/carbon/script/format.pl $apkname.apk.smali
+        perl ~/carbon/script/format.pl $apkname.pp.smali
+        diff $apkname.apk.smali $apkname.pp.smali 1>$apkname.diff 2>$apkname.diff.stderr
         ls -l $apkname.diff
         )
+    fi
 fi

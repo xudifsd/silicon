@@ -1,12 +1,19 @@
 #!/bin/sh
 
+logname=`date +%Y%m%d%H%M%S`
+logfile=~/log/$logname.txt
+mkdir ~/log/ 2>/dev/null
+>$logfile
 if [ $# != 1 ]
 then
-        echo "Usage: $0 apklist"
+    echo "Usage: $0 apklist"
 else
-        for i in `head -2 $1`
-        do
-                ./onetest.sh $i
-                #echo $i
-        done
+    for i in `cat $1`
+    do
+        echo `date +"%Y-%m-%d %H:%M:%S"`" Begin processing $i" >>$logfile
+        ./onetest.sh $i 1>>$logfile 2>&1
+        echo `date +"%Y-%m-%d %H:%M:%S"`" End   processing $i" >>$logfile
+        echo "" >>$logfile
+    done
+    echo good >>$logfile
 fi

@@ -117,9 +117,9 @@ public class PrettyPrintVisitor implements Visitor {
 			this.sayln(this.processChar(literal));
 		else {
 			if(type.equals("enum"))
-				this.sayln(".enum " + literal);
+				this.say(".enum " + literal);
 			else
-				this.sayln(literal);
+				this.say(literal);
 		}
 	}
 	private void indent() {
@@ -478,7 +478,7 @@ public class PrettyPrintVisitor implements Visitor {
 		//array
 		else if(elementLiteral.type.equals("array")) {
 			if(elementLiteral.element.size() == 0)
-				this.sayln("{ }");
+				this.sayln("{}");
 			else {
 				this.sayln("{");
 				if(elementLiteral.arrayLiteralType.equals("subannotation")) {
@@ -500,7 +500,7 @@ public class PrettyPrintVisitor implements Visitor {
 						this.say(".subannotation ");
 						((ast.annotation.Annotation.SubAnnotation)object).accept(this);
 						this.printSpace();
-						this.sayln(".end subannotation");
+						this.say(".end subannotation");
 					}
 					else {
 						String str = new String();
@@ -518,6 +518,7 @@ public class PrettyPrintVisitor implements Visitor {
 		//others
 		else {
 			this.printLiteral(((String)elementLiteral.element.get(0)),elementLiteral.type);
+			this.sayln("");
 		}
 	}
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

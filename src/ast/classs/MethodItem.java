@@ -11,4 +11,16 @@ public class MethodItem extends T{
 	public void accept(Visitor v) {
 		v.visit(this);
 	}
+
+	@Override
+	public String toString()
+	{
+		String tmp = new String();
+		for(String type : this.prototype.argsType)
+		{
+			tmp = tmp+ type;
+		}
+		return this.classType+"->"+this.methodName+"("+tmp +")"+this.prototype.returnType;
+	}
+	
 }

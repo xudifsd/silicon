@@ -230,6 +230,14 @@ public interface Visitor {
 	public void visit(ast.stm.Instruction.InvokeInterfaceRange invokeInterfaceRange);
 	public void visit(ast.stm.Instruction.FilledNewArrayRange filledNewArrayRange);
 	public void visit(ast.stm.Instruction.ConstWide constWide);
+	
+	
+	public void visit(ast.stm.Instruction.PackedSwitchDirective packedSwitchDirective);
+	public void visit(ast.stm.Instruction.SparseSwitchDirective sparseSwitchDirective);
+	public void visit(ast.stm.Instruction.ArrayDataDirective arrayDataDirective);
+	public void visit(ast.annotation.Annotation annotation);
+	public void visit(ast.annotation.Annotation.SubAnnotation subAnnotation);
+	public void visit(ast.annotation.Annotation.ElementLiteral elementLiteral);
 
 
 

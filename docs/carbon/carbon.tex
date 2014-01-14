@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 %-----------------------------------------------------------------------------
 %
 %               Template for sigplanconf LaTeX Class
@@ -374,3 +375,315 @@ Symposium on the Foundations of Software Engineering (FSE). Cary, NC. November 2
 
 %  2013.06.29   TU      0.1--4  comments on permission/copyright notices
 
+=======
+%-----------------------------------------------------------------------------
+%
+%               Template for sigplanconf LaTeX Class
+%
+% Name:         sigplanconf-template.tex
+%
+% Purpose:      A template for sigplanconf.cls, which is a LaTeX 2e class
+%               file for SIGPLAN conference proceedings.
+%
+% Guide:        Refer to "Author's Guide to the ACM SIGPLAN Class,"
+%               sigplanconf-guide.pdf
+%
+% Author:       Paul C. Anagnostopoulos
+%               Windfall Software
+%               978 371-2316
+%               paul@windfall.com
+%
+% Created:      15 February 2005
+%
+%-----------------------------------------------------------------------------
+
+
+\documentclass[preprint, cm]{sigplanconf}
+
+% The following \documentclass options may be useful:
+
+% preprint      Remove this option only once the paper is in final form.
+% 10pt          To set in 10-point type instead of 9-point.
+% 11pt          To set in 11-point type instead of 9-point.
+% authoryear    To obtain author/year citation style instead of numeric.
+
+\usepackage{amsmath}
+
+
+\begin{document}
+
+\special{papersize=8.5in,11in}
+\setlength{\pdfpageheight}{\paperheight}
+\setlength{\pdfpagewidth}{\paperwidth}
+
+\conferenceinfo{CONF 'yy}{Month d--d, 20yy, City, ST, Country}
+\copyrightyear{20yy}
+\copyrightdata{978-1-nnnn-nnnn-n/yy/mm}
+\doi{nnnnnnn.nnnnnnn}
+
+% Uncomment one of the following two, if you are not going for the
+% traditional copyright transfer agreement.
+
+%\exclusivelicense                % ACM gets exclusive license to publish,
+                                  % you retain copyright
+
+%\permissiontopublish             % ACM gets nonexclusive license to publish
+                                  % (paid open-access papers,
+                                  % short abstracts)
+
+%\titlebanner{banner above paper title}        % These are ignored unless
+%\preprintfooter{This project is supported by a CCF-Tencent
+%Open Research Fund, number CCF-Tencent AGR20130105.}   % 'preprint' option specified.
+
+\title{Carbon: an Open Framework for Analysis and Transformation of Android Applications}
+%\subtitle{Subtitle Text, if any}
+
+\authorinfo{Name1 \and Name2 \and Name3}
+           {School of Software Engineering\\
+           University of Science and Technology of China}
+           {Email1}
+%\authorinfo{Name2\and Name3}
+%           {Affiliation2/3}
+%           {Email2/3}
+
+\maketitle
+
+\begin{abstract}
+In recent years, Android platform has emerged as one of the most
+important open mobile platforms. However, as Android has introduced
+new file format and new Dalvik instruction set, existing binary-level
+program analysis and transformation tools can not be used directly on
+Android application binaries.
+
+This paper presents the design and implementation of Carbon: a
+new open framework for analysis and transformation of Android
+applications at binary level. First, Carbon is an intermediate
+representation suitable for program analysis and transformation, in
+its current status, Carbon contain both high-level IR such as
+abstract syntax trees, and low-level IR such as control-flow graphs. Second, Carbon
+contains a front-end which can parse any given binary APK files and produce
+abstract syntax trees and control-flow graphs. Third, Carbon is
+now being used in several of
+our ongoing projects, such as a symbolic executor for Dalvik; our
+preliminary experiments and experience shows that Carbon is
+an effective Android application binary analysis and transformation
+framework, and we believe it can usefully be applied in other
+situations as well.
+\end{abstract}
+
+\category{CR-number}{subcategory}{third-level}
+
+% general terms are not compulsory anymore,
+% you may leave them out
+\terms
+term1, term2
+
+\keywords
+keyword1, keyword2
+
+\section{Introduction}\label{sec-introduction}
+In recent years, Android has emerged as one of the most popular and
+important platform for smart device development. Although most
+Android applications are written in the Java programming language, they
+are not compiled to traditional Java bytecode, instead, they
+are compiled to a new Dalvik instruction set architecture
+introduced by Google (the .dex or .odex format), which can
+be executed by the brand-new virtual machine called Dalvik. The most notable
+difference between Java bytecode and Dalvik bytecode is that the 
+former is a stack-based architecture whereas the latterh is
+a register-based one. 
+
+Although empirical studies \cite{} have revealed that the register-based
+instruction-set can be implemented more efficiently by the underlying
+virtual machine, Android's new instruction set architecture 
+does pose new challenge to program analysis and transformation: it's hard
+to apply traditional Java bytecode analysis tools to analyze
+and transform the new Dalvik code. And it's also nontrivial and
+error-prone to port traditional program analysis tool for
+Java bytecode
+to Dalvik, due to the different architecture design philosophy. This
+fact has hindered the implementation of many tools on Dalvik system, such
+as bug-finding tools, symblic executors, optimizations, and profilers, and so on.
+
+To address these challenges and difficulties, there have been two
+directions of research efforts recently:
+\begin{itemize}
+  \item translating Dalvik bytecode to some other ISAs and
+    performing analysis on those target ISAs; and
+  \item implementing native analysis on Dalvik bytecode directly.
+\end{itemize}
+
+With the first research effort, the Dalvik programs are translated
+to some existing platforms, on which all the program
+analysis and transformation can be performed, in an indirect manner.
+For instance, the Dare project \cite{dare2012} translates Dalvik
+bytecode to standard Java bytecode, so that all program
+analysis and transformation can be performed on the
+generated bytecode. Other example projects include
+compilers to LLVM \cite{}; or Dexpler, a translator from Dalvik
+to Jimple and 
+Soot \cite{}. Although all these researches and tools are successful
+in some facet, there are severe drawbacks with these researches: first, all
+Second, to our best knowledge, none of exiting research projects
+has achieved completeness of the translation; for instance, according
+to the experimental result from the Dare \cite{dare2012}, although
+Dare successfully convert 99\% of 1100 applications
+, but it's still unclear whether or not it can support the full Dalvik.
+
+With the second research efforts, native tools are built to
+analyze and transform bare Dalvik bytecode directly. Examples of
+such cases include Google's
+Dexdump which provides disassembly facilities for dex files. Other
+similar research and tools 
+include baksmali \cite{}, apktools \cite{}, jeb \cite{}, etc.. However, most of
+existing researches and tools are disassembly or reverse engineering-oriented, 
+instead of for program analysis. And it's hard, if not
+impossible, to use them as general-purpose
+program analysis and transformation framework without extensive
+modification or rewriting.
+
+So, the primary goal of the work described in this paper is to design
+and implement a new open-source general-purpose framework named
+Carbon for
+Android application analysis and transformation. The design philosophy
+of Carbon is to follow closely with current well-established
+compiler and virtual
+machine practice, so that developers can investigate and experiment
+their algorithms on Carbon easily. Furthermore, a key requirement
+for Carbon is to
+represent the full Dalvik ISA, no subset, superset or other
+variants will be supported, so that Carbon will be a coherent
+framework. The current development of Carbon is rather 
+stable and. This paper introduces the design and implementation
+details and tradeoffs of Carbon, and lessons we learned in implementing it.
+
+To summarize, the key technical contribution and highlight
+of this paper is the design and implementation of a new
+framework for Android application analysis and transformation. We
+believe that we are the first to propose such a general-purpose
+Android program analysis framework. Our experiments results
+suggests that Carbon can be used in other circumstances.
+
+The rest of this paper is organized as follows. Section \ref{sec-design}
+introduces the overall design of Carbon; section \ref{}; and section
+\ref{sec-conclusion} concludes.
+
+\section{Design Overview}\label{sec-design}
+We start, in this section, with an overview of the overall
+design philosophy and high-level structure of Carbon. And
+in the next several sections, we'll introduce more design
+and implementation details.
+
+The first decision we must make is to determine the format
+of target applications Carbon can process. We have decided
+to use the .apk file format. There are two reasons for this
+decision: first, although most Android applications
+are developed in Java, they are compiled to .dex format
+before installation, so most application that can be found
+on the Android macket an 
+
+The second decision we must make is the language chosen
+to write Carbon itself. Although we can, in principal, use 
+any programming languages to finish this task, we
+have chosen Java as the implementation language. The main
+reason here is that we'd like to bootstrap Carbon (that
+is, run Carbon with Carbon) in one of our on-going project
+in which we are extending
+Carbon with full-featured virtual
+machine capability support. Of course, choosing Java also makes
+it easy and straightforward for other developers to
+write their own program analysis and transformation
+on Carbon.
+
+As a high-level intermediate representation, abstract
+syntax trees are used to represent Dalvik abstract
+syntax. The abstract syntax tree encodes honestly
+the internal structures of an APK executable: class, 
+methods, intructions, etc.. The details of this
+representation will be described in the next section.
+
+Except for the abstract syntax tree, we have decided
+to use a powerful yet simple control-flow graph
+data structure as the primary intermediate representation for
+Carbon. On one hand, the
+control-flow graph make it easy to calculate various
+control-flow and data-flow information, meanwhile, it
+hiddens many annoying details by de-sugaring many
+language features
+during the translation from the abtract syntax tree
+to the control-flow graph. Section \ref{sec-cfg} will
+describe the design details of the control-flow graph.
+
+As we mentioned in section \ref{sec-introduction}, the
+most important design philosophy of Carbon is to make
+use of the well-established design practices of
+compilers or virtual machines, so that developers
+of various program analysis and transformation algorithm
+can start their work as conveniently as possible, so we
+have decided to 
+
+\section{Front-end and Abstract Syntax Trees}
+In this section, we introduce the design and implementation
+details of the front-end part of Carbon: the lexer,
+the parser, and the abstract syntax trees.
+
+\subsection{Front-end}
+Carbon takes an APK file as its input, so the first phase
+will include 
+Dalvik contains more than 200 different instructions, nevertheless
+to say, writing a lexer
+
+\subsection{Bytecode Verifiers}
+
+
+\subsection{Abstract Syntax Trees}
+
+
+\section{Factored Control-flow Graph}\label{sec-cfg}
+
+\section{Experiments and Evaluations}\label{sec-exp}
+
+
+\section{Conclusion}\label{sec-conclusion}
+
+Summary...
+
+\acks
+
+This project is supported by a CCF-Tencent
+Open Research Fund, number CCF-Tencent AGR20130105. Any
+opinions, findings, and recommendations in this paper are those
+of the authors, and do not
+necessarily reflect the views of the China Computer Federation, or
+Tencent.
+
+% We recommend abbrvnat bibliography style.
+
+\bibliographystyle{abbrvnat}
+
+% The bibliography should be embedded for final submission.
+
+\begin{thebibliography}{}
+\softraggedright
+
+\bibitem[Smith et~al.(2009)Smith, Jones]{smith02}
+P. Q. Smith, and X. Y. Jones. ...reference text...
+
+\bibitem[]{dare2012}
+Damien Octeau, Somesh Jha and Patrick McDaniel. Retargeting 
+Android Applications to Java Bytecode. 20th International 
+Symposium on the Foundations of Software Engineering (FSE). Cary, NC. November 2012.
+
+\end{thebibliography}
+
+
+\end{document}
+
+%                       Revision History
+%                       -------- -------
+%  Date         Person  Ver.    Change
+%  ----         ------  ----    ------
+
+%  2013.06.29   TU      0.1--4  comments on permission/copyright notices
+
+>>>>>>> 00177f6f79f75dcc8935f7e03f07d0cc6a01cb0b

@@ -112,17 +112,21 @@ public class PrettyPrintVisitor implements Visitor {
 	/*
 	 * print literal except subannotation and array_literal
 	 */
-	private void printLiteral(String literal, String type) {
+	private void printLiteral(String literal, String type, boolean hasNext) {
 		if (literal.startsWith("\""))
-			this.sayln(this.processString(literal));
+			this.say(this.processString(literal));
 		else if (literal.startsWith("\'"))
-			this.sayln(this.processChar(literal));
+			this.say(this.processChar(literal));
 		else {
 			if (type.equals("enum"))
-				this.sayln(".enum " + literal);
+				this.say(".enum " + literal);
 			else
-				this.sayln(literal);
+				this.say(literal);
 		}
+		if (hasNext)
+			this.sayln(",");
+		else
+			this.sayln("");
 	}
 
 	private void indent() {
@@ -499,19 +503,25 @@ public class PrettyPrintVisitor implements Visitor {
 					Object object = elementLiteral.element.get(i);
 					String arrayLiteralTypet = elementLiteral.arrayLiteralType.get(i);
 					this.printSpace();
+					boolean hasNext = false;
+					if (i < elementLiteral.element.size() - 1)
+						hasNext = true;
+
 					if (arrayLiteralTypet.equals("subannotation")) {
 						this.say(".subannotation ");
 						((ast.annotation.Annotation.SubAnnotation) object)
 								.accept(this);
 						this.printSpace();
 						this.say(".end subannotation");
+						if (hasNext)
+							this.sayln(",");
+						else
+							this.sayln("");
 					} else {
 						String str = new String();
 						str = (String) (object);
-						this.printLiteral(str, arrayLiteralTypet);
+						this.printLiteral(str, arrayLiteralTypet, hasNext);
 					}
-					if (i < elementLiteral.element.size() - 1)
-						this.sayln(",");
 				}
 				this.unIndent();
 				this.printSpace();
@@ -522,7 +532,7 @@ public class PrettyPrintVisitor implements Visitor {
 		//others
 		else {
 			this.printLiteral(((String) elementLiteral.element.get(0)),
-					elementLiteral.type);
+					elementLiteral.type, false);
 			this.sayln("");
 		}
 	}

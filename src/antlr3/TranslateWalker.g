@@ -144,12 +144,12 @@ methods returns [List<ast.method.Method> methodList]
 field returns[ast.classs.Class.Field fieldd]
   :^(I_FIELD a=SIMPLE_NAME b=access_list ^(I_FIELD_TYPE c=nonvoid_type_descriptor) d=field_initial_value annotations?)
   {
-        $fieldd = new ast.classs.Class.Field($a.text,$b.accessList,$c.type_desc,$d.value,$annotations.annotationList);
+        $fieldd = new ast.classs.Class.Field($a.text,$b.accessList,$c.type_desc,$d.elementLiteral,$annotations.annotationList);
   };
 
 
-field_initial_value returns [String value]
-  : ^(I_FIELD_INITIAL_VALUE a=literal) {$value = $a.value;}
+field_initial_value returns [ast.annotation.Annotation.ElementLiteral elementLiteral]
+  : ^(I_FIELD_INITIAL_VALUE a=literal) {$elementLiteral = $a.elementLiteral;}
   | /*epsilon*/;
 
 literal returns[ast.annotation.Annotation.ElementLiteral elementLiteral,String value,String type,Object object]
@@ -1632,9 +1632,7 @@ char_literal returns[String value,String type]
   :  a=CHAR_LITERAL 
   { 
     $value = $a.text; 
-    $value = $value.substring(1, $value.length() - 1);
-    $value = util.StringUtils.escapeString($value);
-    $value = "\'" + $value + "\'";$type = "char";
+    $type = "char";
   };
 
 string_literal returns [String value,String type]
@@ -1700,9 +1698,6 @@ annotation_element returns [ast.annotation.Annotation.AnnotationElement element]
     };
 
 field_literal returns [String value,String type]
-@init{
-  System.out.println("-----------find field-----------");
-}
   : ^(I_ENCODED_FIELD a=fully_qualified_field)
     {
       $value = $a.fieldItem.toString();

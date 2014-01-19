@@ -25,16 +25,18 @@ public class Class extends T {
 		public String name;
 		public List<String> accessList;
 		public String type;
-		public String initValue;
+		//public String initValue;
+		public ast.annotation.Annotation.ElementLiteral elementLiteral;
 		public List<ast.annotation.Annotation> annotationList;
 
 		public Field(String name, List<String> accessList, String type,
-				String initValue, List<Annotation> annotationList) {
+				ast.annotation.Annotation.ElementLiteral elementLiteral,
+				List<Annotation> annotationList) {
 			super();
 			this.name = name;
 			this.accessList = accessList;
 			this.type = type;
-			this.initValue = initValue;
+			this.elementLiteral = elementLiteral;
 			this.annotationList = annotationList;
 		}
 

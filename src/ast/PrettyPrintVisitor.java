@@ -241,6 +241,7 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(ast.method.Method method) {
 		boolean ignorePrologue = false;
+		boolean endParameter = false;
 		Collections.sort(method.catchList);
 		Collections.sort(method.labelList);
 		this.say(".method ");
@@ -258,6 +259,12 @@ public class PrettyPrintVisitor implements Visitor {
 			this.sayln(method.registers_directive_count + "");
 		}
 		// parameters
+		// if there exist annotation in parameter then all the .parameter should add .end parameter at the end
+		for (ast.method.Method.Parameter parameter : method.parameterList) {
+			if (parameter.annotationList.size() > 0) {
+				endParameter = true;
+			}
+		}
 		for (ast.method.Method.Parameter parameter : method.parameterList) {
 			this.printSpace();
 			if (parameter.value != null)
@@ -267,10 +274,10 @@ public class PrettyPrintVisitor implements Visitor {
 			// annotations
 			for (ast.annotation.Annotation annotation : parameter.annotationList) {
 				annotation.accept(this);
-				if (parameter.annotationList.size() > 0) {
-					this.printSpace();
-					this.sayln(".end parameter");
-				}
+			}
+			if(endParameter) {
+				this.printSpace();
+				this.sayln(".end parameter");
 			}
 		}
 		if (!ignorePrologue) {

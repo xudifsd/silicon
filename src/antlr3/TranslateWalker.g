@@ -1590,7 +1590,7 @@ class_type_descriptor returns [String className]
   };
 
 type_descriptor returns [String type_desc,String value,String type]
-  : VOID_TYPE { $type_desc = "V"; /* void */ }
+  : VOID_TYPE { $type_desc = "V"; $type = "void"; $value="V"; /* void */ }
   | nonvoid_type_descriptor { $type_desc = $nonvoid_type_descriptor.type_desc; $value =  $nonvoid_type_descriptor.type_desc;$type = "type"; }
   ;
 

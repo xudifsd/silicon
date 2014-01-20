@@ -8,7 +8,6 @@ import ast.Visitor;
 import ast.annotation.Annotation;
 
 public class Class extends T {
-	// public boolean isMain;
 	public String FullyQualifiedName;
 	public List<String> accessList;
 	public String superName;
@@ -39,11 +38,9 @@ public class Class extends T {
 			this.elementLiteral = elementLiteral;
 			this.annotationList = annotationList;
 		}
-
 	}
 
 	public Class() {
-		// isMain = false;
 		methods = new LinkedList<ast.method.Method>();
 		implementsList = new ArrayList<String>();
 	}

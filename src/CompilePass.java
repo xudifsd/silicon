@@ -10,6 +10,7 @@ import org.antlr.runtime.RecognitionException;
 
 import control.Control;
 import util.MultiThreadUtils.ParserWorker;
+import util.MultiThreadUtils.SimplifyWorker;
 import util.MultiThreadUtils.TranslateWorker;
 import util.MultiThreadUtils.PrettyPrintWorker;
 
@@ -44,6 +45,15 @@ public class CompilePass {
 
 		for (ParserWorker parserWorker : workers)
 			result.add(new TranslateWorker(parserWorker));
+
+		return result;
+	}
+
+	public static List<SimplifyWorker> simplify(List<TranslateWorker> workers) {
+		ArrayList<SimplifyWorker> result = new ArrayList<SimplifyWorker>();
+
+		for (TranslateWorker translateWorker : workers)
+			result.add(new SimplifyWorker(translateWorker));
 
 		return result;
 	}

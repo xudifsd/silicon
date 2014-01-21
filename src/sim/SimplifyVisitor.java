@@ -1,7 +1,34 @@
 package sim;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import sim.stm.Instruction.Nop;
+
 public class SimplifyVisitor implements ast.Visitor {
 	public sim.classs.Class simplifiedClass;
+	public HashMap<String, Integer> labels;
+	public sim.annotation.Annotation annotation;
+	public sim.method.Method method;
+	public int offset;
+	public int labelIndex;
+	public int catchIndex;
+
+	private List<sim.annotation.Annotation> translateAnnotation(
+			List<ast.annotation.Annotation> annotationList) {
+		List<sim.annotation.Annotation> ret = new ArrayList<sim.annotation.Annotation>();
+		for (ast.annotation.Annotation ann : annotationList) {
+			ann.accept(this);
+			ret.add(annotation);
+		}
+		return ret;
+	}
+
+	private void emit(sim.stm.T inst, String op) {
+		this.method.statements.add(inst);
+		offset += ast.PrettyPrintVisitor.instLen.get(op);
+	}
 
 	// program
 	@Override
@@ -11,10 +38,59 @@ public class SimplifyVisitor implements ast.Visitor {
 
 	@Override
 	public void visit(ast.classs.Class clazz) {
+		simplifiedClass = new sim.classs.Class();
+		simplifiedClass.name = clazz.FullyQualifiedName;
+		simplifiedClass.source = clazz.source;
+		simplifiedClass.superr = clazz.superName;
+		simplifiedClass.implementsList = clazz.implementsList;
+		simplifiedClass.accessList = clazz.accessList;
+		simplifiedClass.annotationList = this
+				.translateAnnotation(clazz.annotationList);
+		simplifiedClass.fieldList = new ArrayList<sim.classs.Class.Field>();
+		for (ast.classs.Class.Field f : clazz.fieldList) {
+			sim.annotation.Annotation.ElementLiteral elementLiteral = new sim.annotation.Annotation.ElementLiteral();
+			elementLiteral.arrayLiteralType = f.elementLiteral.arrayLiteralType;
+			elementLiteral.element = f.elementLiteral.element;
+			elementLiteral.type = f.elementLiteral.type;
+			List<sim.annotation.Annotation> annotationList = this
+					.translateAnnotation(f.annotationList);
+			simplifiedClass.fieldList.add(new sim.classs.Class.Field(f.name,
+					f.accessList, f.type, elementLiteral, annotationList));
+		}
+		simplifiedClass.methods = new ArrayList<sim.method.Method>();
+		for (ast.method.Method m : clazz.methods) {
+			m.accept(this);
+			simplifiedClass.methods.add(method);
+		}
 	}
 
 	@Override
-	public void visit(ast.method.Method method) {
+	public void visit(ast.method.Method m) {
+		this.method.accessList = m.accessList;
+		this.method.annotationList = this.translateAnnotation(m.annotationList);
+		this.method.catchList = new ArrayList<sim.method.Method.Catch>();
+		for (ast.method.Method.Catch cat : m.catchList) {
+			this.method.catchList
+					.add(new sim.method.Method.Catch(cat.add, cat.isAll,
+							cat.type, cat.startLab, cat.endLab, cat.catchLab));
+		}
+		this.method.name = m.name;
+		this.method.parameterList = new ArrayList<sim.method.Method.Parameter>();
+		for (ast.method.Method.Parameter p : m.parameterList) {
+			this.method.parameterList.add(new sim.method.Method.Parameter(
+					p.value, this.translateAnnotation(p.annotationList)));
+		}
+		this.method.prototype = new sim.method.Method.MethodPrototype(
+				m.prototype.returnType, m.prototype.argsType);
+		this.method.registers_directive = m.registers_directive;
+		this.method.registers_directive_count = m.registers_directive_count;
+		this.method.statements = new ArrayList<sim.stm.T>();
+		this.offset = 0;
+		this.catchIndex = 0;
+		this.labelIndex = 0;
+		for (ast.stm.T stm : m.statements) {
+			stm.accept(this);
+		}
 	}
 
 	@Override
@@ -45,11 +121,13 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 00 10x nop
 	@Override
 	public void visit(ast.stm.Instruction.Nop inst) {
+		emit(new sim.stm.Instruction.Nop(), "nop");
 	}
 
 	// 01 12x move vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.Move inst) {
+		emit(new sim.stm.Instruction.Move(inst.op,inst.dest,inst.src),"move");
 	}
 
 	// 02 22x move/from16 vAA, vBBBB

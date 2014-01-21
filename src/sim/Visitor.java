@@ -5,6 +5,10 @@ public interface Visitor {
 
 	public void visit(sim.classs.Class item);
 
+	public void visit(sim.annotation.Annotation annotation);
+
+	public void visit(sim.annotation.Annotation.SubAnnotation subAnnotation);
+
 	public void visit(sim.method.Method method);
 
 	public void visit(sim.annotation.Annotation.ElementLiteral elementLiteral);
@@ -70,5 +74,7 @@ public interface Visitor {
 	public void visit(sim.stm.Instruction.BinOpTwoAddr binOpTwoAddr);
 
 	public void visit(sim.stm.Instruction.BinOpLit binOpLit);
+
+	public void visit(sim.method.Method.MethodPrototype methodPrototype);
 
 }

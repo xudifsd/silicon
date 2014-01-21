@@ -499,24 +499,6 @@ public class Instruction {
 		}
 	}
 
-	public static class BinOpTwoAddr extends T {
-		public String op;
-		public String dst;
-		public String src;
-
-		public BinOpTwoAddr(String op, String dst, String src) {
-			super();
-			this.op = op;
-			this.dst = dst;
-			this.src = src;
-		}
-
-		@Override
-		public void accept(Visitor v) {
-			v.visit(this);
-		}
-	}
-
 	public static class BinOpLit extends T {
 		public String op;
 		public String dst;
@@ -537,4 +519,60 @@ public class Instruction {
 		}
 	}
 
+	public static class ArrayDataDirective extends T {
+		public String size;
+		public List<String> elementList;
+
+		public ArrayDataDirective(String size, List<String> elementList) {
+			super();
+			this.size = size;
+			this.elementList = elementList;
+		}
+
+		@Override
+		public void accept(Visitor v) {
+			v.visit(this);
+		}
+	}
+
+	public static class PackedSwitchDirective extends T {
+		public String key;
+		public String count;
+		public List<String> labList;
+
+		public PackedSwitchDirective(String key, String count,
+				List<String> labList) {
+			super();
+			this.key = key;
+			this.count = count;
+			this.labList = labList;
+		}
+
+		@Override
+		public void accept(Visitor v) {
+			v.visit(this);
+
+		}
+	}
+
+	public static class SparseSwitchDirective extends T {
+
+		public String count;
+		public List<String> keyList;
+		public List<String> labList;
+
+		public SparseSwitchDirective(String count, List<String> keyList,
+				List<String> labList) {
+			super();
+			this.count = count;
+			this.keyList = keyList;
+			this.labList = labList;
+		}
+
+		@Override
+		public void accept(Visitor v) {
+			v.visit(this);
+		}
+
+	}
 }

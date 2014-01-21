@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import sim.stm.Instruction.Nop;
-
 public class SimplifyVisitor implements ast.Visitor {
 	public sim.classs.Class simplifiedClass;
 	public HashMap<String, Integer> labels;
@@ -33,7 +31,8 @@ public class SimplifyVisitor implements ast.Visitor {
 	// program
 	@Override
 	public void visit(ast.program.Program p) {
-		// nop
+		throw new RuntimeException(
+				"visiting ast.program.Program?! are you out of your mind?");
 	}
 
 	@Override
@@ -121,13 +120,14 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 00 10x nop
 	@Override
 	public void visit(ast.stm.Instruction.Nop inst) {
-		emit(new sim.stm.Instruction.Nop(), "nop");
+		emit(new sim.stm.Instruction.Nop(), inst.op);
 	}
 
 	// 01 12x move vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.Move inst) {
-		emit(new sim.stm.Instruction.Move(inst.op,inst.dest,inst.src),"move");
+		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 02 22x move/from16 vAA, vBBBB
@@ -832,161 +832,225 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 90: add-int
 	@Override
 	public void visit(ast.stm.Instruction.AddInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 91: sub-int public void visit(ast.stm.Instruction.AddInt inst)
 	@Override
 	public void visit(ast.stm.Instruction.SubInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 92: mul-int
 	@Override
 	public void visit(ast.stm.Instruction.MulInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 93: div-int
 	@Override
 	public void visit(ast.stm.Instruction.DivInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 94: rem-int
 	@Override
 	public void visit(ast.stm.Instruction.RemInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 95: and-int
 	@Override
 	public void visit(ast.stm.Instruction.AndInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 96: or-int
 	@Override
 	public void visit(ast.stm.Instruction.OrInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 97: xor-int
 	@Override
 	public void visit(ast.stm.Instruction.XorInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 98: shl-int
 	@Override
 	public void visit(ast.stm.Instruction.ShlInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 99: shr-int
 	@Override
 	public void visit(ast.stm.Instruction.ShrInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9a: ushr-int
 	@Override
 	public void visit(ast.stm.Instruction.UshrInt inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9b: add-long
 	@Override
 	public void visit(ast.stm.Instruction.AddLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9c: sub-long
 	@Override
 	public void visit(ast.stm.Instruction.SubLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9d: mul-long
 	@Override
 	public void visit(ast.stm.Instruction.MulLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9e: div-long
 	@Override
 	public void visit(ast.stm.Instruction.DivLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 9f: rem-long
 	@Override
 	public void visit(ast.stm.Instruction.RemLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a0: and-long
 	@Override
 	public void visit(ast.stm.Instruction.AndLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a1: or-long
 	@Override
 	public void visit(ast.stm.Instruction.OrLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a2: xor-long
 	@Override
 	public void visit(ast.stm.Instruction.XorLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a3: shl-long
 	@Override
 	public void visit(ast.stm.Instruction.ShlLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a4: shr-long
 	@Override
 	public void visit(ast.stm.Instruction.ShrLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a5: ushr-long
 	@Override
 	public void visit(ast.stm.Instruction.UshrLong inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a6: add-float
 	@Override
 	public void visit(ast.stm.Instruction.AddFloat inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a7: sub-float
 	@Override
 	public void visit(ast.stm.Instruction.SubFloat inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a8: mul-float
 	@Override
 	public void visit(ast.stm.Instruction.MulFloat inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// a9: div-float
 	@Override
 	public void visit(ast.stm.Instruction.DivFloat inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// aa: rem-float
 	@Override
 	public void visit(ast.stm.Instruction.RemFloat inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// ab: add-double
 	@Override
 	public void visit(ast.stm.Instruction.AddDouble inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// ac: sub-double
 	@Override
 	public void visit(ast.stm.Instruction.SubDouble inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// ad: mul-double
 	@Override
 	public void visit(ast.stm.Instruction.MulDouble inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// ae: div-double
 	@Override
 	public void visit(ast.stm.Instruction.DivDouble inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// af: rem-double
 	@Override
 	public void visit(ast.stm.Instruction.RemDouble inst) {
+		emit(new sim.stm.Instruction.BinOp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	//
@@ -995,161 +1059,225 @@ public class SimplifyVisitor implements ast.Visitor {
 	// b0: add-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AddInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("add-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b1: sub-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.SubInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("sub-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b2: mul-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.MulInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("mul-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b3: div-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.DivInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("div-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b4: rem-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.RemInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("rem-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b5: and-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AndInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("and-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b6: or-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.OrInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("or-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b7: xor-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.XorInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("xor-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b8: shl-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.ShlInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("shl-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// b9: shr-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.ShrInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("shr-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// ba: ushr-int/2addr
 	@Override
 	public void visit(ast.stm.Instruction.UshrInt2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("ushr-int", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// bb: add-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AddLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("add-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// bc: sub-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.SubLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("sub-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// bd: mul-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.MulLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("mul-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// be: div-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.DivLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("div-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// bf: rem-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.RemLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("rem-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c0: and-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AndLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("and-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c1: or-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.OrLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("or-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c2: xor-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.XorLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("xor-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c3: shl-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.ShlLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("shl-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c4: shr-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.ShrLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("shr-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c5: ushr-long/2addr
 	@Override
 	public void visit(ast.stm.Instruction.UshrLong2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("ushr-long", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c6: add-float/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AddFloat2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("add-float", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c7: sub-float/2addr
 	@Override
 	public void visit(ast.stm.Instruction.SubFloat2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("sub-float", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c8: mul-float/2addr
 	@Override
 	public void visit(ast.stm.Instruction.MulFloat2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("mul-float", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// c9: div-float/2addr
 	@Override
 	public void visit(ast.stm.Instruction.DivFloat2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("div-float", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// ca: rem-float/2addr
 	@Override
 	public void visit(ast.stm.Instruction.RemFloat2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("rem-float", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// cb: add-double/2addr
 	@Override
 	public void visit(ast.stm.Instruction.AddDouble2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("add-double", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// cc: sub-double/2addr
 	@Override
 	public void visit(ast.stm.Instruction.SubDouble2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("sub-double", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// cd: mul-double/2addr
 	@Override
 	public void visit(ast.stm.Instruction.MulDouble2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("mul-double", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// ce: div-double/2addr
 	@Override
 	public void visit(ast.stm.Instruction.DivDouble2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("div-double", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	// cf: rem-double/2addr
 	@Override
 	public void visit(ast.stm.Instruction.RemDouble2Addr inst) {
+		emit(new sim.stm.Instruction.BinOp("rem-double", inst.dest, inst.dest,
+				inst.src), inst.op);
 	}
 
 	//
@@ -1157,41 +1285,57 @@ public class SimplifyVisitor implements ast.Visitor {
 	// d0: add-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.AddIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d1: rsub-int (reverse subtract)
 	@Override
 	public void visit(ast.stm.Instruction.RsubInt inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d2: mul-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.MulIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d3: div-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.DivIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d4: rem-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.RemIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d5: and-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.AndIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d6: or-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.OrIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// d7: xor-int/lit16
 	@Override
 	public void visit(ast.stm.Instruction.XorIntLit16 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	//
@@ -1199,71 +1343,101 @@ public class SimplifyVisitor implements ast.Visitor {
 	// d8: add-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.AddIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("add-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// d9: rsub-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.RsubIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("rsub-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// da: mul-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.MulIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("mul-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// db: div-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.DivIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("div-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// dc: rem-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.RemIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("rem-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// dd: and-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.AndIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("and-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// de: or-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.OrIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("or-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// df: xor-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.XorIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit("xor-int/lit16", inst.dest,
+				inst.src, inst.value), inst.op);
 	}
 
 	// e0: shl-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.ShlIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// e1: shr-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.ShrIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	// e2: ushr-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.UshrIntLit8 inst) {
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest, inst.src,
+				inst.value), inst.op);
 	}
 
 	@Override
 	public void visit(ast.stm.Instruction instruction) {
+		throw new RuntimeException(
+				"visiting ast.stm.Instruction?! are you out of your mind?");
 	}
 
 	@Override
 	public void visit(ast.stm.Instruction.ArrayDataDirective inst) {
+		method.statements.add(new sim.stm.Instruction.ArrayDataDirective(
+				inst.size, inst.elementList));
 	}
 
 	@Override
 	public void visit(ast.stm.Instruction.PackedSwitchDirective inst) {
+		method.statements.add(new sim.stm.Instruction.PackedSwitchDirective(
+				inst.key, inst.count, inst.labList));
 	}
 
 	@Override
 	public void visit(ast.stm.Instruction.SparseSwitchDirective inst) {
+		method.statements.add(new sim.stm.Instruction.SparseSwitchDirective(
+				inst.count, inst.keyList, inst.labList));
 	}
 }

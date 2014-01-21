@@ -71,10 +71,13 @@ public interface Visitor {
 
 	public void visit(sim.stm.Instruction.BinOp binOp);
 
-	public void visit(sim.stm.Instruction.BinOpTwoAddr binOpTwoAddr);
-
 	public void visit(sim.stm.Instruction.BinOpLit binOpLit);
 
 	public void visit(sim.method.Method.MethodPrototype methodPrototype);
 
+	public void visit(sim.stm.Instruction.ArrayDataDirective arrayDataDirective);
+
+	public void visit(sim.stm.Instruction.PackedSwitchDirective packed);
+
+	public void visit(sim.stm.Instruction.SparseSwitchDirective sparse);
 }

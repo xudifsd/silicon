@@ -126,229 +126,305 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 01 12x move vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.Move inst) {
+<<<<<<< HEAD
 		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
+=======
+		emit(new sim.stm.Instruction.Move("move/16", inst.dest, inst.src),
+>>>>>>> added instruction simplifing rules from 1 to 4a
 				inst.op);
 	}
 
 	// 02 22x move/from16 vAA, vBBBB
 	@Override
 	public void visit(ast.stm.Instruction.MoveFrom16 inst) {
+		emit(new sim.stm.Instruction.Move("move/16", inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 03 32x move/16 vAAAA, vBBBB ------
 	@Override
 	public void visit(ast.stm.Instruction.Move16 inst) {
+		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 04 12x move-wide vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.MoveWide inst) {
+		emit(new sim.stm.Instruction.Move("move-wide/16", inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 05 22x move-wide/from16 vAA, vBBBB
 	@Override
 	public void visit(ast.stm.Instruction.MoveWideFrom16 inst) {
+		emit(new sim.stm.Instruction.Move("move-wide/16", inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 06 32x move-wide/16 vAAAA, vBBBB -----
 	@Override
 	public void visit(ast.stm.Instruction.MoveWide16 inst) {
+		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 07 12x move-object vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.MoveObject inst) {
+		emit(new sim.stm.Instruction.Move("move-object/16", inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 08 22x move-object/from16 vAA, vBBBB --
 	@Override
 	public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst) {
+		emit(new sim.stm.Instruction.Move("move-object/16", inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 09 32x move-object/16 vAAAA, vBBBB
 	@Override
 	public void visit(ast.stm.Instruction.MoveObject16 inst) {
+		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 0a 11x move-result vAA
 	@Override
 	public void visit(ast.stm.Instruction.MoveResult inst) {
+		emit(new sim.stm.Instruction.MoveResult(inst.op, inst.dest), inst.op);
 	}
 
 	// 0b 11x move-result-wide vAA
 	@Override
 	public void visit(ast.stm.Instruction.MoveResultWide inst) {
+		emit(new sim.stm.Instruction.MoveResult(inst.op, inst.dest), inst.op);
 	}
 
 	// 0c 11x move-result-object vAA
 	@Override
 	public void visit(ast.stm.Instruction.MoveResultObject inst) {
+		emit(new sim.stm.Instruction.MoveResult(inst.op, inst.dest), inst.op);
 	}
 
 	// 0d 11x move-exception vAA
 	@Override
 	public void visit(ast.stm.Instruction.MoveException inst) {
+		emit(new sim.stm.Instruction.MoveResult(inst.op, inst.dest), inst.op);
 	}
 
 	// 0e 10x return-void
 	@Override
 	public void visit(ast.stm.Instruction.ReturnVoid inst) {
+		emit(new sim.stm.Instruction.ReturnVoid(), inst.op);
 	}
 
 	// 0f 11x return vAA
 	@Override
 	public void visit(ast.stm.Instruction.Return inst) {
+		emit(new sim.stm.Instruction.Return(inst.op, inst.ret), inst.op);
 	}
 
 	// 10 11x return-wide vAA
 	@Override
 	public void visit(ast.stm.Instruction.ReturnWide inst) {
+		emit(new sim.stm.Instruction.Return(inst.op, inst.ret), inst.op);
 	}
 
 	// 11 11x return-object vAA
 	@Override
 	public void visit(ast.stm.Instruction.ReturnObject inst) {
+		emit(new sim.stm.Instruction.Return(inst.op, inst.ret), inst.op);
 	}
 
 	// 12 11n const/4 vA, #+B
 	@Override
 	public void visit(ast.stm.Instruction.Const4 inst) {
+		emit(new sim.stm.Instruction.Const("const", inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 13 21s const/16 vAA, #+BBBB
 	@Override
 	public void visit(ast.stm.Instruction.Const16 inst) {
+		emit(new sim.stm.Instruction.Const("const", inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 14 31i const vAA, #+BBBBBBBB
 	@Override
 	public void visit(ast.stm.Instruction.Const inst) {
+		emit(new sim.stm.Instruction.Const(inst.op, inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 15 21h const/high16 vAA, #+BBBB0000
 	@Override
 	public void visit(ast.stm.Instruction.ConstHigh16 inst) {
+		emit(new sim.stm.Instruction.Const("const", inst.dest, inst.value
+				+ "0000"), inst.op);
 	}
 
 	// 16 21s const-wide/16 vAA, #+BBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstWide16 inst) {
+		emit(new sim.stm.Instruction.Const("const-wide", inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 17 31i const-wide/32 vAA, #+BBBBBBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstWide32 inst) {
+		emit(new sim.stm.Instruction.Const("const-wide", inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 18 51l const-wide vAA, #+BBBBBBBBBBBBBBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstWide inst) {
+		emit(new sim.stm.Instruction.Const(inst.op, inst.dest, inst.value),
+				inst.op);
 	}
 
 	// 19 21h const-wide/high16 vAA, #+BBBB000000000000
 	@Override
 	public void visit(ast.stm.Instruction.ConstWideHigh16 inst) {
+		emit(new sim.stm.Instruction.Const("const-wide", inst.dest, inst.value
+				+ "000000000000"), inst.op);
 	}
 
 	// 1a 21c const-string vAA, string@BBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstString inst) {
+		emit(new sim.stm.Instruction.Const("const-string/jumbo", inst.dest,
+				inst.str), inst.op);
 	}
 
 	// 1b 31c const-string/jumbo vAA, string@BBBBBBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstStringJumbo inst) {
+		emit(new sim.stm.Instruction.Const(inst.op, inst.dest, inst.str),
+				inst.op);
 	}
 
 	// 1c 21c const-class vAA, type@BBBB
 	@Override
 	public void visit(ast.stm.Instruction.ConstClass inst) {
+		emit(new sim.stm.Instruction.Const(inst.op, inst.dest, inst.type),
+				inst.op);
 	}
 
 	// 1d 11x monitor-enter vAA
 	@Override
 	public void visit(ast.stm.Instruction.MonitorEnter inst) {
+		emit(new sim.stm.Instruction.Monitor(inst.op, inst.ref), inst.op);
 	}
 
 	// 1e 11x monitor-exit vAA
 	@Override
 	public void visit(ast.stm.Instruction.MonitorExit inst) {
+		emit(new sim.stm.Instruction.Monitor(inst.op, inst.ref), inst.op);
 	}
 
 	// 1f 21c check-cast vAA, type@BBBB
 	@Override
 	public void visit(ast.stm.Instruction.CheckCast inst) {
+		emit(new sim.stm.Instruction.CheckCast(inst.ref, inst.type), inst.op);
 	}
 
 	// 20 22c instance-of vA, vB, type@CCCC
 	@Override
 	public void visit(ast.stm.Instruction.InstanceOf inst) {
+		emit(new sim.stm.Instruction.InstanceOf(inst.dest, inst.ref, inst.type),
+				inst.op);
 	}
 
 	// 21 12x array-length vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.arrayLength inst) {
+		emit(new sim.stm.Instruction.ArrayLength(inst.dest, inst.src), inst.op);
 	}
 
 	// 22 21c new-instance vAA, type@BBBB
 	@Override
 	public void visit(ast.stm.Instruction.NewInstance inst) {
+		emit(new sim.stm.Instruction.NewInstance(inst.dest, inst.type), inst.op);
 	}
 
 	// 23 22c new-array vA, vB, type@CCCC
 	// new-array v0,p1 [Landro......
 	@Override
 	public void visit(ast.stm.Instruction.NewArray inst) {
+		emit(new sim.stm.Instruction.NewArray(inst.dest, inst.size, inst.type),
+				inst.op);
 	}
 
 	// 24 35c filled-new-array {vC, vD, vE, vF, vG}, type@BBBB
 	// filled-new-array {v7, v9}, [I
 	@Override
 	public void visit(ast.stm.Instruction.FilledNewArray inst) {
+		emit(new sim.stm.Instruction.FilledNewArray(inst.op, inst.argList,
+				inst.type), inst.op);
 	}
 
 	// 25 3rc filled-new-array/range {vCCCC .. vNNNN}, type@BBBB ----
 	@Override
 	public void visit(ast.stm.Instruction.FilledNewArrayRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.FilledNewArray(inst.op, argList, inst.type),
+				inst.op);
 	}
 
 	// 26 31t fill-array-data vAA, +BBBBBBBB (with supplemental data as
 	// specified below in "fill-array-data-payloadFormat") ------
 	@Override
 	public void visit(ast.stm.Instruction.FillArrayData inst) {
+		emit(new sim.stm.Instruction.FillArrayData(inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 27 11x throw vAA
 	@Override
 	public void visit(ast.stm.Instruction.Throw inst) {
+		emit(new sim.stm.Instruction.Throw(inst.kind), inst.op);
 	}
 
 	// 28 10t goto +AA ??
 	// !!!!! goto :goto_0
 	@Override
 	public void visit(ast.stm.Instruction.Goto inst) {
+		emit(new sim.stm.Instruction.Goto("goto/32", inst.dest), inst.op);
 	}
 
 	// 29 20t goto/16 +AAAA ??
 	@Override
 	public void visit(ast.stm.Instruction.Goto16 inst) {
+		emit(new sim.stm.Instruction.Goto("goto/32", inst.dest), inst.op);
 	}
 
 	// 2a 30t goto/32 +AAAAAAAA ??
 	@Override
 	public void visit(ast.stm.Instruction.Goto32 inst) {
+		emit(new sim.stm.Instruction.Goto(inst.op, inst.dest), inst.op);
 	}
 
 	// 2b 31t packed-switch vAA, +BBBBBBBB (with supplemental data as specified
 	// below in "packed-switch- ??????????
 	@Override
 	public void visit(ast.stm.Instruction.PackedSwitch inst) {
+		emit(new sim.stm.Instruction.Switch(inst.op, inst.test, inst.offset),
+				inst.op);
 	}
 
 	// 2c 31t sparse-switch vAA, +BBBBBBBB (with supplemental data as specified
 	// below in "sparse-switch-payloadFormat") ??????????
 	@Override
 	public void visit(ast.stm.Instruction.SparseSwitch inst) {
+		emit(new sim.stm.Instruction.Switch(inst.op, inst.test, inst.offset),
+				inst.op);
 	}
 
 	//
@@ -356,26 +432,36 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 2d: cmpl-float (lt bias)
 	@Override
 	public void visit(ast.stm.Instruction.CmplFloat inst) {
+		emit(new sim.stm.Instruction.Cmp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 2e: cmpg-float (gt bias)
 	@Override
 	public void visit(ast.stm.Instruction.CmpgFloat inst) {
+		emit(new sim.stm.Instruction.Cmp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 2f: cmpl-double (lt bias)
 	@Override
 	public void visit(ast.stm.Instruction.CmplDouble inst) {
+		emit(new sim.stm.Instruction.Cmp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 30: cmpg-double (gt bias)
 	@Override
 	public void visit(ast.stm.Instruction.Cmpgdouble inst) {
+		emit(new sim.stm.Instruction.Cmp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	// 31: cmp-long
 	@Override
 	public void visit(ast.stm.Instruction.CmpLong inst) {
+		emit(new sim.stm.Instruction.Cmp(inst.op, inst.dest, inst.first,
+				inst.second), inst.op);
 	}
 
 	//
@@ -384,31 +470,43 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 32: if-eq
 	@Override
 	public void visit(ast.stm.Instruction.IfEq inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	// 33: if-ne
 	@Override
 	public void visit(ast.stm.Instruction.IfNe inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	// 34: if-lt
 	@Override
 	public void visit(ast.stm.Instruction.IfLt inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	// 35: if-ge
 	@Override
 	public void visit(ast.stm.Instruction.IfGe inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	// 36: if-gt
 	@Override
 	public void visit(ast.stm.Instruction.IfGt inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	// 37: if-le
 	@Override
 	public void visit(ast.stm.Instruction.IfLe inst) {
+		emit(new sim.stm.Instruction.IfTest(inst.op, inst.first, inst.second,
+				inst.dest), inst.op);
 	}
 
 	//
@@ -418,31 +516,44 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 38: if-eqz
 	@Override
 	public void visit(ast.stm.Instruction.IfEqz inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
+
 	}
 
 	// 39: if-nez
 	@Override
 	public void visit(ast.stm.Instruction.IfNez inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
 	}
 
 	// 3a: if-ltz
 	@Override
 	public void visit(ast.stm.Instruction.IfLtz inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
 	}
 
 	// 3b: if-gez
 	@Override
 	public void visit(ast.stm.Instruction.IfGez inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
 	}
 
 	// 3c: if-gtz
 	@Override
 	public void visit(ast.stm.Instruction.IfGtz inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
 	}
 
 	// 3d: if-lez
 	@Override
 	public void visit(ast.stm.Instruction.IfLez inst) {
+		emit(new sim.stm.Instruction.IfTestz(inst.op, inst.test, inst.dest),
+				inst.op);
 	}
 
 	//
@@ -453,36 +564,50 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 44: aget
 	@Override
 	public void visit(ast.stm.Instruction.Aget inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 45: aget-wide
 	@Override
 	public void visit(ast.stm.Instruction.AgetWide inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 46: aget-object
 	@Override
 	public void visit(ast.stm.Instruction.AgetObject inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 47: aget-boolean
 	@Override
 	public void visit(ast.stm.Instruction.AgetBoolean inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 48: aget-byte
 	@Override
 	public void visit(ast.stm.Instruction.AgetByte inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 49: aget-char
 	@Override
 	public void visit(ast.stm.Instruction.AgetChar inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
-	// 4a: aget-short\
+	// 4a: aget-short
 	@Override
 	public void visit(ast.stm.Instruction.AgetShort inst) {
+		emit(new sim.stm.Instruction.Aget(inst.op, inst.dest, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 4b: aput

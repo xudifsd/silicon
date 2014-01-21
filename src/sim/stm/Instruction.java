@@ -445,14 +445,15 @@ public class Instruction {
 
 	public static class Invoke extends T {
 		public String op;
-		public String method;
 		public List<String> args;
+		public String method;
 
-		public Invoke(String op, String method, List<String> args) {
+		public Invoke(String op, List<String> args, String method) {
 			super();
 			this.op = op;
-			this.method = method;
 			this.args = args;
+			this.method = method;
+
 		}
 
 		@Override

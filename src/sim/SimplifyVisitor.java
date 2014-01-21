@@ -126,11 +126,7 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 01 12x move vA, vB
 	@Override
 	public void visit(ast.stm.Instruction.Move inst) {
-<<<<<<< HEAD
-		emit(new sim.stm.Instruction.Move(inst.op, inst.dest, inst.src),
-=======
 		emit(new sim.stm.Instruction.Move("move/16", inst.dest, inst.src),
->>>>>>> added instruction simplifing rules from 1 to 4a
 				inst.op);
 	}
 
@@ -613,36 +609,50 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 4b: aput
 	@Override
 	public void visit(ast.stm.Instruction.Aput inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 4c: aput-wide
 	@Override
 	public void visit(ast.stm.Instruction.AputWide inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 4d: aput-object
 	@Override
 	public void visit(ast.stm.Instruction.AputObject inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 4e: aput-boolean
 	@Override
 	public void visit(ast.stm.Instruction.AputBoolean inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 4f: aput-byte
 	@Override
 	public void visit(ast.stm.Instruction.AputByte inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 50: aput-char
 	@Override
 	public void visit(ast.stm.Instruction.AputChar inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	// 51: aput-short
 	@Override
 	public void visit(ast.stm.Instruction.AputShort inst) {
+		emit(new sim.stm.Instruction.Aput(inst.op, inst.src, inst.array,
+				inst.index), inst.op);
 	}
 
 	//
@@ -650,16 +660,22 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 52: iget
 	@Override
 	public void visit(ast.stm.Instruction.Iget inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 53: iget-wide
 	@Override
 	public void visit(ast.stm.Instruction.IgetWide inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 54: iget-object
 	@Override
 	public void visit(ast.stm.Instruction.IgetOjbect inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 55: iget-boolean
@@ -670,51 +686,71 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 56: iget-byte
 	@Override
 	public void visit(ast.stm.Instruction.IgetByte inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 57: iget-char
 	@Override
 	public void visit(ast.stm.Instruction.IgetChar inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 58: iget-short
 	@Override
 	public void visit(ast.stm.Instruction.IgetShort inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 59: iput
 	@Override
 	public void visit(ast.stm.Instruction.Iput inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5a: iput-wide
 	@Override
 	public void visit(ast.stm.Instruction.IputWide inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5b: iput-object
 	@Override
 	public void visit(ast.stm.Instruction.IputObject inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5c: iput-boolean
 	@Override
 	public void visit(ast.stm.Instruction.IputBoolean inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5d: iput-byte
 	@Override
 	public void visit(ast.stm.Instruction.IputByte inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5e: iput-char
 	@Override
 	public void visit(ast.stm.Instruction.IputChar inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	// 5f: iput-short
 	@Override
 	public void visit(ast.stm.Instruction.IputShort inst) {
+		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
+				inst.type.toString()), inst.op);
 	}
 
 	//
@@ -722,97 +758,136 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 60: sget
 	@Override
 	public void visit(ast.stm.Instruction.Sget inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
+
 	}
 
 	// 61: sget-wide
 	@Override
 	public void visit(ast.stm.Instruction.SgetWide inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 62: sget-object
 	@Override
 	public void visit(ast.stm.Instruction.SgetObject inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 63: sget-boolean
 	@Override
 	public void visit(ast.stm.Instruction.SgetBoolean inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 64: sget-byte
 	@Override
 	public void visit(ast.stm.Instruction.SgetByte inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 65: sget-char
 	@Override
 	public void visit(ast.stm.Instruction.SgetChar inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 66: sget-short
 	@Override
 	public void visit(ast.stm.Instruction.SgetShort inst) {
+		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
+				inst.type.toString()), inst.op);
 	}
 
 	// 67: sput
 	@Override
 	public void visit(ast.stm.Instruction.Sput inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 68: sput-wide
 	@Override
 	public void visit(ast.stm.Instruction.SputWide inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 69: sput-object
 	@Override
 	public void visit(ast.stm.Instruction.SputObject inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6a: sput-boolean
 	@Override
 	public void visit(ast.stm.Instruction.SputBoolean inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6b: sput-byte
 	@Override
 	public void visit(ast.stm.Instruction.SputByte inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6c: sput-char
 	@Override
 	public void visit(ast.stm.Instruction.SputChar inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6d: sput-short
 	@Override
 	public void visit(ast.stm.Instruction.SputShort inst) {
+		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6e..72 35c invoke-kind {vC, vD, vE, vF, vG}, meth@BBBB
 	// 6e: invoke-virtual
 	@Override
 	public void visit(ast.stm.Instruction.InvokeVirtual inst) {
+		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 6f: invoke-super
 	@Override
 	public void visit(ast.stm.Instruction.InvokeSuper inst) {
+		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 70: invoke-direct
 	@Override
 	public void visit(ast.stm.Instruction.InvokeDirect inst) {
+		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 71: invoke-static
 	@Override
 	public void visit(ast.stm.Instruction.InvokeStatic inst) {
+		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 72: invoke-interface
 	@Override
 	public void visit(ast.stm.Instruction.InvokeInterface inst) {
+		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
+				inst.type.toString()), inst.op);
 	}
 
 	//
@@ -822,26 +897,52 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 74: invoke-virtual/range
 	@Override
 	public void visit(ast.stm.Instruction.InvokeVirtualRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
+				inst.type.toString()), inst.op);
+
 	}
 
 	// 75: invoke-super/range
 	@Override
 	public void visit(ast.stm.Instruction.InvokeSuperRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 76: invoke-direct/range
 	@Override
 	public void visit(ast.stm.Instruction.InvokeDirectRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 77: invoke-static/range
 	@Override
 	public void visit(ast.stm.Instruction.InvokeStaticRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
+				inst.type.toString()), inst.op);
 	}
 
 	// 78: invoke-interface/range
 	@Override
 	public void visit(ast.stm.Instruction.InvokeInterfaceRange inst) {
+		List<String> argList = new ArrayList<String>();
+		argList.add(inst.start);
+		argList.add(inst.end);
+		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
+				inst.type.toString()), inst.op);
 	}
 
 	//
@@ -850,106 +951,148 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 7b: neg-int
 	@Override
 	public void visit(ast.stm.Instruction.NegInt inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 7c: not-int
 	@Override
 	public void visit(ast.stm.Instruction.NotInt inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 7d: neg-long
 	@Override
 	public void visit(ast.stm.Instruction.NegLong inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 7e: not-long
 	@Override
 	public void visit(ast.stm.Instruction.NotLong inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 7f: neg-float
 	@Override
 	public void visit(ast.stm.Instruction.NegFloat inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 80: neg-double
 	@Override
 	public void visit(ast.stm.Instruction.NegDouble inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 81: int-to-long
 	@Override
 	public void visit(ast.stm.Instruction.IntToLong inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 82: int-to-float
 	@Override
 	public void visit(ast.stm.Instruction.IntToFloat inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 83: int-to-double
 	@Override
 	public void visit(ast.stm.Instruction.IntToDouble inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 84: long-to-int
 	@Override
 	public void visit(ast.stm.Instruction.LongToInt inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 85: long-to-float
 	@Override
 	public void visit(ast.stm.Instruction.LongToFloat inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 86: long-to-double
 	@Override
 	public void visit(ast.stm.Instruction.LongToDouble inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 87: float-to-int
 	@Override
 	public void visit(ast.stm.Instruction.FloatToInt inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 88: float-to-long
 	@Override
 	public void visit(ast.stm.Instruction.FloatToLong inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 89: float-to-double
 	@Override
 	public void visit(ast.stm.Instruction.FloatToDouble inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8a: double-to-int
 	@Override
 	public void visit(ast.stm.Instruction.DoubleToInt inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8b: double-to-long
 	@Override
 	public void visit(ast.stm.Instruction.DoubleToLong inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8c: double-to-float
 	@Override
 	public void visit(ast.stm.Instruction.DoubleToFloat inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8d: int-to-byte
 	@Override
 	public void visit(ast.stm.Instruction.IntToByte inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8e: int-to-char
 	@Override
 	public void visit(ast.stm.Instruction.IntToChar inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	// 8f: int-to-short
 	@Override
 	public void visit(ast.stm.Instruction.IntToShort inst) {
+		emit(new sim.stm.Instruction.UnOp(inst.op, inst.dest, inst.src),
+				inst.op);
 	}
 
 	//

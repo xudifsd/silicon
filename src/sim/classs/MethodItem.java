@@ -1,15 +1,14 @@
 package sim.classs;
 
-import ast.method.Method.MethodPrototype;
 import sim.Visitor;
 
 public class MethodItem extends T {
 	public String classType;
 	public String methodName;
-	public ast.method.Method.MethodPrototype prototype;
+	public sim.method.Method.MethodPrototype prototype;
 
 	public MethodItem(String classType, String methodName,
-			MethodPrototype prototype) {
+			sim.method.Method.MethodPrototype prototype) {
 		super();
 		this.classType = classType;
 		this.methodName = methodName;
@@ -30,5 +29,4 @@ public class MethodItem extends T {
 		return this.classType + "->" + this.methodName + "(" + tmp + ")"
 				+ this.prototype.returnType;
 	}
-
 }

@@ -39,7 +39,8 @@ public class SimplifyVisitor implements ast.Visitor {
 
 	private sim.classs.MethodItem translateMethod(ast.classs.MethodItem method) {
 		return new sim.classs.MethodItem(method.classType, method.methodName,
-				method.prototype);
+				new sim.method.Method.MethodPrototype(
+						method.prototype.returnType, method.prototype.argsType));
 	}
 
 	private void methodInit() {

@@ -217,8 +217,13 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	@Override
-	public void visit(sim.method.Method.MethodPrototype methodPrototype) {
-		// TODO Auto-generated method stub
+	public void visit(sim.method.Method.MethodPrototype prototype) {
+		this.say("(");
+		for (String type : prototype.argsType) {
+			this.say(type);
+		}
+		this.say(")");
+		this.sayln(prototype.returnType);
 	}
 
 	@Override
@@ -358,68 +363,121 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.Iget inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.field + ", "
+				+ inst.field.toString());
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Iput inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
+				+ inst.field.toString());
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Sget inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.field.toString());
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Sput inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.src + ", " + inst.field.toString());
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Invoke inst) {
-		// TODO Auto-generated method stub
-
+		if (inst.op.endsWith("/range")) {
+			this.say(inst.op);
+			this.say(" {");
+			this.say(inst.args.get(0) + " .. " + inst.args.get(1));
+			this.say("}, ");
+			this.sayln(inst.method.toString());
+		} else {
+			this.say(inst.op);
+			this.say(" {");
+			int cnt = 0;
+			for (String s : inst.args) {
+				cnt++;
+				if (cnt < inst.args.size())
+					this.say(s + ", ");
+				else
+					this.say(s);
+			}
+			this.say("}, ");
+			this.sayln(inst.method.toString());
+		}
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.UnOp inst) {
-		// TODO Auto-generated method stub
-
+		this.say(inst.op + " " + inst.dst + ", " + inst.src);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.BinOp inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.firstSrc + ", "
+				+ inst.secondSrc);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.BinOpLit inst) {
-		// TODO Auto-generated method stub
-
+		if (inst.constt.startsWith("\'"))
+			inst.constt = this.processChar(inst.constt);
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.src + ", "
+				+ inst.constt);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.ArrayDataDirective inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(".array-data " + inst.size);
+		this.indent();
+		this.printSpace();
+		int cnt = 0;
+		for (String str : inst.elementList) {
+			if (str.startsWith("\'"))
+				str = this.processChar(str);
+			this.say(str + " ");
+			cnt++;
+			if ((cnt % Integer.decode(inst.size).intValue()) == 0) {
+				this.sayln("");
+				this.printSpace();
+			}
+		}
+		this.sayln("");
+		this.unIndent();
+		this.printSpace();
+		this.sayln(".end array-data");
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.PackedSwitchDirective inst) {
-		// TODO Auto-generated method stub
-
+		if (inst.key.startsWith("\'"))
+			inst.key = this.processChar(inst.key);
+		this.sayln(".packed-switch " + inst.key);
+		this.indent();
+		for (String str : inst.labList) {
+			this.printSpace();
+			this.sayln(":" + str);
+		}
+		this.unIndent();
+		this.printSpace();
+		this.sayln(".end packed-switch");
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.SparseSwitchDirective inst) {
-		// TODO Auto-generated method stub
-
+		String str;
+		this.sayln(".sparse-switch ");
+		this.indent();
+		for (int i = 0; i < inst.labList.size(); i++) {
+			this.printSpace();
+			str = inst.keyList.get(i);
+			if (str.startsWith("\'"))
+				str = this.processChar(str);
+			this.sayln(str + " -> :" + inst.labList.get(i));
+		}
+		this.unIndent();
+		this.printSpace();
+		this.sayln(".end sparse-switch");
 	}
 
 	@Override
@@ -428,14 +486,16 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	@Override
-	public void visit(FieldItem inst) {
-		// TODO Auto-generated method stub
-
+	public void visit(FieldItem item) {
+		say(item.classType + "->");
+		say(item.fieldName + ":");
+		say(item.fieldType);
 	}
 
 	@Override
-	public void visit(MethodItem inst) {
-		// TODO Auto-generated method stub
-
+	public void visit(MethodItem item) {
+		say(item.classType + "->");
+		say(item.methodName);
+		item.prototype.accept(this);
 	}
 }

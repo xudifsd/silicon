@@ -2191,7 +2191,6 @@ public class PrettyPrintVisitor implements Visitor {
 		this.unIndent();
 		this.printSpace();
 		this.sayln(".end packed-switch");
-
 	}
 
 	@Override

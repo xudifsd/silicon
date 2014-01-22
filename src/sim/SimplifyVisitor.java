@@ -8,6 +8,8 @@ public class SimplifyVisitor implements ast.Visitor {
 	public sim.classs.Class simplifiedClass;
 	public HashMap<String, Integer> labels;
 	public sim.annotation.Annotation annotation;
+	public sim.annotation.Annotation.SubAnnotation subAnnotation;
+	public sim.annotation.Annotation.ElementLiteral elementLiteral;
 	public sim.method.Method method;
 	public List<ast.stm.T> oldStmList;
 	public int oldStmIndex;
@@ -231,15 +233,29 @@ public class SimplifyVisitor implements ast.Visitor {
 	}
 
 	@Override
-	public void visit(ast.annotation.Annotation annotation) {
+	public void visit(ast.annotation.Annotation anno) {
+		anno.subAnnotation.accept(this);
+		this.annotation = new sim.annotation.Annotation(anno.visibility,
+				this.subAnnotation);
 	}
 
 	@Override
-	public void visit(ast.annotation.Annotation.SubAnnotation subAnnotation) {
+	public void visit(ast.annotation.Annotation.SubAnnotation subAnno) {
+		this.subAnnotation = new sim.annotation.Annotation.SubAnnotation();
+		this.subAnnotation.classType = subAnno.classType;
+		this.subAnnotation.elementList = new ArrayList<sim.annotation.Annotation.AnnotationElement>();
+		for (ast.annotation.Annotation.AnnotationElement elem : subAnno.elementList) {
+			elem.elementLiteral.accept(this);
+			this.subAnnotation.elementList
+					.add(new sim.annotation.Annotation.AnnotationElement(
+							elem.name, this.elementLiteral));
+		}
 	}
 
 	@Override
-	public void visit(ast.annotation.Annotation.ElementLiteral elementLiteral) {
+	public void visit(ast.annotation.Annotation.ElementLiteral elem) {
+		this.elementLiteral = new sim.annotation.Annotation.ElementLiteral(
+				elem.element, elem.type, elem.arrayLiteralType);
 	}
 
 	// ////////////////////////////////////////////////////////

@@ -97,7 +97,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		this.method.statements.add(inst);
 		position += ast.PrettyPrintVisitor.instLen.get(op);
 		if (this.containLabel) {
-			// occur special label 
+			// occur special label
 			// there my occur nop instruction between two directive
 			// oldStmList <-----> ast.stm.Instruction
 			if (labelIndex < this.method.labelList.size()

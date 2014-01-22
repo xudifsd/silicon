@@ -11,13 +11,11 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(Program program) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void visit(Class item) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -251,7 +249,6 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(Catch catch1) {
 		// TODO Auto-generated method stub
-		
 	}
 
 }

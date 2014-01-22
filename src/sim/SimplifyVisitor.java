@@ -1,6 +1,7 @@
 package sim;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
@@ -63,6 +64,8 @@ public class SimplifyVisitor implements ast.Visitor {
 			this.currentCatch = this.method.catchList.get(this.catchIndex);
 			this.catchValue = Integer.parseInt(this.currentCatch.add);
 		}
+		Collections.sort(this.method.catchList);
+		Collections.sort(this.method.labelList);
 	}
 
 	private void addCatchInstruction() {

@@ -395,7 +395,7 @@ public class Instruction {
 		public String obj;
 		public sim.classs.FieldItem field;
 
-		public Iput(String op, String src, String obj,FieldItem field) {
+		public Iput(String op, String src, String obj, FieldItem field) {
 			super();
 			this.op = op;
 			this.src = src;
@@ -594,6 +594,16 @@ public class Instruction {
 			this.startLab = startLab;
 			this.endLab = endLab;
 			this.catchLab = catchLab;
+		}
+
+		@Override
+		public String toString() {
+			if (this.isAll == false)
+				return ".catch " + this.type + " {:" + this.startLab + " .. :"
+						+ this.endLab + "} :" + this.catchLab;
+			else
+				return ".catchall " + "{:" + this.startLab + " .. :"
+						+ this.endLab + "} :" + this.catchLab;
 		}
 
 		@Override

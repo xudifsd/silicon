@@ -28,7 +28,6 @@ public class Annotation extends T{
 		public void accept(Visitor v) {
 			v.visit(this);
 		}
-		
 	}
 	public static class AnnotationElement {
 		public String name;

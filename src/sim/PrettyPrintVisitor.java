@@ -3,12 +3,14 @@ package sim;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
-import control.Control;
 import sim.annotation.Annotation.ElementLiteral;
-import sim.classs.FieldItem;
-import sim.classs.MethodItem;
-import sim.stm.Instruction.Catch;
+import control.Control;
 
 public class PrettyPrintVisitor implements Visitor {
 	private final static int TAB = 4;
@@ -16,6 +18,7 @@ public class PrettyPrintVisitor implements Visitor {
 	private String filePath;
 	private String folderName;
 	private FileWriter fileWrite;
+	private HashMap<Integer, List<String>> reversedLabels;
 
 	private void createFile(String fullyQualifiedName) throws IOException {
 		this.filePath = Control.ppoutput
@@ -131,6 +134,33 @@ public class PrettyPrintVisitor implements Visitor {
 		}
 	}
 
+	private void reverseLabels(HashMap<String, Integer> labels) {
+		Iterator<Map.Entry<String, Integer>> it = labels.entrySet().iterator();
+		HashMap<Integer, List<String>> result = new HashMap<Integer, List<String>>();
+		while (it.hasNext()) {
+			Map.Entry<String, Integer> entry = it.next();
+			if (!result.containsKey(entry.getValue()))
+				result.put(entry.getValue(), new ArrayList<String>());
+			result.get(entry.getValue()).add(entry.getKey());
+		}
+		reversedLabels = result;
+	}
+
+	private List<String> getLabelAtPosition(HashMap<String, Integer> labels,
+			int position) {
+		return reversedLabels.get(position);
+	}
+
+	private void printLabel(HashMap<String, Integer> labels, int position) {
+		List<String> labelsAtCurrentPos;
+		labelsAtCurrentPos = this.getLabelAtPosition(labels, position);
+		if (labelsAtCurrentPos != null)
+			for (String str : labelsAtCurrentPos) {
+				this.printSpace();
+				this.sayln(":" + str);
+			}
+	}
+
 	@Override
 	public void visit(sim.program.Program program) {
 		throw new RuntimeException(
@@ -203,17 +233,156 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.method.Method method) {
-		// TODO Auto-generated method stub
+		boolean ignorePrologue = false;
+		boolean endParameter = false;
+		this.say(".method ");
+		for (String access : method.accessList) {
+			if (access.equals("abstract") || access.equals("native"))
+				ignorePrologue = true;
+			this.say(access + " ");
+		}
+		this.say(method.name);
+		method.prototype.accept(this);
+		this.indent();
+		this.printSpace();
+		if (method.registers_directive != null) {
+			this.say(method.registers_directive + " ");
+			this.sayln(method.registers_directive_count + "");
+		}
+		// parameters
+		// if there exist annotation in parameter then all the .parameter should add .end parameter at the end
+		for (sim.method.Method.Parameter parameter : method.parameterList) {
+			if (parameter.annotationList.size() > 0) {
+				endParameter = true;
+			}
+		}
+		for (sim.method.Method.Parameter parameter : method.parameterList) {
+			this.printSpace();
+			if (parameter.value != null)
+				this.sayln(".parameter " + parameter.value);
+			else
+				this.sayln(".parameter");
+			// annotations
+			for (sim.annotation.Annotation annotation : parameter.annotationList) {
+				annotation.accept(this);
+			}
+			if (endParameter) {
+				this.printSpace();
+				this.sayln(".end parameter");
+			}
+		}
+		if (!ignorePrologue) {
+			this.printSpace();
+			this.sayln(".prologue");
+		}
+		// annotations
+		if (method.annotationList != null)
+			for (sim.annotation.Annotation annotation : method.annotationList) {
+				annotation.accept(this);
+			}
+		this.sayln("");
+		this.reverseLabels(method.labels);
+		for (int i = 0; i < method.statements.size(); i++) {
+			this.printLabel(method.labels, i);
+		}
+		this.printLabel(method.labels, method.statements.size());
+		this.unIndent();
+		this.sayln(".end method");
+		this.sayln("");
 	}
 
 	@Override
 	public void visit(sim.annotation.Annotation annotation) {
-		// TODO Auto-generated method stub
+		this.printSpace();
+		this.say(".annotation ");
+		this.say(annotation.visibility + " ");
+		annotation.subAnnotation.accept(this);
+		this.printSpace();
+		this.sayln(".end annotation");
 	}
 
 	@Override
 	public void visit(sim.annotation.Annotation.SubAnnotation subAnnotation) {
-		// TODO Auto-generated method stub
+		this.sayln(subAnnotation.classType);
+		this.indent();
+		for (sim.annotation.Annotation.AnnotationElement element : subAnnotation.elementList) {
+			this.printSpace();
+			this.say(element.name + " = ");
+			element.elementLiteral.accept(this);
+		}
+		this.unIndent();
+	}
+
+	@Override
+	public void visit(ElementLiteral elementLiteral) {
+		//subannotation
+		if (elementLiteral.type.equals("subannotation")) {
+			this.say(".subannotation ");
+			((sim.annotation.Annotation.SubAnnotation) elementLiteral.element
+					.get(0)).accept(this);
+			this.printSpace();
+			this.sayln(".end subannotation");
+		}
+		//array
+		else if (elementLiteral.type.equals("array")) {
+			if (elementLiteral.element.size() == 0)
+				this.sayln("{}");
+			else {
+				this.sayln("{");
+				if (elementLiteral.arrayLiteralType.equals("subannotation")) {
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out
+							.println("W:find subannotation in array_literal in PrettyPrint");
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+				} else if (elementLiteral.arrayLiteralType
+						.equals("subannotation")) {
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out
+							.println("W:find array in array_literal in PrettyPrint");
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+				}
+				this.indent();
+				for (int i = 0; i < elementLiteral.element.size(); i++) {
+					Object object = elementLiteral.element.get(i);
+					String arrayLiteralTypet = elementLiteral.arrayLiteralType
+							.get(i);
+					this.printSpace();
+					boolean hasNext = false;
+					if (i < elementLiteral.element.size() - 1)
+						hasNext = true;
+
+					if (arrayLiteralTypet.equals("subannotation")) {
+						this.say(".subannotation ");
+						((sim.annotation.Annotation.SubAnnotation) object)
+								.accept(this);
+						this.printSpace();
+						this.say(".end subannotation");
+						if (hasNext)
+							this.sayln(",");
+						else
+							this.sayln("");
+					} else {
+						String str = new String();
+						str = (String) (object);
+						this.printLiteral(str, arrayLiteralTypet, hasNext);
+					}
+				}
+				this.unIndent();
+				this.printSpace();
+				this.sayln("}");
+				this.unIndent();
+			}
+		}
+		//others
+		else {
+			this.printLiteral(((String) elementLiteral.element.get(0)),
+					elementLiteral.type, false);
+			this.sayln("");
+		}
 	}
 
 	@Override
@@ -227,8 +396,17 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	@Override
-	public void visit(ElementLiteral elementLiteral) {
-		// TODO Auto-generated method stub
+	public void visit(sim.classs.FieldItem item) {
+		say(item.classType + "->");
+		say(item.fieldName + ":");
+		say(item.fieldType);
+	}
+
+	@Override
+	public void visit(sim.classs.MethodItem item) {
+		say(item.classType + "->");
+		say(item.methodName);
+		item.prototype.accept(this);
 	}
 
 	@Override
@@ -258,7 +436,8 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.Const inst) {
-		if (inst.op.equals("const-string") || inst.op.equals("const-string/jumbo")) {
+		if (inst.op.equals("const-string")
+				|| inst.op.equals("const-string/jumbo")) {
 			inst.value = this.processString(inst.value);
 			this.sayln(inst.op + " " + inst.dst + ", " + inst.value);
 		} else if (inst.op.equals("const-class"))
@@ -497,21 +676,7 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	@Override
-	public void visit(Catch inst) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void visit(FieldItem item) {
-		say(item.classType + "->");
-		say(item.fieldName + ":");
-		say(item.fieldType);
-	}
-
-	@Override
-	public void visit(MethodItem item) {
-		say(item.classType + "->");
-		say(item.methodName);
-		item.prototype.accept(this);
+	public void visit(sim.stm.Instruction.Catch inst) {
+		this.sayln(inst.toString());
 	}
 }

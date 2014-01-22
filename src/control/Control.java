@@ -10,6 +10,8 @@ public class Control {
 
 	public static int numWorkers = 4;
 
+	public static String dump = "sim";
+
 	// verbose level
 	public enum Verbose_t {
 		Silent, Pass, Detailed

@@ -49,11 +49,18 @@ public class Carbon {
 		classes = CompilePass.translate(workers);
 		workers = null;
 
-		List<SimplifyWorker> sims;
-		sims = CompilePass.simplify(classes);
-		classes = null;
+		if (Control.dump.equals("ast")) {
+			CompilePass.prettyPrint(classes);
+		} else if (Control.dump.equals("sim")) {
+			List<SimplifyWorker> sims;
+			sims = CompilePass.simplify(classes);
+			classes = null;
 
-		CompilePass.prettyPrintSim(sims);
+			CompilePass.prettyPrintSim(sims);
+		} else {
+			System.err.println("unknow dump args " + Control.dump);
+			System.exit(2);
+		}
 	}
 
 	public static void main(String[] args) {

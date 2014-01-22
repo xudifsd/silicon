@@ -3,6 +3,8 @@ package sim.stm;
 import java.util.List;
 
 import sim.Visitor;
+import sim.classs.FieldItem;
+import sim.classs.MethodItem;
 
 public class Instruction {
 	public static class Nop extends T {
@@ -371,9 +373,9 @@ public class Instruction {
 		public String op;
 		public String dst;
 		public String obj;
-		public String field;
+		public sim.classs.FieldItem field;
 
-		public Iget(String op, String dst, String obj, String field) {
+		public Iget(String op, String dst, String obj, FieldItem field) {
 			super();
 			this.op = op;
 			this.dst = dst;
@@ -391,9 +393,9 @@ public class Instruction {
 		public String op;
 		public String src;
 		public String obj;
-		public String field;
+		public sim.classs.FieldItem field;
 
-		public Iput(String op, String src, String obj, String field) {
+		public Iput(String op, String src, String obj,FieldItem field) {
 			super();
 			this.op = op;
 			this.src = src;
@@ -410,9 +412,9 @@ public class Instruction {
 	public static class Sget extends T {
 		public String op;
 		public String dst;
-		public String field;
+		public sim.classs.FieldItem field;
 
-		public Sget(String op, String dst, String field) {
+		public Sget(String op, String dst, FieldItem field) {
 			super();
 			this.op = op;
 			this.dst = dst;
@@ -428,9 +430,9 @@ public class Instruction {
 	public static class Sput extends T {
 		public String op;
 		public String src;
-		public String field;
+		public sim.classs.FieldItem field;
 
-		public Sput(String op, String src, String field) {
+		public Sput(String op, String src, FieldItem field) {
 			super();
 			this.op = op;
 			this.src = src;
@@ -446,14 +448,13 @@ public class Instruction {
 	public static class Invoke extends T {
 		public String op;
 		public List<String> args;
-		public String method;
+		public sim.classs.MethodItem method;
 
-		public Invoke(String op, List<String> args, String method) {
+		public Invoke(String op, List<String> args, MethodItem method) {
 			super();
 			this.op = op;
 			this.args = args;
 			this.method = method;
-
 		}
 
 		@Override

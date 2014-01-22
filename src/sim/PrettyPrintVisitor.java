@@ -1,27 +1,25 @@
 package sim;
 
 import sim.annotation.Annotation.ElementLiteral;
-import sim.classs.Class;
-import sim.method.Method;
-import sim.program.Program;
+import sim.classs.FieldItem;
+import sim.classs.MethodItem;
 import sim.stm.Instruction.Catch;
 
 public class PrettyPrintVisitor implements Visitor {
 
 	@Override
-	public void visit(Program program) {
+	public void visit(sim.program.Program program) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void visit(Class item) {
+	public void visit(sim.classs.Class class1) {
 		// TODO Auto-generated method stub
 	}
 
 	@Override
-	public void visit(Method method) {
+	public void visit(sim.method.Method method) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -251,4 +249,15 @@ public class PrettyPrintVisitor implements Visitor {
 		// TODO Auto-generated method stub
 	}
 
+	@Override
+	public void visit(FieldItem fieldItem) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visit(MethodItem methodItem) {
+		// TODO Auto-generated method stub
+
+	}
 }

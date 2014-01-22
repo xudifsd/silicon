@@ -30,6 +30,16 @@ public class SimplifyVisitor implements ast.Visitor {
 		return ret;
 	}
 
+	private sim.classs.FieldItem translateField(ast.classs.FieldItem field) {
+		return new sim.classs.FieldItem(field.classType, field.fieldName,
+				field.fieldType);
+	}
+
+	private sim.classs.MethodItem translateMethod(ast.classs.MethodItem method) {
+		return new sim.classs.MethodItem(method.classType, method.methodName,
+				method.prototype);
+	}
+
 	private void methodInit() {
 		this.oldStmIndex = 0;
 		this.labels.clear();
@@ -777,21 +787,21 @@ public class SimplifyVisitor implements ast.Visitor {
 	@Override
 	public void visit(ast.stm.Instruction.Iget inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 53: iget-wide
 	@Override
 	public void visit(ast.stm.Instruction.IgetWide inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 54: iget-object
 	@Override
 	public void visit(ast.stm.Instruction.IgetOjbect inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 55: iget-boolean
@@ -803,70 +813,70 @@ public class SimplifyVisitor implements ast.Visitor {
 	@Override
 	public void visit(ast.stm.Instruction.IgetByte inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 57: iget-char
 	@Override
 	public void visit(ast.stm.Instruction.IgetChar inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 58: iget-short
 	@Override
 	public void visit(ast.stm.Instruction.IgetShort inst) {
 		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 59: iput
 	@Override
 	public void visit(ast.stm.Instruction.Iput inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5a: iput-wide
 	@Override
 	public void visit(ast.stm.Instruction.IputWide inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5b: iput-object
 	@Override
 	public void visit(ast.stm.Instruction.IputObject inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5c: iput-boolean
 	@Override
 	public void visit(ast.stm.Instruction.IputBoolean inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5d: iput-byte
 	@Override
 	public void visit(ast.stm.Instruction.IputByte inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5e: iput-char
 	@Override
 	public void visit(ast.stm.Instruction.IputChar inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 5f: iput-short
 	@Override
 	public void visit(ast.stm.Instruction.IputShort inst) {
 		emit(new sim.stm.Instruction.Iput(inst.op, inst.src, inst.field,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	//
@@ -875,7 +885,7 @@ public class SimplifyVisitor implements ast.Visitor {
 	@Override
 	public void visit(ast.stm.Instruction.Sget inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 
 	}
 
@@ -883,91 +893,91 @@ public class SimplifyVisitor implements ast.Visitor {
 	@Override
 	public void visit(ast.stm.Instruction.SgetWide inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 62: sget-object
 	@Override
 	public void visit(ast.stm.Instruction.SgetObject inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 63: sget-boolean
 	@Override
 	public void visit(ast.stm.Instruction.SgetBoolean inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 64: sget-byte
 	@Override
 	public void visit(ast.stm.Instruction.SgetByte inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 65: sget-char
 	@Override
 	public void visit(ast.stm.Instruction.SgetChar inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 66: sget-short
 	@Override
 	public void visit(ast.stm.Instruction.SgetShort inst) {
 		emit(new sim.stm.Instruction.Sget(inst.op, inst.dest,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 67: sput
 	@Override
 	public void visit(ast.stm.Instruction.Sput inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 68: sput-wide
 	@Override
 	public void visit(ast.stm.Instruction.SputWide inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 69: sput-object
 	@Override
 	public void visit(ast.stm.Instruction.SputObject inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 6a: sput-boolean
 	@Override
 	public void visit(ast.stm.Instruction.SputBoolean inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 6b: sput-byte
 	@Override
 	public void visit(ast.stm.Instruction.SputByte inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 6c: sput-char
 	@Override
 	public void visit(ast.stm.Instruction.SputChar inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 6d: sput-short
 	@Override
 	public void visit(ast.stm.Instruction.SputShort inst) {
 		emit(new sim.stm.Instruction.Sput(inst.op, inst.src,
-				inst.type.toString()), inst.op);
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 6e..72 35c invoke-kind {vC, vD, vE, vF, vG}, meth@BBBB
@@ -975,35 +985,35 @@ public class SimplifyVisitor implements ast.Visitor {
 	@Override
 	public void visit(ast.stm.Instruction.InvokeVirtual inst) {
 		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 6f: invoke-super
 	@Override
 	public void visit(ast.stm.Instruction.InvokeSuper inst) {
 		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 70: invoke-direct
 	@Override
 	public void visit(ast.stm.Instruction.InvokeDirect inst) {
 		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 71: invoke-static
 	@Override
 	public void visit(ast.stm.Instruction.InvokeStatic inst) {
 		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 72: invoke-interface
 	@Override
 	public void visit(ast.stm.Instruction.InvokeInterface inst) {
 		emit(new sim.stm.Instruction.Invoke(inst.op, inst.argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	//
@@ -1017,7 +1027,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		argList.add(inst.start);
 		argList.add(inst.end);
 		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 
 	}
 
@@ -1028,7 +1038,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		argList.add(inst.start);
 		argList.add(inst.end);
 		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 76: invoke-direct/range
@@ -1038,7 +1048,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		argList.add(inst.start);
 		argList.add(inst.end);
 		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 77: invoke-static/range
@@ -1048,7 +1058,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		argList.add(inst.start);
 		argList.add(inst.end);
 		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	// 78: invoke-interface/range
@@ -1058,7 +1068,7 @@ public class SimplifyVisitor implements ast.Visitor {
 		argList.add(inst.start);
 		argList.add(inst.end);
 		emit(new sim.stm.Instruction.Invoke(inst.op, argList,
-				inst.type.toString()), inst.op);
+				this.translateMethod(inst.type)), inst.op);
 	}
 
 	//

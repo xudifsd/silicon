@@ -1,9 +1,14 @@
 package sim;
 
 public interface Visitor {
+
 	public void visit(sim.program.Program program);
 
-	public void visit(sim.classs.Class item);
+	public void visit(sim.classs.Class class1);
+
+	public void visit(sim.classs.FieldItem fieldItem);
+
+	public void visit(sim.classs.MethodItem methodItem);
 
 	public void visit(sim.annotation.Annotation annotation);
 
@@ -82,4 +87,5 @@ public interface Visitor {
 	public void visit(sim.stm.Instruction.SparseSwitchDirective sparse);
 
 	public void visit(sim.stm.Instruction.Catch catch1);
+
 }

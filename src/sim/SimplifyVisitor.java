@@ -9,9 +9,16 @@ public class SimplifyVisitor implements ast.Visitor {
 	public HashMap<String, Integer> labels;
 	public sim.annotation.Annotation annotation;
 	public sim.method.Method method;
-	public int offset;
+	public List<ast.stm.T> oldStmList;
+	public int oldStmIndex;
+	public boolean containLabel;
+	public int position;
 	public int labelIndex;
 	public int catchIndex;
+	public int labelValue;
+	public int catchValue;
+	public sim.method.Method.Label currentLabel;
+	public sim.method.Method.Catch currentCatch;
 
 	private List<sim.annotation.Annotation> translateAnnotation(
 			List<ast.annotation.Annotation> annotationList) {
@@ -23,9 +30,111 @@ public class SimplifyVisitor implements ast.Visitor {
 		return ret;
 	}
 
+	private void methodInit() {
+		this.oldStmIndex = 0;
+		this.labels.clear();
+		this.containLabel = false;
+		this.position = 0;
+		this.catchIndex = 0;
+		this.labelIndex = 0;
+		this.labelValue = -1;
+		this.catchValue = -1;
+		this.currentLabel = null;
+		this.currentCatch = null;
+		if (this.method.labelList.size() != 0) {
+			this.currentLabel = this.method.labelList.get(this.labelIndex);
+			this.labelValue = Integer.parseInt(this.currentLabel.add);
+			this.containLabel = true;
+		}
+		if (this.method.catchList.size() != 0) {
+			this.currentCatch = this.method.catchList.get(this.catchIndex);
+			this.catchValue = Integer.parseInt(this.currentCatch.add);
+		}
+	}
+
+	private void addCatchInstruction() {
+		// change the catch to instruction;
+		List<sim.stm.Instruction.Catch> catchs = new ArrayList<sim.stm.Instruction.Catch>();
+		while (this.catchIndex < this.method.catchList.size()
+				&& this.position == this.catchValue) {
+			if (this.currentCatch.isAll)
+				catchs.add(new sim.stm.Instruction.Catch(".catchall", true,
+						null, this.currentCatch.startLab,
+						this.currentCatch.endLab, this.currentCatch.catchLab));
+			else
+				catchs.add(new sim.stm.Instruction.Catch(".catch", false,
+						currentCatch.type, this.currentCatch.startLab,
+						this.currentCatch.endLab, this.currentCatch.catchLab));
+			catchIndex++;
+			if (this.catchIndex < this.method.catchList.size()) {
+				this.currentCatch = this.method.catchList.get(this.catchIndex);
+				this.catchValue = Integer.parseInt(this.currentCatch.add);
+			}
+		}
+		// add the catchs to the method.statements
+		for (sim.stm.Instruction.Catch ca : catchs) {
+			this.method.statements.add(ca);
+		}
+	}
+
+	private void methodAfter() {
+		while (labelIndex < method.labelList.size()
+				&& this.position == labelValue) {
+			this.labels.put(currentLabel.lab, this.method.statements.size());
+			if (this.currentLabel.lab.startsWith("try_end")) {
+				this.addCatchInstruction();
+			}
+			labelIndex++;
+			if (this.labelIndex < this.method.labelList.size()) {
+				this.currentLabel = this.method.labelList.get(this.labelIndex);
+				this.labelValue = Integer.parseInt(this.currentLabel.add);
+			}
+		}
+		this.method.labels = this.labels;
+	}
+
 	private void emit(sim.stm.T inst, String op) {
 		this.method.statements.add(inst);
-		offset += ast.PrettyPrintVisitor.instLen.get(op);
+		position += ast.PrettyPrintVisitor.instLen.get(op);
+		if (this.containLabel) {
+			// occur special label 
+			// there my occur nop instruction between two directive
+			// oldStmList <-----> ast.stm.Instruction
+			if (labelIndex < this.method.labelList.size()
+					&& (this.currentLabel.lab.startsWith("sswitch_data")
+							|| this.currentLabel.lab.startsWith("pswitch_data") || this.currentLabel.lab
+								.startsWith("array_"))
+					&& (this.oldStmList.get(this.oldStmIndex) instanceof ast.stm.Instruction.PackedSwitchDirective
+							|| this.oldStmList.get(this.oldStmIndex) instanceof ast.stm.Instruction.SparseSwitchDirective || this.oldStmList
+								.get(this.oldStmIndex) instanceof ast.stm.Instruction.ArrayDataDirective)) {
+				this.labels.put(this.currentLabel.lab,
+						this.method.statements.size());
+				this.labelIndex++;
+				if (this.labelIndex < this.method.labelList.size()) {
+					this.currentLabel = this.method.labelList
+							.get(this.labelIndex);
+					this.labelValue = Integer.parseInt(this.currentLabel.add);
+				}
+			} else {
+				// normal labels && position == labelValue
+				while (labelIndex < this.method.labelList.size()
+						&& this.position == labelValue) {
+					// put the normal label to the HashMap
+					this.labels.put(currentLabel.lab,
+							this.method.statements.size());
+					if (this.currentLabel.lab.startsWith("try_end")) {
+						this.addCatchInstruction();
+					}
+					this.labelIndex++;
+					if (this.labelIndex < this.method.labelList.size()) {
+						this.currentLabel = this.method.labelList
+								.get(this.labelIndex);
+						this.labelValue = Integer
+								.parseInt(this.currentLabel.add);
+					}
+				}
+			}
+		}
 	}
 
 	// program
@@ -58,8 +167,11 @@ public class SimplifyVisitor implements ast.Visitor {
 		}
 		simplifiedClass.methods = new ArrayList<sim.method.Method>();
 		for (ast.method.Method m : clazz.methods) {
+			this.methodInit();
 			m.accept(this);
-			simplifiedClass.methods.add(method);
+			this.methodAfter();
+			simplifiedClass.methods.add(this.method);
+
 		}
 	}
 
@@ -68,6 +180,11 @@ public class SimplifyVisitor implements ast.Visitor {
 		this.method.accessList = m.accessList;
 		this.method.annotationList = this.translateAnnotation(m.annotationList);
 		this.method.catchList = new ArrayList<sim.method.Method.Catch>();
+		this.method.labelList = new ArrayList<sim.method.Method.Label>();
+		for (ast.method.Method.Label label : m.labelList) {
+			this.method.labelList.add(new sim.method.Method.Label(label.lab,
+					label.add));
+		}
 		for (ast.method.Method.Catch cat : m.catchList) {
 			this.method.catchList
 					.add(new sim.method.Method.Catch(cat.add, cat.isAll,
@@ -84,10 +201,9 @@ public class SimplifyVisitor implements ast.Visitor {
 		this.method.registers_directive = m.registers_directive;
 		this.method.registers_directive_count = m.registers_directive_count;
 		this.method.statements = new ArrayList<sim.stm.T>();
-		this.offset = 0;
-		this.catchIndex = 0;
-		this.labelIndex = 0;
+		this.oldStmList = m.statements;
 		for (ast.stm.T stm : m.statements) {
+			this.oldStmIndex++;
 			stm.accept(this);
 		}
 	}

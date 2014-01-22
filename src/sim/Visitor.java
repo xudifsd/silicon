@@ -80,4 +80,6 @@ public interface Visitor {
 	public void visit(sim.stm.Instruction.PackedSwitchDirective packed);
 
 	public void visit(sim.stm.Instruction.SparseSwitchDirective sparse);
+
+	public void visit(sim.stm.Instruction.Catch catch1);
 }

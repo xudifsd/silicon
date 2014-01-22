@@ -1,11 +1,11 @@
 package sim.method;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import sim.Visitor;
 import sim.annotation.Annotation;
-import sim.method.T;
 
 public class Method extends T {
 	// 1.method_name_and_prototype
@@ -19,7 +19,8 @@ public class Method extends T {
 	public String registers_directive;
 	
 	public String registers_directive_count;
-
+	// 4.labels
+	public List<sim.method.Method.Label> labelList;
 	// 7.statements
 	public List<sim.stm.T> statements;
 	
@@ -32,6 +33,8 @@ public class Method extends T {
 	// 10.annotations
 	public List<sim.annotation.Annotation> annotationList;
 
+	// hashMap[label][index in simpleinstruction list]
+	public HashMap<String,Integer> labels;
 	public static class Label implements Comparable<Label> {
 		public String lab;
 		public String add;

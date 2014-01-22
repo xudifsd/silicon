@@ -557,7 +557,6 @@ public class Instruction {
 	}
 
 	public static class SparseSwitchDirective extends T {
-
 		public String count;
 		public List<String> keyList;
 		public List<String> labList;
@@ -574,6 +573,31 @@ public class Instruction {
 		public void accept(Visitor v) {
 			v.visit(this);
 		}
+	}
 
+	public static class Catch extends T {
+		// .catch / . catchall
+		public String op;
+		public boolean isAll;
+		public String type;
+		public String startLab;
+		public String endLab;
+		public String catchLab;
+
+		public Catch(String op, boolean isAll, String type, String startLab,
+				String endLab, String catchLab) {
+			super();
+			this.op = op;
+			this.isAll = isAll;
+			this.type = type;
+			this.startLab = startLab;
+			this.endLab = endLab;
+			this.catchLab = catchLab;
+		}
+
+		@Override
+		public void accept(Visitor v) {
+			v.visit(this);
+		}
 	}
 }

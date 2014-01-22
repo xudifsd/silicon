@@ -4,6 +4,7 @@ import sim.annotation.Annotation.ElementLiteral;
 import sim.classs.Class;
 import sim.method.Method;
 import sim.program.Program;
+import sim.stm.Instruction.Catch;
 
 public class PrettyPrintVisitor implements Visitor {
 
@@ -245,6 +246,12 @@ public class PrettyPrintVisitor implements Visitor {
 	public void visit(sim.stm.Instruction.SparseSwitchDirective sparse) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void visit(Catch catch1) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

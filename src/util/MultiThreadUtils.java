@@ -108,6 +108,24 @@ public class MultiThreadUtils {
 		}
 	}
 
+	public static class PrettyPrintSimWorker implements Runnable {
+		SimplifyWorker worker;
+
+		public PrettyPrintSimWorker(SimplifyWorker worker) {
+			this.worker = worker;
+		}
+
+		@Override
+		public void run() {
+			sim.PrettyPrintVisitor ppv = new sim.PrettyPrintVisitor();
+			try {
+				worker.call().accept(ppv);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 	public static class PrettyPrintWorker implements Runnable {
 		TranslateWorker worker;
 

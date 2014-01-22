@@ -12,6 +12,7 @@ import control.Control;
 import util.MultiThreadUtils.ParserWorker;
 import util.MultiThreadUtils.SimplifyWorker;
 import util.MultiThreadUtils.TranslateWorker;
+import util.MultiThreadUtils.PrettyPrintSimWorker;
 import util.MultiThreadUtils.PrettyPrintWorker;
 
 public class CompilePass {
@@ -56,6 +57,25 @@ public class CompilePass {
 			result.add(new SimplifyWorker(translateWorker));
 
 		return result;
+	}
+
+	public static void prettyPrintSim(List<SimplifyWorker> workers)
+			throws RecognitionException, ExecutionException {
+		ExecutorService executor = Executors
+				.newFixedThreadPool(Control.numWorkers);
+
+		for (SimplifyWorker worker : workers)
+			executor.submit(new PrettyPrintSimWorker(worker));
+
+		executor.shutdown();
+		while (true) {
+			try {
+				executor.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+				break;
+			} catch (InterruptedException e) {
+				continue;
+			}
+		}
 	}
 
 	public static void prettyPrint(List<TranslateWorker> workers)

@@ -243,62 +243,63 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.MoveResult inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.ReturnVoid inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("return-void");
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Return inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.src);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Const inst) {
-		// TODO Auto-generated method stub
-
+		if (inst.op.equals("const-string") || inst.op.equals("const-string/jumbo")) {
+			inst.value = this.processString(inst.value);
+			this.sayln(inst.op + " " + inst.dst + ", " + inst.value);
+		} else if (inst.op.equals("const-class"))
+			this.sayln(inst.op + " " + inst.dst + ", " + inst.value);
+		else {
+			if (inst.value.startsWith("\'"))
+				inst.value = this.processChar(inst.value);
+			this.sayln(inst.op + " " + inst.dst + ", " + inst.value);
+		}
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Monitor inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.ref);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.CheckCast inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("check-cast " + inst.ref + ", " + inst.type);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.InstanceOf inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("instance-of " + inst.dst + ", " + inst.ref + ", "
+				+ inst.type);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.ArrayLength inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("array-length " + inst.dst + ", " + inst.ref);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.NewInstance inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("new-instance " + inst.dst + ", " + inst.type);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.NewArray inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("new-array " + inst.dst + ", " + inst.size + ", "
+				+ inst.type);
 	}
 
 	@Override

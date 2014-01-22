@@ -304,62 +304,77 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.FilledNewArray inst) {
-		// TODO Auto-generated method stub
-
+		String op = inst.op.trim();
+		if (op.equals("filled-new-array")) {
+			this.say(inst.op);
+			this.say(" {");
+			int cnt = 0;
+			for (String s : inst.argList) {
+				cnt++;
+				if (cnt < inst.argList.size())
+					this.say(s + ", ");
+				else
+					this.say(s);
+			}
+			this.say("}, ");
+			this.sayln(inst.type);
+		} else {
+			this.say(inst.op);
+			this.say(" {");
+			this.say(inst.argList.get(0) + " .. " + inst.argList.get(1));
+			this.say("}, ");
+			this.sayln(inst.type);
+		}
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.FillArrayData inst) {
-		// TODO Auto-generated method stub
+		this.sayln("fill-array-data" + " " + inst.ref + ", :" + inst.label);
 
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Throw inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln("throw" + " " + inst.exception);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Goto inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " :" + inst.label);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Switch inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.test + ", :" + inst.label);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Cmp inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.firstSrc + ", "
+				+ inst.secondSrc);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.IfTest inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.firstSrc + ", " + inst.secondSrc
+				+ ", :" + inst.label);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.IfTestz inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.src + ", :" + inst.label);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Aget inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.array + ", "
+				+ inst.index);
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Aput inst) {
-		// TODO Auto-generated method stub
-
+		this.sayln(inst.op + " " + inst.src + ", " + inst.array + ", "
+				+ inst.index);
 	}
 
 	@Override

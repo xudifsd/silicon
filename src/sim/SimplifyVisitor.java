@@ -7,7 +7,6 @@ import java.util.List;
 
 public class SimplifyVisitor implements ast.Visitor {
 	public sim.classs.Class simplifiedClass;
-	public HashMap<String, Integer> labels;
 	public sim.annotation.Annotation annotation;
 	public sim.annotation.Annotation.SubAnnotation subAnnotation;
 	public sim.annotation.Annotation.ElementLiteral elementLiteral;
@@ -44,9 +43,35 @@ public class SimplifyVisitor implements ast.Visitor {
 						method.prototype.returnType, method.prototype.argsType));
 	}
 
-	private void methodInit() {
+	private void methodInit(ast.method.Method m) {
+		this.method = new sim.method.Method();
+		this.method.accessList = m.accessList;
+		this.method.annotationList = this.translateAnnotation(m.annotationList);
+		this.method.catchList = new ArrayList<sim.method.Method.Catch>();
+		this.method.labelList = new ArrayList<sim.method.Method.Label>();
+		for (ast.method.Method.Label label : m.labelList) {
+			this.method.labelList.add(new sim.method.Method.Label(label.lab,
+					label.add));
+		}
+		for (ast.method.Method.Catch cat : m.catchList) {
+			this.method.catchList
+					.add(new sim.method.Method.Catch(cat.add, cat.isAll,
+							cat.type, cat.startLab, cat.endLab, cat.catchLab));
+		}
+		Collections.sort(this.method.catchList);
+		Collections.sort(this.method.labelList);
+		this.method.name = m.name;
+		this.method.parameterList = new ArrayList<sim.method.Method.Parameter>();
+		for (ast.method.Method.Parameter p : m.parameterList) {
+			this.method.parameterList.add(new sim.method.Method.Parameter(
+					p.value, this.translateAnnotation(p.annotationList)));
+		}
+		this.method.prototype = new sim.method.Method.MethodPrototype(
+				m.prototype.returnType, m.prototype.argsType);
+		this.method.registers_directive = m.registers_directive;
+		this.method.registers_directive_count = m.registers_directive_count;
 		this.oldStmIndex = 0;
-		this.labels.clear();
+		this.method.labels = new HashMap<String, Integer>();
 		this.containLabel = false;
 		this.position = 0;
 		this.catchIndex = 0;
@@ -64,8 +89,6 @@ public class SimplifyVisitor implements ast.Visitor {
 			this.currentCatch = this.method.catchList.get(this.catchIndex);
 			this.catchValue = Integer.parseInt(this.currentCatch.add);
 		}
-		Collections.sort(this.method.catchList);
-		Collections.sort(this.method.labelList);
 	}
 
 	private void addCatchInstruction() {
@@ -96,7 +119,8 @@ public class SimplifyVisitor implements ast.Visitor {
 	private void methodAfter() {
 		while (labelIndex < method.labelList.size()
 				&& this.position == labelValue) {
-			this.labels.put(currentLabel.lab, this.method.statements.size());
+			this.method.labels.put(currentLabel.lab,
+					this.method.statements.size());
 			if (this.currentLabel.lab.startsWith("try_end")) {
 				this.addCatchInstruction();
 			}
@@ -106,24 +130,26 @@ public class SimplifyVisitor implements ast.Visitor {
 				this.labelValue = Integer.parseInt(this.currentLabel.add);
 			}
 		}
-		this.method.labels = this.labels;
 	}
 
 	private void emit(sim.stm.T inst, String op) {
 		this.method.statements.add(inst);
-		position += ast.PrettyPrintVisitor.instLen.get(op);
+		this.position += ast.PrettyPrintVisitor.instLen.get(op);
+	}
+
+	private void updateHashMap() {
 		if (this.containLabel) {
 			// occur special label
 			// there my occur nop instruction between two directive
 			// oldStmList <-----> ast.stm.Instruction
-			if (labelIndex < this.method.labelList.size()
+			if (this.labelIndex < this.method.labelList.size()
 					&& (this.currentLabel.lab.startsWith("sswitch_data")
 							|| this.currentLabel.lab.startsWith("pswitch_data") || this.currentLabel.lab
 								.startsWith("array_"))
 					&& (this.oldStmList.get(this.oldStmIndex) instanceof ast.stm.Instruction.PackedSwitchDirective
 							|| this.oldStmList.get(this.oldStmIndex) instanceof ast.stm.Instruction.SparseSwitchDirective || this.oldStmList
 								.get(this.oldStmIndex) instanceof ast.stm.Instruction.ArrayDataDirective)) {
-				this.labels.put(this.currentLabel.lab,
+				this.method.labels.put(this.currentLabel.lab,
 						this.method.statements.size());
 				this.labelIndex++;
 				if (this.labelIndex < this.method.labelList.size()) {
@@ -133,10 +159,10 @@ public class SimplifyVisitor implements ast.Visitor {
 				}
 			} else {
 				// normal labels && position == labelValue
-				while (labelIndex < this.method.labelList.size()
+				while (this.labelIndex < this.method.labelList.size()
 						&& this.position == labelValue) {
 					// put the normal label to the HashMap
-					this.labels.put(currentLabel.lab,
+					this.method.labels.put(currentLabel.lab,
 							this.method.statements.size());
 					if (this.currentLabel.lab.startsWith("try_end")) {
 						this.addCatchInstruction();
@@ -172,55 +198,37 @@ public class SimplifyVisitor implements ast.Visitor {
 				.translateAnnotation(clazz.annotationList);
 		simplifiedClass.fieldList = new ArrayList<sim.classs.Class.Field>();
 		for (ast.classs.Class.Field f : clazz.fieldList) {
-			sim.annotation.Annotation.ElementLiteral elementLiteral = new sim.annotation.Annotation.ElementLiteral();
-			elementLiteral.arrayLiteralType = f.elementLiteral.arrayLiteralType;
-			elementLiteral.element = f.elementLiteral.element;
-			elementLiteral.type = f.elementLiteral.type;
-			List<sim.annotation.Annotation> annotationList = this
-					.translateAnnotation(f.annotationList);
+			sim.annotation.Annotation.ElementLiteral elementLiteral = null;
+			List<sim.annotation.Annotation> annotationList = null;
+			if (f.elementLiteral != null) {
+				elementLiteral = new sim.annotation.Annotation.ElementLiteral();
+				elementLiteral.arrayLiteralType = f.elementLiteral.arrayLiteralType;
+				elementLiteral.element = f.elementLiteral.element;
+				elementLiteral.type = f.elementLiteral.type;
+			}
+			if (f.annotationList != null) {
+				annotationList = this.translateAnnotation(f.annotationList);
+			}
 			simplifiedClass.fieldList.add(new sim.classs.Class.Field(f.name,
 					f.accessList, f.type, elementLiteral, annotationList));
 		}
 		simplifiedClass.methods = new ArrayList<sim.method.Method>();
 		for (ast.method.Method m : clazz.methods) {
-			this.methodInit();
+			this.methodInit(m);
 			m.accept(this);
 			this.methodAfter();
 			simplifiedClass.methods.add(this.method);
-
 		}
 	}
 
 	@Override
 	public void visit(ast.method.Method m) {
-		this.method.accessList = m.accessList;
-		this.method.annotationList = this.translateAnnotation(m.annotationList);
-		this.method.catchList = new ArrayList<sim.method.Method.Catch>();
-		this.method.labelList = new ArrayList<sim.method.Method.Label>();
-		for (ast.method.Method.Label label : m.labelList) {
-			this.method.labelList.add(new sim.method.Method.Label(label.lab,
-					label.add));
-		}
-		for (ast.method.Method.Catch cat : m.catchList) {
-			this.method.catchList
-					.add(new sim.method.Method.Catch(cat.add, cat.isAll,
-							cat.type, cat.startLab, cat.endLab, cat.catchLab));
-		}
-		this.method.name = m.name;
-		this.method.parameterList = new ArrayList<sim.method.Method.Parameter>();
-		for (ast.method.Method.Parameter p : m.parameterList) {
-			this.method.parameterList.add(new sim.method.Method.Parameter(
-					p.value, this.translateAnnotation(p.annotationList)));
-		}
-		this.method.prototype = new sim.method.Method.MethodPrototype(
-				m.prototype.returnType, m.prototype.argsType);
-		this.method.registers_directive = m.registers_directive;
-		this.method.registers_directive_count = m.registers_directive_count;
 		this.method.statements = new ArrayList<sim.stm.T>();
 		this.oldStmList = m.statements;
 		for (ast.stm.T stm : m.statements) {
-			this.oldStmIndex++;
+			this.updateHashMap();
 			stm.accept(this);
+			this.oldStmIndex++;
 		}
 	}
 
@@ -245,21 +253,40 @@ public class SimplifyVisitor implements ast.Visitor {
 
 	@Override
 	public void visit(ast.annotation.Annotation.SubAnnotation subAnno) {
-		this.subAnnotation = new sim.annotation.Annotation.SubAnnotation();
-		this.subAnnotation.classType = subAnno.classType;
-		this.subAnnotation.elementList = new ArrayList<sim.annotation.Annotation.AnnotationElement>();
+		sim.annotation.Annotation.SubAnnotation sub;
+		sub = new sim.annotation.Annotation.SubAnnotation();
+		sub.classType = subAnno.classType;
+		sub.elementList = new ArrayList<sim.annotation.Annotation.AnnotationElement>();
 		for (ast.annotation.Annotation.AnnotationElement elem : subAnno.elementList) {
 			elem.elementLiteral.accept(this);
-			this.subAnnotation.elementList
+			sub.elementList
 					.add(new sim.annotation.Annotation.AnnotationElement(
 							elem.name, this.elementLiteral));
 		}
+		this.subAnnotation = sub;
 	}
 
 	@Override
 	public void visit(ast.annotation.Annotation.ElementLiteral elem) {
+		List<Object> result = new ArrayList<Object>();
+		if (elem.type.equals("array")) {
+			for (int i = 0; i < elem.element.size(); i++) {
+				result.add(this.translateElement(elem.element.get(i),
+						elem.arrayLiteralType.get(i)));
+			}
+		} else {
+			result.add(this.translateElement(elem.element.get(0), elem.type));
+		}
 		this.elementLiteral = new sim.annotation.Annotation.ElementLiteral(
-				elem.element, elem.type, elem.arrayLiteralType);
+				result, elem.type, elem.arrayLiteralType);
+	}
+
+	private Object translateElement(Object obj, String type) {
+		if (type.equals("subannotation")) {
+			((ast.annotation.Annotation.SubAnnotation) obj).accept(this);
+			return this.subAnnotation;
+		}
+		return obj;
 	}
 
 	// ////////////////////////////////////////////////////////
@@ -430,10 +457,11 @@ public class SimplifyVisitor implements ast.Visitor {
 	}
 
 	// 19 21h const-wide/high16 vAA, #+BBBB000000000000
+	//const-wide/high16 v2,0x4024  -- > const-wide v2,0x4024000000000000L
 	@Override
 	public void visit(ast.stm.Instruction.ConstWideHigh16 inst) {
 		emit(new sim.stm.Instruction.Const("const-wide", inst.dest, inst.value
-				+ "000000000000"), inst.op);
+				+ "000000000000L"), inst.op);
 	}
 
 	// 1a 21c const-string vAA, string@BBBB
@@ -827,6 +855,8 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 55: iget-boolean
 	@Override
 	public void visit(ast.stm.Instruction.IgetBoolean inst) {
+		emit(new sim.stm.Instruction.Iget(inst.op, inst.dest, inst.field,
+				this.translateField(inst.type)), inst.op);
 	}
 
 	// 56: iget-byte

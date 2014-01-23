@@ -143,7 +143,7 @@ public class PrettyPrintVisitor implements Visitor {
 				result.put(entry.getValue(), new ArrayList<String>());
 			result.get(entry.getValue()).add(entry.getKey());
 		}
-		reversedLabels = result;
+		this.reversedLabels = result;
 	}
 
 	private List<String> getLabelAtPosition(HashMap<String, Integer> labels,
@@ -284,6 +284,8 @@ public class PrettyPrintVisitor implements Visitor {
 		this.reverseLabels(method.labels);
 		for (int i = 0; i < method.statements.size(); i++) {
 			this.printLabel(method.labels, i);
+			this.printSpace();
+			method.statements.get(i).accept(this);
 		}
 		this.printLabel(method.labels, method.statements.size());
 		this.unIndent();
@@ -558,13 +560,13 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.Iget inst) {
-		this.sayln(inst.op + " " + inst.dst + ", " + inst.field + ", "
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.obj + ", "
 				+ inst.field.toString());
 	}
 
 	@Override
 	public void visit(sim.stm.Instruction.Iput inst) {
-		this.sayln(inst.op + " " + inst.src + ", " + inst.field + ", "
+		this.sayln(inst.op + " " + inst.src + ", " + inst.obj + ", "
 				+ inst.field.toString());
 	}
 
@@ -604,7 +606,7 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(sim.stm.Instruction.UnOp inst) {
-		this.say(inst.op + " " + inst.dst + ", " + inst.src);
+		this.sayln(inst.op + " " + inst.dst + ", " + inst.src);
 	}
 
 	@Override

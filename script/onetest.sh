@@ -12,13 +12,14 @@ package_panic () {
     exit 1
 }
 
-if [ $# != 1 ]
+if [ $# != 2 ] || [ $2 != "ast" -a $2 != "sim" ]
 then
-    echo "Usage: $0 path/to/name.apk"
+    echo "Usage: $0 path/to/name.apk [ast|sim] "
 else
+    dump=$2
     apkname=`basename $1`
     apkname="${apkname%.*}"
-    folder=~/result/$apkname
+    folder=~/result_${dump}/$apkname
     apkoutput=$folder/apkoutput
     ppoutput=$folder/ppoutput
     dest=$folder/my$apkname
@@ -34,7 +35,7 @@ else
             export CLASSPATH="$CLASSPATH":$i
         done
 
-        java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput >$folder/carbon.stdout 2>$folder/carbon.stderr || carbon_panic $folder
+        java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput -dump $dump >$folder/carbon.stdout 2>$folder/carbon.stderr || carbon_panic $folder
     )
 
     if [ -e $folder/carbon_panic ]

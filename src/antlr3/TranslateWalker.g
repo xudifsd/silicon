@@ -1370,12 +1370,11 @@ insn_format31i returns [ast.stm.T inst]
       switch($a.text)
       {
         //14 31i const Const
-        case "const" : $inst = new ast.stm.Instruction.Const($a.text,$b.text,$c.value);
+        case "const" : $inst = new ast.stm.Instruction.Const($a.text,$b.text,$c.value);break;
         //17 31i const-wide/32 ConstWide32
         case "const-wide/32": $inst = new ast.stm.Instruction.ConstWide32($a.text,$b.text,$c.value);break;
         default: System.err.println("insn_format31i: " + $a.text + " unknown");
       }
-
     };
 
 insn_format31t returns [ast.stm.T inst]

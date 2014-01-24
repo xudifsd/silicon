@@ -98,6 +98,7 @@ public class PrettyPrintVisitor implements Visitor {
 		ret = util.StringUtils.escapeString(ret);
 		return "\"" + ret + "\"";
 	}
+
 	/* *
 	 * handle char literal escape, panic when meet escaped ASCII code eg.
 	 * char_literal: '\n'
@@ -107,21 +108,27 @@ public class PrettyPrintVisitor implements Visitor {
 		ret = util.StringUtils.escapeString(ret);
 		return "\'" + ret + "\'";
 	}
+
 	/*
 	 * print literal except subannotation and array_literal
 	 */
-	private void printLiteral(String literal,String type) {
-		if(literal.startsWith("\""))
-			this.sayln(this.processString(literal));
-		else if(literal.startsWith("\'"))
-			this.sayln(this.processChar(literal));
+	private void printLiteral(String literal, String type, boolean hasNext) {
+		if (literal.startsWith("\""))
+			this.say(this.processString(literal));
+		else if (literal.startsWith("\'"))
+			this.say(this.processChar(literal));
 		else {
-			if(type.equals("enum"))
+			if (type.equals("enum"))
 				this.say(".enum " + literal);
 			else
 				this.say(literal);
 		}
+		if (hasNext)
+			this.sayln(",");
+		else
+			this.sayln("");
 	}
+
 	private void indent() {
 		indents += TAB;
 	}
@@ -192,8 +199,8 @@ public class PrettyPrintVisitor implements Visitor {
 		}
 
 		// annotations
-		for(ast.annotation.Annotation annotation: clazz.annotationList)
-				annotation.accept(this);
+		for (ast.annotation.Annotation annotation : clazz.annotationList)
+			annotation.accept(this);
 
 		// fileds
 		for (ast.classs.Class.Field field : clazz.fieldList) {
@@ -202,14 +209,13 @@ public class PrettyPrintVisitor implements Visitor {
 				this.say(str + " ");
 			this.say(field.name + ":");
 			this.say(field.type);
-			// initialvalue
-			if (field.initValue != null) {
-				if (field.initValue.startsWith("\""))
-					field.initValue = this.processString(field.initValue);
-				this.sayln(" = " + field.initValue);
-			}
-
-			else
+			// literal
+			if (field.elementLiteral != null
+					&& field.elementLiteral.type != null) {
+				this.say(" = ");
+				field.elementLiteral.accept(this);
+				this.sayln("");
+			} else
 				this.sayln("");
 			// annotations
 			if (field.annotationList != null) {
@@ -234,6 +240,7 @@ public class PrettyPrintVisitor implements Visitor {
 	@Override
 	public void visit(ast.method.Method method) {
 		boolean ignorePrologue = false;
+		boolean endParameter = false;
 		Collections.sort(method.catchList);
 		Collections.sort(method.labelList);
 		this.say(".method ");
@@ -251,6 +258,12 @@ public class PrettyPrintVisitor implements Visitor {
 			this.sayln(method.registers_directive_count + "");
 		}
 		// parameters
+		// if there exist annotation in parameter then all the .parameter should add .end parameter at the end
+		for (ast.method.Method.Parameter parameter : method.parameterList) {
+			if (parameter.annotationList.size() > 0) {
+				endParameter = true;
+			}
+		}
 		for (ast.method.Method.Parameter parameter : method.parameterList) {
 			this.printSpace();
 			if (parameter.value != null)
@@ -260,10 +273,10 @@ public class PrettyPrintVisitor implements Visitor {
 			// annotations
 			for (ast.annotation.Annotation annotation : parameter.annotationList) {
 				annotation.accept(this);
-				if (parameter.annotationList.size() > 0) {
-					this.printSpace();
-					this.sayln(".end parameter");
-				}
+			}
+			if (endParameter) {
+				this.printSpace();
+				this.sayln(".end parameter");
 			}
 		}
 		if (!ignorePrologue) {
@@ -453,63 +466,78 @@ public class PrettyPrintVisitor implements Visitor {
 		this.printSpace();
 		this.sayln(".end annotation");
 	}
-	
+
 	@Override
 	public void visit(SubAnnotation subAnnotation) {
 		this.sayln(subAnnotation.classType);
 		this.indent();
-		for(ast.annotation.Annotation.AnnotationElement element : subAnnotation.elementList) {
+		for (ast.annotation.Annotation.AnnotationElement element : subAnnotation.elementList) {
 			this.printSpace();
 			this.say(element.name + " = ");
 			element.elementLiteral.accept(this);
 		}
 		this.unIndent();
 	}
-	
+
 	@Override
 	public void visit(ElementLiteral elementLiteral) {
 		//subannotation
-		if(elementLiteral.type.equals("subannotation")) {
+		if (elementLiteral.type.equals("subannotation")) {
 			this.say(".subannotation ");
-			((ast.annotation.Annotation.SubAnnotation)elementLiteral.element.get(0)).accept(this);
+			((ast.annotation.Annotation.SubAnnotation) elementLiteral.element
+					.get(0)).accept(this);
 			this.printSpace();
 			this.sayln(".end subannotation");
 		}
 		//array
-		else if(elementLiteral.type.equals("array")) {
-			if(elementLiteral.element.size() == 0)
+		else if (elementLiteral.type.equals("array")) {
+			if (elementLiteral.element.size() == 0)
 				this.sayln("{}");
 			else {
 				this.sayln("{");
-				if(elementLiteral.arrayLiteralType.equals("subannotation")) {
-					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-					System.out.println("W:find subannotation in array_literal in PrettyPrint");
-					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");				
-				}
-				else if(elementLiteral.arrayLiteralType.equals("subannotation")) {
-					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
-					System.out.println("W:find array in array_literal in PrettyPrint");
-					System.out.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");	
+				if (elementLiteral.arrayLiteralType.equals("subannotation")) {
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out
+							.println("W:find subannotation in array_literal in PrettyPrint");
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+				} else if (elementLiteral.arrayLiteralType
+						.equals("subannotation")) {
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
+					System.out
+							.println("W:find array in array_literal in PrettyPrint");
+					System.out
+							.println("++++++++++++++++++++++++++++++++++++++++++++++++++++++");
 				}
 				this.indent();
-				for(int i = 0 ;i<elementLiteral.element.size();i++) {
+				for (int i = 0; i < elementLiteral.element.size(); i++) {
 					Object object = elementLiteral.element.get(i);
-					String arrayLiteralTypet = elementLiteral.arrayLiteralType.get(i);
+					String arrayLiteralTypet = elementLiteral.arrayLiteralType
+							.get(i);
 					this.printSpace();
-					if(arrayLiteralTypet.equals("subannotation")) {
+					boolean hasNext = false;
+					if (i < elementLiteral.element.size() - 1)
+						hasNext = true;
+
+					if (arrayLiteralTypet.equals("subannotation")) {
 						this.say(".subannotation ");
-						((ast.annotation.Annotation.SubAnnotation)object).accept(this);
+						((ast.annotation.Annotation.SubAnnotation) object)
+								.accept(this);
 						this.printSpace();
 						this.say(".end subannotation");
-					}
-					else {
+						if (hasNext)
+							this.sayln(",");
+						else
+							this.sayln("");
+					} else {
 						String str = new String();
-						str = (String)(object);
-						this.printLiteral(str, arrayLiteralTypet);
+						str = (String) (object);
+						this.printLiteral(str, arrayLiteralTypet, hasNext);
 					}
-					if(i<elementLiteral.element.size()-1)
-						this.sayln(",");
 				}
+				this.unIndent();
 				this.printSpace();
 				this.sayln("}");
 				this.unIndent();
@@ -517,10 +545,12 @@ public class PrettyPrintVisitor implements Visitor {
 		}
 		//others
 		else {
-			this.printLiteral(((String)elementLiteral.element.get(0)),elementLiteral.type);
+			this.printLiteral(((String) elementLiteral.element.get(0)),
+					elementLiteral.type, false);
 			this.sayln("");
 		}
 	}
+
 	// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// 00 10x nop
 	public void visit(ast.stm.Instruction.Nop inst) {
@@ -643,48 +673,64 @@ public class PrettyPrintVisitor implements Visitor {
 	// 12 11n const/4 vA, #+B
 	public void visit(ast.stm.Instruction.Const4 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 13 21s const/16 vAA, #+BBBB
 	public void visit(ast.stm.Instruction.Const16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 14 31i const vAA, #+BBBBBBBB
 	public void visit(ast.stm.Instruction.Const inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 15 21h const/high16 vAA, #+BBBB0000
 	public void visit(ast.stm.Instruction.ConstHigh16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 16 21s const-wide/16 vAA, #+BBBB
 	public void visit(ast.stm.Instruction.ConstWide16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 17 31i const-wide/32 vAA, #+BBBBBBBB
 	public void visit(ast.stm.Instruction.ConstWide32 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 18 51l const-wide vAA, #+BBBBBBBBBBBBBBBB
 	public void visit(ast.stm.Instruction.ConstWide inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
 	// 19 21h const-wide/high16 vAA, #+BBBB000000000000
 	public void visit(ast.stm.Instruction.ConstWideHigh16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.value);
 	}
 
@@ -1935,6 +1981,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d0: add-int/lit16
 	public void visit(ast.stm.Instruction.AddIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1942,6 +1990,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d1: rsub-int (reverse subtract)
 	public void visit(ast.stm.Instruction.RsubInt inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1949,6 +1999,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d2: mul-int/lit16
 	public void visit(ast.stm.Instruction.MulIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1956,6 +2008,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d3: div-int/lit16
 	public void visit(ast.stm.Instruction.DivIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1963,6 +2017,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d4: rem-int/lit16
 	public void visit(ast.stm.Instruction.RemIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1970,6 +2026,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d5: and-int/lit16
 	public void visit(ast.stm.Instruction.AndIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1977,6 +2035,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d6: or-int/lit16
 	public void visit(ast.stm.Instruction.OrIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1984,6 +2044,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d7: xor-int/lit16
 	public void visit(ast.stm.Instruction.XorIntLit16 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -1993,6 +2055,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d8: add-int/lit8
 	public void visit(ast.stm.Instruction.AddIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2000,6 +2064,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// d9: rsub-int/lit8
 	public void visit(ast.stm.Instruction.RsubIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2007,6 +2073,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// da: mul-int/lit8
 	public void visit(ast.stm.Instruction.MulIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2014,6 +2082,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// db: div-int/lit8
 	public void visit(ast.stm.Instruction.DivIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2021,6 +2091,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// dc: rem-int/lit8
 	public void visit(ast.stm.Instruction.RemIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2028,6 +2100,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// dd: and-int/lit8
 	public void visit(ast.stm.Instruction.AndIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2035,6 +2109,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// de: or-int/lit8
 	public void visit(ast.stm.Instruction.OrIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2042,6 +2118,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// df: xor-int/lit8
 	public void visit(ast.stm.Instruction.XorIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2049,6 +2127,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// e0: shl-int/lit8
 	public void visit(ast.stm.Instruction.ShlIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2056,6 +2136,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// e1: shr-int/lit8
 	public void visit(ast.stm.Instruction.ShrIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2063,6 +2145,8 @@ public class PrettyPrintVisitor implements Visitor {
 	// e2: ushr-int/lit8
 	public void visit(ast.stm.Instruction.UshrIntLit8 inst) {
 		this.position += instLen.get(inst.op);
+		if (inst.value.startsWith("\'"))
+			inst.value = this.processChar(inst.value);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src + ", "
 				+ inst.value);
 	}
@@ -2079,6 +2163,8 @@ public class PrettyPrintVisitor implements Visitor {
 		this.printSpace();
 		int cnt = 0;
 		for (String str : inst.elementList) {
+			if (str.startsWith("\'"))
+				str = this.processChar(str);
 			this.say(str + " ");
 			cnt++;
 			if ((cnt % Integer.decode(inst.size).intValue()) == 0) {
@@ -2094,6 +2180,8 @@ public class PrettyPrintVisitor implements Visitor {
 
 	@Override
 	public void visit(ast.stm.Instruction.PackedSwitchDirective inst) {
+		if (inst.key.startsWith("\'"))
+			inst.key = this.processChar(inst.key);
 		this.sayln(".packed-switch " + inst.key);
 		this.indent();
 		for (String str : inst.labList) {
@@ -2103,16 +2191,19 @@ public class PrettyPrintVisitor implements Visitor {
 		this.unIndent();
 		this.printSpace();
 		this.sayln(".end packed-switch");
-
 	}
 
 	@Override
 	public void visit(ast.stm.Instruction.SparseSwitchDirective inst) {
+		String str;
 		this.sayln(".sparse-switch ");
 		this.indent();
 		for (int i = 0; i < inst.labList.size(); i++) {
 			this.printSpace();
-			this.sayln(inst.keyList.get(i) + " -> :" + inst.labList.get(i));
+			str = inst.keyList.get(i);
+			if (str.startsWith("\'"))
+				str = this.processChar(str);
+			this.sayln(str + " -> :" + inst.labList.get(i));
 		}
 		this.unIndent();
 		this.printSpace();

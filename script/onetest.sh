@@ -1,55 +1,90 @@
 #!/bin/sh
 
-panic () {
-    echo panic
-    > $1/panic
+carbon_panic () {
+    echo carbon_panic
+    > $1/carbon_panic
+    exit 1
+}
+
+package_panic () {
+    echo package_panic
+    > $1/package_panic
     exit 1
 }
 
 if [ $# != 1 ]
 then
-    echo "Usage: $0 name.apk"
+    echo "Usage: $0 path/to/name.apk"
 else
     apkname=`basename $1`
     apkname="${apkname%.*}"
     folder=~/result/$apkname
     apkoutput=$folder/apkoutput
     ppoutput=$folder/ppoutput
+    dest=$folder/my$apkname
 
     rm -r $folder 2>/dev/null
     mkdir -p $apkoutput
     mkdir -p $ppoutput
 
     (cd ..
-    export CLASSPATH="."
-    for i in jar/*.jar
-    do
-        export CLASSPATH="$CLASSPATH":$i
-    done
+        export CLASSPATH="."
+        for i in jar/*.jar
+        do
+            export CLASSPATH="$CLASSPATH":$i
+        done
 
-    java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput >$folder/carbon.stdout 2>$folder/carbon.stderr || panic $folder
+        java -Xmx1220m -Xms1220m -cp .:./bin:$CLASSPATH Carbon $1 -ppoutput $ppoutput -apkoutput $apkoutput >$folder/carbon.stdout 2>$folder/carbon.stderr || carbon_panic $folder
     )
 
-    if [ -e $folder/panic ]
+    if [ -e $folder/carbon_panic ]
+    then
         exit 1
     else
-        (cd $folder
-        >$apkname.apk.smali
-        for i in `find $apkoutput/smali -type f`
-        do
-            cat $i >>$apkname.apk.smali
-        done
+        # get diff
+        (
+            (
+            >$folder/$apkname.apk.smali
+            for i in `find $apkoutput/smali -type f`
+            do
+                cat $i >>$folder/$apkname.apk.smali
+            done
+            perl format.pl $folder/$apkname.apk.smali
+            ) &
 
-        >$apkname.pp.smali
-        for i in `find $ppoutput -type f`
-        do
-            cat $i >>$apkname.pp.smali
-        done
+            (
+            >$folder/$apkname.pp.smali
+            for i in `find $ppoutput -type f`
+            do
+                cat $i >>$folder/$apkname.pp.smali
+            done
+            perl format.pl $folder/$apkname.pp.smali
+            ) &
 
-        perl ~/carbon/script/format.pl $apkname.apk.smali
-        perl ~/carbon/script/format.pl $apkname.pp.smali
-        diff $apkname.apk.smali $apkname.pp.smali 1>$apkname.diff 2>$apkname.diff.stderr
-        ls -l $apkname.diff
+        wait
+        diff $folder/$apkname.apk.smali $folder/$apkname.pp.smali 1>$folder/$apkname.diff 2>$folder/$apkname.diff.stderr
+        ls -l $folder/$apkname.diff
+        ) &
+
+        # package it
+        (cd ..
+            mkdir $dest
+            # only copy needed file, ignore $apkoutput/smali
+            for i in `find $apkoutput -maxdepth 1|grep -v smali| tail -n +2`
+            do
+                cp -r $i $dest
+            done
+            cp -r $ppoutput $dest/smali
+
+            paout=$folder/package.stdout
+            paerr=$folder/package.stderr
+            > $paout
+            > $paerr
+            (
+                java -jar jar/apktool.jar b $dest >> $paout 2>> $paerr &&
+                java -jar jar/SignAPK.jar $dest/dist/$apkname.apk $dest.apk >> $paout 2>> $paerr
+            ) || package_panic $folder
         )
+        wait
     fi
 fi

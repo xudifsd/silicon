@@ -16,6 +16,7 @@ import org.jf.smali.LexerErrorInterface;
 import org.jf.smali.smaliFlexLexer;
 import org.jf.smali.smaliParser;
 
+import sim.SimplifyVisitor;
 import antlr3.TranslateWalker;
 import ast.PrettyPrintVisitor;
 
@@ -87,6 +88,41 @@ public class MultiThreadUtils {
 
 			TranslateWalker walker = new TranslateWalker(treeStream);
 			return walker.smali_file();
+		}
+	}
+
+	public static class SimplifyWorker implements Callable<sim.classs.Class> {
+		public TranslateWorker translateWorker;
+
+		public SimplifyWorker(TranslateWorker translateWorker) {
+			this.translateWorker = translateWorker;
+		}
+
+		@Override
+		public sim.classs.Class call() throws Exception {
+			ast.classs.Class clazz = translateWorker.call();
+
+			SimplifyVisitor visitor = new SimplifyVisitor();
+			visitor.visit(clazz);
+			return visitor.simplifiedClass;
+		}
+	}
+
+	public static class PrettyPrintSimWorker implements Runnable {
+		SimplifyWorker worker;
+
+		public PrettyPrintSimWorker(SimplifyWorker worker) {
+			this.worker = worker;
+		}
+
+		@Override
+		public void run() {
+			sim.PrettyPrintVisitor ppv = new sim.PrettyPrintVisitor();
+			try {
+				worker.call().accept(ppv);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

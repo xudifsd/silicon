@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutionException;
 
 import control.CommandLine;
 import control.Control;
+import util.MultiThreadUtils.SimplifyWorker;
 import util.MultiThreadUtils.TranslateWorker;
 import util.MultiThreadUtils.ParserWorker;
 
@@ -48,7 +49,18 @@ public class Carbon {
 		classes = CompilePass.translate(workers);
 		workers = null;
 
-		CompilePass.prettyPrint(classes);
+		if (Control.dump.equals("ast")) {
+			CompilePass.prettyPrint(classes);
+		} else if (Control.dump.equals("sim")) {
+			List<SimplifyWorker> sims;
+			sims = CompilePass.simplify(classes);
+			classes = null;
+
+			CompilePass.prettyPrintSim(sims);
+		} else {
+			System.err.println("unknow dump args " + Control.dump);
+			System.exit(2);
+		}
 	}
 
 	public static void main(String[] args) {

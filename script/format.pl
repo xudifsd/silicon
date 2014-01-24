@@ -20,7 +20,7 @@ while(<>){
     s/^#.*//;
 
     # debug info
-    s/^\.line\s+\d+.*$//;
+    s/^\.line.*$//;
     s/^\.local\s.+//;
     s/^\.end local.+//;
     s/^\.restart local.+//;

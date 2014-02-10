@@ -417,8 +417,8 @@ public class SimplifyVisitor implements ast.Visitor {
 	// 13 21s const/16 vAA, #+BBBB
 	@Override
 	public void visit(ast.stm.Instruction.Const16 inst) {
-		emit(new sim.stm.Instruction.Const("const", inst.dest, inst.value),
-				inst.op);
+			emit(new sim.stm.Instruction.Const("const", inst.dest, inst.value),
+					inst.op);
 	}
 
 	// 14 31i const vAA, #+BBBBBBBB
@@ -1787,56 +1787,56 @@ public class SimplifyVisitor implements ast.Visitor {
 	// d8: add-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.AddIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("add-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// d9: rsub-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.RsubIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("rsub-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// da: mul-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.MulIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("mul-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// db: div-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.DivIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("div-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// dc: rem-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.RemIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("rem-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// dd: and-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.AndIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("and-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// de: or-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.OrIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("or-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 
 	// df: xor-int/lit8
 	@Override
 	public void visit(ast.stm.Instruction.XorIntLit8 inst) {
-		emit(new sim.stm.Instruction.BinOpLit("xor-int/lit16", inst.dest,
+		emit(new sim.stm.Instruction.BinOpLit(inst.op, inst.dest,
 				inst.src, inst.value), inst.op);
 	}
 

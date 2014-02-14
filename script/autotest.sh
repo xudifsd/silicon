@@ -4,7 +4,7 @@ logname=`date +%Y%m%d%H%M%S`
 logfile=~/log/$logname.txt
 mkdir ~/log/ 2>/dev/null
 >$logfile
-if [ $# != 2 ] || [ $2 != "ast" -a $2 != "sim"]
+if [ $# != 2 ] || [ $2 != "ast" -a $2 != "sim" ]
 then
     echo "Usage: $0 apklist [ast|sim]"
 else

@@ -57,7 +57,9 @@ public class Carbon {
 			classes = null;
 
 			CompilePass.prettyPrintSim(sims);
-		} else {
+		} else if(Control.dump.equals("sta")){
+			
+		}else {
 			System.err.println("unknow dump args " + Control.dump);
 			System.exit(2);
 		}

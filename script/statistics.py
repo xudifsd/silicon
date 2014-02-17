@@ -25,8 +25,12 @@ def instruction_stat(apk_list):
                 logfile.writelines(apk_name+' is missing\n')
             for eachLine in smali_file:
                 try:
-                    (op, rest) = eachLine.split(' ', 1)
+                    eachLine=eachLine.strip()
+                    eachLine=eachLine.strip('\n')
+                    op = eachLine.split(' ', 1)[0]
                     op = op.strip()
+                    op = op.strip('\n')
+                    logfile.write(op + '\n')
                     if op in freq_dic:
                         freq_dic[op] += 1
                 except ValueError:

@@ -73,7 +73,7 @@ public class MultiThreadUtils {
 
 	/* *
 	 * Laziness is a programmer's prime virtue, so does some memory consumers
-	 * */
+	 */
 	public static class TranslateWorker implements Callable<ast.classs.Class> {
 		public ParserWorker parserWorker;
 

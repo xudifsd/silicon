@@ -28,9 +28,9 @@ public class CompilePass {
 	}
 
 	/* *
-	 * NOTE, we don't do the real work here, because if we do, it will consume
-	 * a lot of memory.
-	 * */
+	 * NOTE, we don't do the real work here, because if we do, it will consume a
+	 * lot of memory.
+	 */
 	public static List<ParserWorker> parseSmaliFile(File path) {
 		ArrayList<File> files = getAllSmali(path);
 		ArrayList<ParserWorker> result = new ArrayList<ParserWorker>();

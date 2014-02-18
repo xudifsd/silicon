@@ -4,6 +4,7 @@ package ast;
 public interface Visitor {
 	// program
 
+	
 	public void visit(ast.classs.MethodItem item);
 	public void visit(ast.classs.FieldItem item);
 	public void visit(ast.method.Method method);
@@ -230,6 +231,7 @@ public interface Visitor {
 	public void visit(ast.stm.Instruction.InvokeInterfaceRange invokeInterfaceRange);
 	public void visit(ast.stm.Instruction.FilledNewArrayRange filledNewArrayRange);
 	public void visit(ast.stm.Instruction.ConstWide constWide);
+	
 	public void visit(ast.stm.Instruction.PackedSwitchDirective packedSwitchDirective);
 	public void visit(ast.stm.Instruction.SparseSwitchDirective sparseSwitchDirective);
 	public void visit(ast.stm.Instruction.ArrayDataDirective arrayDataDirective);

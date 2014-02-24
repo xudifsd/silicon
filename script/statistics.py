@@ -30,7 +30,6 @@ def instruction_stat(apk_list):
                     op = eachLine.split(' ', 1)[0]
                     op = op.strip()
                     op = op.strip('\n')
-                    logfile.write(op + '\n')
                     if op in freq_dic:
                         freq_dic[op] += 1
                 except ValueError:

@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -35,7 +36,10 @@ public class Carbon {
 	}
 
 	public void run(String[] args) throws IOException, InterruptedException,
-			org.antlr.runtime.RecognitionException, ExecutionException {
+			org.antlr.runtime.RecognitionException, ExecutionException,
+			ClassNotFoundException, NoSuchMethodException, SecurityException,
+			IllegalAccessException, IllegalArgumentException,
+			InvocationTargetException {
 		Control.fileName = CommandLine.scan(args);
 
 		String apktoolCMD = "java -jar jar/apktool.jar d -f "
@@ -57,6 +61,11 @@ public class Carbon {
 			classes = null;
 
 			CompilePass.prettyPrintSim(sims);
+		} else if (Control.dump.equals("astvm")) {
+			//			CompilePass.astInterpreter(classes, "Lhong/example/Person;");
+			//			CompilePass.astInterpreter(classes, "LHello;");
+			//			CompilePass.astInterpreter(classes, "Lcomplex/Complex;");
+			System.out.println("perfect!");
 		} else {
 			System.err.println("unknow dump args " + Control.dump);
 			System.exit(2);

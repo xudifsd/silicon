@@ -1,11 +1,9 @@
 package vm;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
 import ast.Visitor;
@@ -242,12 +240,13 @@ import ast.stm.Instruction.arrayLength;
 
 public class InterpreterVisitor implements Visitor {
 
-	public static Map<String, VmClass> classMap;
-	public static Map<String, VmField> staticFieldMap;
-	public static Map<String, VmMethod> methodMap;
-	public static Map<String, VmInstance> instanceMap;
+	public static HashMap<String, VmClass> classMap;
+	public static HashMap<String, VmField> staticFieldMap;
+	public static HashMap<String, VmMethod> methodMap;
+	public static HashMap<String, VmMethod> staticMethodMap;
+	public static HashMap<String, VmMethod> directMethodMap;
 
-	public Stack<StackFrame> runStack;
+	public Stack<Frame> runStack;
 	public int ip;
 	public boolean methodEnd;
 	public Object returnValue;
@@ -256,7 +255,11 @@ public class InterpreterVisitor implements Visitor {
 		System.out.println(obj);
 	}
 
-	public static class StackFrame {
+	public static void printErr(Object obj) {
+		System.err.println(obj);
+	}
+
+	public static class Frame {
 		//who invoke the method
 		public Object ownerObject;
 		public Object[] variables;
@@ -264,100 +267,57 @@ public class InterpreterVisitor implements Visitor {
 		public int returnAddress;
 	}
 
-	public static class VmField implements Cloneable {
-		public String name;
-		public Object content;
-		public String type;
-		public boolean isSystem;
-
-		public VmField(String name, String type) {
-			this.name = name;
-			this.type = type;
-			this.isSystem = false;
-		}
-
-		public VmField(String name, Object content, String type) {
-			this.name = name;
-			this.content = content;
-			this.type = type;
-			this.isSystem = true;
-		}
+	public InterpreterVisitor() {
+		classMap = new HashMap<String, VmClass>();
+		staticFieldMap = new HashMap<String, VmField>();
+		methodMap = new HashMap<String, VmMethod>();
+		staticMethodMap = new HashMap<String, VmMethod>();
+		directMethodMap = new HashMap<String, VmMethod>();
+		runStack = new Stack<Frame>();
+		this.ip = 0;
+		this.methodEnd = false;
 	}
 
-	public static class VmMethod {
-		public String name;
-		public ast.method.Method method;
-		public boolean isSystem;
-		public boolean isSystemConstructor;
-		public java.lang.reflect.Method systemMethod;
-		public java.lang.reflect.Constructor<?> systemConstructor;
-
-		public VmMethod(String name, ast.method.Method method) {
-			this.name = name;
-			this.method = method;
-			this.isSystem = false;
-		}
-
-		public VmMethod(String name, java.lang.reflect.Method systemMethod) {
-			super();
-			this.name = name;
-			this.systemMethod = systemMethod;
-			this.isSystem = true;
-		}
-
-		public VmMethod(String name, Constructor<?> systemConstructor) {
-			super();
-			this.name = name;
-			this.systemConstructor = systemConstructor;
-			this.isSystem = true;
-			this.isSystemConstructor = true;
-		}
-
+	/*
+	 * start from public static void main(String[] args);
+	 */
+	public void Init(MethodItem methodItem) throws ClassNotFoundException,
+			NoSuchMethodException, SecurityException, IllegalAccessException,
+			IllegalArgumentException, InvocationTargetException {
+		Loader.loadUserClass(methodItem.classType);
+		//		print(InterpreterVisitor.classMap);
+		InvokeStatic mainMethod = new InvokeStatic("invoke-static",
+				new ArrayList<String>(), methodItem);
+		mainMethod.accept(this);
 	}
 
-	public static class VmClass {
-		public String name;
-		public Map<String, VmField> fieldMap;
-		public Map<String, VmMethod> methodMap;
-		public Map<String, VmField> staticFieldMap;
-
-		public VmClass(String name, Map<String, VmField> fieldMap,
-				Map<String, VmMethod> methodMap,
-				Map<String, VmField> staticFieldMap) {
-			super();
-			this.name = name;
-			this.fieldMap = fieldMap;
-			this.methodMap = methodMap;
-			this.staticFieldMap = staticFieldMap;
-		}
-
-	}
-
-	public static class VmInstance {
-		public String name;
-		public Map<String, VmField> fieldMap;
-		public boolean isSystem;
-		public Object systemInstance;
-
-		public VmInstance(String name, Map<String, VmField> fieldMap) {
-			this.name = name;
-			this.fieldMap = fieldMap;
-			this.isSystem = false;
-		}
-
-		public VmInstance(String name) {
-			this.name = name;
-			this.isSystem = true;
-		}
-	}
-
-	public Object[] initParameterList(List<String> argsType) {
+	public Object[] initParameters(List<String> argsType) {
 		Object[] parameterList = new Object[argsType.size()];
 		for (int i = 0; i < argsType.size(); i++) {
 			String arg = argsType.get(i);
 			parameterList[i] = this.getObjectFromRegister(arg);
 		}
 		return parameterList;
+	}
+
+	public static Object[] getObjectParameters(boolean isStatic, Object[] objs) {
+		int i = isStatic == true ? 0 : 1;
+		Object[] result = new Object[objs.length - i];
+		for (int j = 0; i < objs.length; i++, j++) {
+			if (objs[i] instanceof VmInstance) {
+				if (((VmInstance) objs[i]).isSystem) {
+					result[j] = ((VmInstance) objs[i]).systemInstance;
+				} else {
+					//TODO : how to handle the user Instance
+					printErr("appear user Instance in getObjectParameters function");
+				}
+			} else if (objs[i] instanceof VmField) {
+				result[j] = ((VmField) objs[i]).content;
+			} else {
+				result[j] = objs[i];
+			}
+		}
+		return result;
 	}
 
 	public void storeObjectInRegister(String register, Object content) {
@@ -375,27 +335,94 @@ public class InterpreterVisitor implements Visitor {
 		return this.runStack.peek().parameters[index];
 	}
 
-	public InterpreterVisitor() {
-		classMap = new HashMap<String, VmClass>();
-		staticFieldMap = new HashMap<String, VmField>();
-		methodMap = new HashMap<String, VmMethod>();
-		instanceMap = new HashMap<String, VmInstance>();
-		runStack = new Stack<StackFrame>();
-		this.ip = 0;
-		this.methodEnd = false;
+	public void handleVirtualMethod(InvokeVirtual inst) {
+		String fullMethodName = Util.getFullMethodName(inst.type);
+		Object[] parameters= initParameters(inst.argList);
+		VmInstance refer = (VmInstance)parameters[0];
+		if(refer.isSystem == true) {
+			//system method
+		} else {
+			
+		}
+		
 	}
 
-	/*
-	 * start from public static void main(String[] args);
-	 */
-	public void Init(MethodItem methodItem) throws ClassNotFoundException,
-			NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		Loader.loadClass(methodItem.classType);
-		//		print(InterpreterVisitor.classMap);
-		InvokeStatic mainMethod = new InvokeStatic("invoke-static",
-				new ArrayList<String>(), methodItem);
-		mainMethod.accept(this);
+	public void handleSuperMethod(InvokeSuper inst) {
+		
+	}
+
+	// invoke-direct is used to invoke a non-static direct method 
+	//(that is, an instance method that is by its nature non-overridable, 
+	//   namely either a private instance method or a constructor)
+	public void handleDircetMethod(InvokeDirect inst) {
+		String fullMethodName = Util.getFullMethodName(inst.type);
+		Object[] parameters= initParameters(inst.argList);
+		Object refer = parameters[0];
+		VmMethod directMethod = directMethodMap.get(fullMethodName);
+		if(directMethod == null)
+			directMethod = Loader.getDirectMethod(inst.type);
+		if(directMethod.isSystem == true) {
+			Object[] objectParameters = getObjectParameters(false,parameters);
+			if(directMethod.isSystemConstructor == true) {
+				Object newInstance = null;
+				try {
+					 newInstance = directMethod.systemConstructor.newInstance(objectParameters);
+				} catch (InstantiationException | IllegalAccessException
+						| IllegalArgumentException
+						| InvocationTargetException e) {
+						// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if(((VmInstance)refer).isSystem == true)
+					((VmInstance)refer).systemInstance = newInstance;
+				else
+					((VmInstance)refer).parentInstance = newInstance;
+			} else {
+				try {
+					this.returnValue = directMethod.systemMethod.invoke(refer, objectParameters);
+				} catch (IllegalAccessException | IllegalArgumentException
+						| InvocationTargetException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		} else {
+			Frame frame = new Frame();
+			frame.parameters = parameters;
+			frame.returnAddress = ip;
+			frame.ownerObject = frame.parameters[0];
+			this.runStack.push(frame);
+			directMethod.astMethod.accept(this);
+		}
+	}
+
+	public void handleStaticMethod(InvokeStatic inst) {
+		String fullMethodName = Util.getFullMethodName(inst.type);
+		Object[] parameters = initParameters(inst.argList);
+		VmMethod staticMethod = staticMethodMap.get(fullMethodName);
+		if (staticMethod == null)
+			staticMethod = Loader.getStaticMethod(inst.type);
+		if (staticMethod.isSystem == true) {
+			try {
+				this.returnValue = staticMethod.systemMethod.invoke(null,
+						getObjectParameters(true, parameters));
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		} else {
+			Frame frame = new Frame();
+			frame.parameters = parameters;
+			frame.returnAddress = ip;
+			frame.ownerObject = null;
+			this.runStack.push(frame);
+			staticMethod.astMethod.accept(this);
+		}
+	}
+
+	public void handleInterfaceMethod(InvokeInterface inst) {
+
 	}
 
 	/*
@@ -404,53 +431,38 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	public void enterVmMethod(VmMethod vmMethod, List<String> argList,
 			boolean isStatic) {
-		StackFrame stackFrame = new StackFrame();
-		stackFrame.parameters = this.initParameterList(argList);
-		stackFrame.returnAddress = ip;
-		stackFrame.ownerObject = null;
+		Frame frame = new Frame();
+		frame.parameters = this.initParameters(argList);
+		frame.returnAddress = ip;
+		frame.ownerObject = null;
 		Object ownerObject = null;
-		//		print("in enterVmMethod");
 		if (!isStatic) {
-			stackFrame.ownerObject = stackFrame.parameters[0];
-			ownerObject = stackFrame.parameters[0];
+			frame.ownerObject = frame.parameters[0];
+			ownerObject = frame.parameters[0];
 		}
 
 		if (vmMethod.isSystem == true) {
 			// system method
 			//			print("is a system method");
 			int i = 0;
-			if (stackFrame.ownerObject != null) {
+			if (frame.ownerObject != null) {
 				i = 1;
 				if (ownerObject instanceof VmInstance)
 					ownerObject = ((VmInstance) ownerObject).systemInstance;
 				else if (ownerObject instanceof VmField)
 					ownerObject = ((VmField) ownerObject).content;
 				else {
-					//					print("++++++++++++++++++++++++++++++++++++++++++++++++++");
-					//					print("E(in enterMethod)1 : can't Recognise ownerObject");
-					//					print("E(in enterMethod)2 : "
-					//							+ ownerObject.getClass().getName());
-					//					print("++++++++++++++++++++++++++++++++++++++++++++++++++");
 				}
 			}
-			Object[] systemParameters = new Object[stackFrame.parameters.length
-					- i];
+			Object[] systemParameters = new Object[frame.parameters.length - i];
 			//get the args
-			for (int j = 0; i < stackFrame.parameters.length; i++) {
-				if (stackFrame.parameters[i] instanceof VmInstance)
-					systemParameters[j++] = ((VmInstance) stackFrame.parameters[i]).systemInstance;
-				else if (stackFrame.parameters[i] instanceof VmField)
-					systemParameters[j++] = ((VmField) stackFrame.parameters[i]).content;
+			for (int j = 0; i < frame.parameters.length; i++) {
+				if (frame.parameters[i] instanceof VmInstance)
+					systemParameters[j++] = ((VmInstance) frame.parameters[i]).systemInstance;
+				else if (frame.parameters[i] instanceof VmField)
+					systemParameters[j++] = ((VmField) frame.parameters[i]).content;
 				else {
-					systemParameters[j++] = stackFrame.parameters[i];
-					//					print("++++++++++++++++++++++++++++++++++++++++++++++++++");
-					//					print("E(in enterMethod)1 : can't Recognise stackFrame.parameters[i] i="
-					//							+ i);
-					//					print("E(in enterMethod)2 : " + stackFrame.parameters[i]);
-					//					print("E(in enterMethod)3 : + size of stackFrame.parameters "
-					//							+ stackFrame.parameters.length);
-					////					this.printStack(vmMethod.name);
-					//					print("++++++++++++++++++++++++++++++++++++++++++++++++++");
+					systemParameters[j++] = frame.parameters[i];
 				}
 			}
 
@@ -459,9 +471,9 @@ public class InterpreterVisitor implements Visitor {
 				//can't invoke construct method for ast object
 				//but init for a systemInstance
 				//				print("is a system constructor");
-				if (((VmInstance) stackFrame.ownerObject).isSystem == true)
+				if (((VmInstance) frame.ownerObject).isSystem == true)
 					try {
-						((VmInstance) stackFrame.ownerObject).systemInstance = vmMethod.systemConstructor
+						((VmInstance) frame.ownerObject).systemInstance = vmMethod.systemConstructor
 								.newInstance(systemParameters);
 					} catch (InstantiationException | IllegalAccessException
 							| IllegalArgumentException
@@ -480,13 +492,8 @@ public class InterpreterVisitor implements Visitor {
 				}
 			}
 		} else {
-			//ast method
-			// push the new stackframe
-			//			print("in ast method(entermethod) : "
-			//					+ Loader.getFullMethodName("someclass", vmMethod.method));
-			this.runStack.push(stackFrame);
-			//			print("size of runstacks " + this.runStack.size());
-			vmMethod.method.accept(this);
+			this.runStack.push(frame);
+			vmMethod.astMethod.accept(this);
 		}
 	}
 
@@ -494,6 +501,7 @@ public class InterpreterVisitor implements Visitor {
 	 * step 1 : update ip and methodEnd
 	 * step 2 : remove current stack frame
 	 */
+
 	public void leaveVmMethod() {
 		this.methodEnd = true;
 		this.ip = this.runStack.peek().returnAddress;
@@ -2228,8 +2236,8 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(InvokeStatic inst) {
-		// TODO Auto-generated method stub
-		this.enterVmMethod(Loader.loadMethod(inst.type), inst.argList, true);
+		//		this.enterVmMethod(Loader.loadMethod(inst.type), inst.argList, true);
+		handleStaticMethod(inst);
 		this.ip++;
 	}
 
@@ -2247,7 +2255,7 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(InvokeInterface inst) {
 		// TODO Auto-generated method stub
-		Class[] paraClass = Loader.getArgsTypes(inst.type.prototype.argsType);
+		Class[] paraClass = Util.getArgsTypes(inst.type.prototype.argsType);
 		String reg = inst.argList.get(0);
 		int index = Integer.parseInt(reg.substring(1));
 		Object instance;

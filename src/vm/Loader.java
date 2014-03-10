@@ -61,54 +61,24 @@ public class Loader {
 		return vmClass;
 	}
 
-	/*
-	 *  system class : return null;
-	 *  ast class : return vmClass
-	 */
-	public static VmClass loadUserClass(String className) {
-		TranslateWorker worker = Source.classMap.get(className);
+	public static VmClass loadUserClass(String fullClassName) {
+		TranslateWorker worker = Source.classMap.get(fullClassName);
 		VmClass vmClass = null;
-		if (worker != null) {
 			try {
-				vmClass = Loader.updateClassPool(className, worker.call());
+				vmClass = Loader.updateClassPool(fullClassName, worker.call());
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
-		}
 		return vmClass;
 	}
-
-	public static VmInstance loadInstance(String className) {
-		VmInstance newInstance;
-		VmClass vmClass = null;
-		if (Source.classMap.get(className) == null) {
-			//system class
-			newInstance = new VmInstance(className);
-		} else {
-			//ast class
-			vmClass = InterpreterVisitor.classMap.get(className);
-			if (vmClass == null) {
-				try {
-					vmClass = Loader.loadUserClass(className);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-			}
-
-			Map<String, VmField> newFieldMap = new HashMap<String, VmField>();
-			Map<String, VmField> oldFieldMap = vmClass.fieldMap;
-			Map.Entry<String, VmField> entry;
-			Iterator<Map.Entry<String, VmField>> iter = oldFieldMap.entrySet()
-					.iterator();
-			while (iter.hasNext()) {
-				entry = iter.next();
-				String key = entry.getKey();
-				VmField vmfield = entry.getValue();
-				newFieldMap.put(key, new VmField(vmfield.name, vmfield.type));
-			}
-			newInstance = new VmInstance(className, newFieldMap);
-		}
-		return newInstance;
+	
+	public static VmClass getUserClass(String fullClassName) {
+		VmClass vmClass = InterpreterVisitor.classMap.get(fullClassName);
+		if(vmClass != null)
+			return vmClass;
+		if(Source.classMap.containsKey(fullClassName))
+			return loadUserClass(fullClassName);
+		return null;
 	}
 
 	public static Object getStaticField(ast.classs.FieldItem fieldItem) {
@@ -116,7 +86,7 @@ public class Loader {
 		Object content = InterpreterVisitor.staticFieldMap.get(fullFieldName);
 		if (content != null)
 			return content;
-		VmClass vmClass = Loader.loadUserClass(fieldItem.classType);
+		VmClass vmClass = Loader.getUserClass(fieldItem.classType);
 		if (vmClass == null) {
 			//system class
 			String formatClassName = Util
@@ -138,19 +108,21 @@ public class Loader {
 		return content;
 	}
 
-	//--------------------------------the new line--------------------------------
-
 	public static ast.method.Method getUserMethod(VmClass vmClass,
 			String fullMethodName) {
-		return vmClass.methodMap.get(fullMethodName);
+		if(!vmClass.methodMap.containsKey(fullMethodName))
+			printErr("can't find user method : + " + fullMethodName);
+		
+		return vmClass.methodMap.get(fullMethodName);	
 	}
 
 	@SuppressWarnings("rawtypes")
-	public static Method getSystemMethod(String formateClassName,
+	public static Method getSystemMethod(String fullClassName,
 			String methodName, Class[] parameterTypes) {
 		Method systemMethod = null;
+		String formatClassName = Util.getFormatClassName(fullClassName);
 		try {
-			systemMethod = Class.forName(formateClassName).getMethod(
+			systemMethod = Class.forName(formatClassName).getMethod(
 					methodName, parameterTypes);
 		} catch (NoSuchMethodException | SecurityException
 				| ClassNotFoundException e) {
@@ -166,21 +138,16 @@ public class Loader {
 		VmMethod vmMethod = InterpreterVisitor.methodMap.get(fullMethodName);
 		if (vmMethod != null)
 			return vmMethod;
-		if (Source.classMap.containsKey(fullClassName)) {
+		VmClass vmClass = getUserClass(fullClassName);
+		if (vmClass !=null) {
 			// user method
-			VmClass vmClass = InterpreterVisitor.classMap.get(fullClassName);
-			if (vmClass == null)
-				vmClass = loadUserClass(fullClassName);
-			if (vmClass == null)
-				printErr("cannot find the staticMethod : " + fullMethodName);
 			vmMethod = new VmMethod(methodItem.methodName, getUserMethod(
 					vmClass, fullMethodName));
 		} else {
 			//system method
-			String formateClassName = Util.getFormatClassName(fullClassName);
 			Class[] parameterTypes = Util
 					.getParameterTypes(methodItem.prototype.argsType);
-			Method systemMethod = getSystemMethod(formateClassName,
+			Method systemMethod = getSystemMethod(fullClassName,
 					methodItem.methodName, parameterTypes);
 			vmMethod = new VmMethod(methodItem.methodName, systemMethod);
 		}
@@ -195,13 +162,9 @@ public class Loader {
 		VmMethod vmMethod = InterpreterVisitor.methodMap.get(fullMethodName);
 		if (vmMethod != null)
 			return vmMethod;
-		if (Source.classMap.containsKey(fullClassName)) {
+		VmClass vmClass = getUserClass(fullClassName);
+		if (vmClass != null) {
 			// user method
-			VmClass vmClass = InterpreterVisitor.classMap.get(fullClassName);
-			if (vmClass == null)
-				vmClass = loadUserClass(fullClassName);
-			if (vmClass == null)
-				printErr("cannot find the directMethod : " + fullMethodName);
 			vmMethod = new VmMethod(methodItem.methodName, getUserMethod(
 					vmClass, fullMethodName));
 		} else {
@@ -217,12 +180,10 @@ public class Loader {
 							systemConstructor);
 				} catch (NoSuchMethodException | SecurityException
 						| ClassNotFoundException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			} else {
-				Method systemMethod = getSystemMethod(formateClassName,
+				Method systemMethod = getSystemMethod(fullClassName,
 						methodItem.methodName, parameterTypes);
 				vmMethod = new VmMethod(methodItem.methodName, systemMethod);
 			}
@@ -237,7 +198,6 @@ public class Loader {
 			ast.classs.MethodItem methodItem) {
 		String fullClassName = methodItem.classType;
 		String fullMethodName = Util.getFullMethodName(methodItem);
-		String formateClassName = Util.getFormatClassName(fullClassName);
 		Class[] parameterTypes = Util
 				.getParameterTypes(methodItem.prototype.argsType);
 		Method systemMethod = null;
@@ -246,34 +206,34 @@ public class Loader {
 			return vmMethod;
 		if (isSystemRef == true
 				|| Source.classMap.containsKey(fullClassName) == false) {
-			// system class
-			systemMethod = getSystemMethod(formateClassName,
+			// system method
+			systemMethod = getSystemMethod(fullClassName,
 					methodItem.methodName, parameterTypes);
 			vmMethod = new VmMethod(methodItem.methodName, systemMethod);
 			return new VmMethod(methodItem.methodName, systemMethod);
 		}
+		
 		// user class
-		VmClass currentClass = null;
-		String currentName = fullClassName;
-		while (!currentName.equals("Ljava/lang/Object;")) {
-
-			if (Source.classMap.containsKey(currentName) == false) {
+		VmClass currentClass = getUserClass(fullClassName);
+		String superName = currentClass.superClass;
+		while (true) {
+			if(currentClass != null) {
+				// user class
+				if (currentClass.methodMap.containsKey(fullMethodName)) {
+					vmMethod = new VmMethod(methodItem.methodName,
+							currentClass.methodMap.get(fullMethodName));
+					break;
+				}
+				else {
+					superName = currentClass.superClass;
+					currentClass = getUserClass(superName);
+				}
+			}
+			else{
 				//virtual method is system method
-				formateClassName = Util.getFormatClassName(currentName);
-				systemMethod = getSystemMethod(formateClassName,
+				systemMethod = getSystemMethod(superName,
 						methodItem.methodName, parameterTypes);
 				vmMethod = new VmMethod(methodItem.methodName, systemMethod);
-				break;
-			}
-
-			currentClass = InterpreterVisitor.classMap.get(currentName);
-			if (currentClass == null) {
-				currentClass = loadUserClass(fullClassName);
-				currentName = currentClass.name;
-			}
-			if (currentClass.methodMap.containsKey(fullMethodName)) {
-				vmMethod = new VmMethod(methodItem.methodName,
-						currentClass.methodMap.get(fullMethodName));
 				break;
 			}
 		}

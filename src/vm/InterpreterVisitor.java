@@ -241,7 +241,7 @@ import ast.stm.Instruction.arrayLength;
 public class InterpreterVisitor implements Visitor {
 
 	public static HashMap<String, VmClass> classMap;
-	public static HashMap<String, VmField> staticFieldMap;
+	public static HashMap<String, Object> staticFieldMap;
 	public static HashMap<String, VmMethod> methodMap;
 
 	public Stack<Frame> runStack;
@@ -255,19 +255,13 @@ public class InterpreterVisitor implements Visitor {
 
 	public static void printErr(Object obj) {
 		System.err.println(obj);
+		System.exit(-1);
 	}
     private void unexpectedError(String msg){
         System.err.println(msg);
         System.exit(-1);
     }
 
-	public static class Frame {
-		//who invoke the method
-		public Object ownerObject;
-		public Object[] variables;
-		public Object[] parameters;
-		public int returnAddress;
-	}
 
 	public InterpreterVisitor() {
 		classMap = new HashMap<String, VmClass>();
@@ -284,8 +278,8 @@ public class InterpreterVisitor implements Visitor {
 	public void Init(MethodItem methodItem) throws ClassNotFoundException,
 			NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-		Loader.loadUserClass(methodItem.classType);
-		//		print(InterpreterVisitor.classMap);
+		if(Loader.getUserClass(methodItem.classType) == null)
+			printErr("can't find main class : " +  methodItem.classType);
 		InvokeStatic mainMethod = new InvokeStatic("invoke-static",
 				new ArrayList<String>(), methodItem);
 		mainMethod.accept(this);
@@ -394,7 +388,6 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			frame.ownerObject = frame.parameters[0];
 			this.runStack.push(frame);
 			virtualMethod.astMethod.accept(this);
 		}
@@ -443,7 +436,6 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			frame.ownerObject = frame.parameters[0];
 			this.runStack.push(frame);
 			directMethod.astMethod.accept(this);
 		}
@@ -467,7 +459,6 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			frame.ownerObject = null;
 			this.runStack.push(frame);
 			staticMethod.astMethod.accept(this);
 		}

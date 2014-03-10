@@ -5,7 +5,7 @@ public class VmInstance {
     private java.util.Map<String, Object> fieldMap;
 	public boolean isSystem;
 	public Object systemInstance;
-//	public Object parentInstance;
+	public Object parentInstance;
 
 	public VmInstance(String name) {
 		this.name = name;

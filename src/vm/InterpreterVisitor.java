@@ -258,6 +258,10 @@ public class InterpreterVisitor implements Visitor {
 	public static void printErr(Object obj) {
 		System.err.println(obj);
 	}
+    private void unexpectedError(String msg){
+        System.err.println(msg);
+        System.exit(-1);
+    }
 
 	public static class Frame {
 		//who invoke the method
@@ -618,21 +622,98 @@ public class InterpreterVisitor implements Visitor {
 		this.leaveVmMethod();
 	}
 
+
+
+    private int hex2int(String s){
+        if (s.startsWith("-"))
+            return  -(Integer.parseInt(s.substring(3), 16));
+        else
+            return Integer.parseInt(s.substring(2), 16);
+    }
+    private long hex2long(String s){
+        if (s.startsWith("-"))
+            return  -(Long.parseLong(s.substring(3), 16));
+        else
+            return Long.parseLong(s.substring(2), 16);
+    }
 	/*
 	 * const/4 v6 0x2
 	 */
 	@Override
 	public void visit(Const4 inst) {
-		// TODO Auto-generated method stub
-		int value;
-		if (inst.value.startsWith("-"))
-			value = -(Integer.parseInt(inst.value.substring(3), 16));
-		else
-			value = Integer.parseInt(inst.value.substring(2), 16);
-		this.storeObjectInRegister(inst.dest, value);
+        setObjectByReg(inst.dest, hex2int(inst.value));
 		this.ip++;
-
 	}
+
+    /*
+     * const/16 vAA, #+BBBB
+     * const/16 v2,-0xb  (-0xb==-11)
+     * Move the given literal value (sign-extended to 32 bits) into the specified register.
+     * A: destination register (8 bits)
+       B: signed int (16 bits)
+     */
+    @Override
+    public void visit(Const16 inst) {
+        setObjectByReg(inst.dest, hex2int(inst.value));
+        this.ip++;
+    }
+
+    @Override
+    public void visit(Const inst) {
+        setObjectByReg(inst.dest, hex2int(inst.value));
+        this.ip++;
+    }
+
+    @Override
+    public void visit(ConstHigh16 inst) {
+        setObjectByReg(inst.dest, hex2int(inst.value) << 16);
+        this.ip++;
+    }
+
+    @Override
+    public void visit(ConstWide16 inst) {
+        setObjectByReg(inst.dest, new Long((long)hex2int(inst.value)));
+        this.ip++;
+    }
+    @Override
+    public void visit(ConstWide32 inst) {
+        setObjectByReg(inst.dest, new Long((long)hex2int(inst.value)));
+        this.ip++;
+    }
+
+    @Override
+    public void visit(ConstWide inst) {
+        setObjectByReg(inst.dest, new Long(hex2long(inst.value)));
+        this.ip++;
+    }
+    @Override
+    public void visit(ConstWideHigh16 inst) {
+        setObjectByReg(inst.dest, new Long(hex2long(inst.value) << 48));
+        this.ip++;
+    }
+
+    /*
+     * const-string v1, "xiaoming"
+     * "xiaoming" --> xiaoming
+     */
+    @Override
+    public void visit(ConstString inst) {
+        setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
+        this.ip++;
+    }
+    @Override
+    public void visit(ConstStringJumbo inst) {
+        // TODO Auto-generated method stub
+        System.err.println("unknow inst : " + inst.op);
+
+    }
+    @Override
+    public void visit(ConstClass inst) {
+        // TODO Auto-generated method stub
+        System.err.println("unknow inst : " + inst.op);
+
+    }
+
 
 	@Override
 	public void visit(MoveResult inst) {
@@ -755,184 +836,174 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(NegInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Integer(-((Integer)src).intValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(NotInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Integer(((Integer)src).intValue() ^ 0xffffffff));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(NegLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Long(-((Long)src).longValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(NotLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Long(((Long)src).longValue()) ^ 0xffffffffffffffffL);
+        this.ip++;
 	}
 
 	@Override
 	public void visit(NegFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Float(-((Float) src).floatValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(NegDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Double(-((Double) src).doubleValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Long(((Integer) src).longValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Float(((Integer) src).floatValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Double(((Integer) src).doubleValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(LongToInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Integer(((Long) src).intValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(LongToFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Float(((Long) src).floatValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(LongToDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Double(((Long) src).doubleValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Integer(((Float) src).intValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Long(((Float) src).longValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Double(((Float) src).doubleValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Integer(((Double) src).intValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Long(((Double) src).longValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Float(((Double) src).floatValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToByte inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Byte(((Integer) src).byteValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToChar inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Character((char) ((Integer) src).intValue())); // Right?
+        this.ip++;
 	}
 
 	@Override
 	public void visit(IntToShort inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Object src = getObjectByReg(inst.src);
+        setObjectByReg(inst.dest, new Short(((Integer) src).shortValue()));
+        this.ip++;
 	}
 
 	@Override
 	public void visit(AddInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
@@ -944,184 +1015,132 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(OrInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(XorInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShlInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShrInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(UshrInt2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AndLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(OrLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(XorLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShlLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShrLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(UshrLong2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddFloat2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubFloat2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulFloat2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivFloat2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemFloat2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddDouble2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubDouble2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulDouble2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivDouble2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemDouble2Addr inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
@@ -1131,24 +1150,7 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	/*
-	 * const-string v1, "xiaoming"
-	 * "xiaoming" --> xiaoming
-	 */
-	@Override
-	public void visit(ConstString inst) {
-		// TODO Auto-generated method stub
-		this.storeObjectInRegister(inst.dest,
-				inst.str.substring(1, inst.str.length() - 1));
-		this.ip++;
-	}
 
-	@Override
-	public void visit(ConstClass inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
-	}
 
 	@Override
 	public void visit(CheckCast inst) {
@@ -1163,7 +1165,8 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(NewInstance inst) {
 		// TODO Auto-generated method stub
-		this.storeObjectInRegister(inst.dest, Loader.loadInstance(inst.type));
+//		this.storeObjectInRegister(inst.dest, Loader.loadInstance(inst.type));
+        this.storeObjectInRegister(inst.dest, new VmInstance(inst.type));
 		this.ip++;
 	}
 
@@ -1268,45 +1271,9 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	@Override
-	public void visit(ConstHigh16 inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
 
-	}
 
-	@Override
-	public void visit(ConstWideHigh16 inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
 
-	}
-
-	/*
-	 * const/16 vAA, #+BBBB
-	 * const/16 v2,-0xb  (-0xb==-11)
-	 * Move the given literal value (sign-extended to 32 bits) into the specified register.
-	 * A: destination register (8 bits)
-	   B: signed int (16 bits)
-	 */
-	@Override
-	public void visit(Const16 inst) {
-		// TODO Auto-generated method stub
-		int value;
-		if (inst.value.startsWith("-"))
-			value = -(Integer.parseInt(inst.value.substring(3), 16));
-		else
-			value = Integer.parseInt(inst.value.substring(2), 16);
-		this.storeObjectInRegister(inst.dest, value);
-		this.ip++;
-	}
-
-	@Override
-	public void visit(ConstWide16 inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
-	}
 
 	@Override
 	public void visit(IfEqz inst) {
@@ -1441,99 +1408,62 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	public void instanceGet(String srcReg, String dstReg, String fieldName) {
-		Object srcObj, dstObj = null;
-		if (srcReg.startsWith("v"))
-			srcObj = this.runStack.peek().variables[Integer.parseInt(srcReg
-					.substring(1))];
-		else
-			srcObj = this.runStack.peek().parameters[Integer.parseInt(srcReg
-					.substring(1))];
-		VmInstance vmInstance = (VmInstance) srcObj;
-		if (vmInstance.isSystem == true) {
-			//system instance
-			try {
-				dstObj = vmInstance.systemInstance.getClass()
-						.getField(fieldName).get(vmInstance.systemInstance);
-			} catch (IllegalArgumentException | IllegalAccessException
-					| NoSuchFieldException | SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			dstObj = vmInstance.fieldMap.get(fieldName);
-		}
-		if (dstReg.startsWith("v"))
-			this.runStack.peek().variables[Integer
-					.parseInt(dstReg.substring(1))] = dstObj;
-		else
-			this.runStack.peek().parameters[Integer.parseInt(dstReg
-					.substring(1))] = dstObj;
 
-		//		if( dstObj instanceof VmField)
-		//			print("after get the "
-		//				+ dstReg
-		//				+ " : "
-		//				+ ((VmField)dstObj).content);
-		//		else
-		//			print("after get the "
-		//					+ dstReg
-		//					+ " : "
-		//					+ dstObj);
+    private Object getObjectByReg(String reg){
+        if (reg.startsWith("v"))
+            return this.runStack.peek().variables[Integer.parseInt(reg
+                    .substring(1))];
+        else
+            return this.runStack.peek().parameters[Integer.parseInt(reg
+                    .substring(1))];
+    }
+    private void setObjectByReg(String reg, Object obj){
+        if (reg.startsWith("v"))
+            this.runStack.peek().variables[Integer
+                    .parseInt(reg.substring(1))] = obj;
+        else
+            this.runStack.peek().parameters[Integer.parseInt(reg
+                    .substring(1))] = obj;
+
+    }
+
+    /*
+        det = obj.fieldName;
+     */
+	public void instanceGet(String dstReg, String objReg, String fieldName) {
+		VmInstance obj = (VmInstance) getObjectByReg(objReg);
+        setObjectByReg(dstReg, obj.getField(fieldName));
 	}
 
-	public void instancePut(String srcReg, String dstReg, String fieldName) {
-		Object srcObj, dstObj;
-		if (srcReg.startsWith("v"))
-			srcObj = this.runStack.peek().variables[Integer.parseInt(srcReg
-					.substring(1))];
-		else
-			srcObj = this.runStack.peek().parameters[Integer.parseInt(srcReg
-					.substring(1))];
-		if (dstReg.startsWith("v"))
-			dstObj = this.runStack.peek().variables[Integer.parseInt(dstReg
-					.substring(1))];
-		else
-			dstObj = this.runStack.peek().parameters[Integer.parseInt(dstReg
-					.substring(1))];
-		VmInstance vmInstance = (VmInstance) dstObj;
-		if (vmInstance.isSystem == true) {
-			//system instance
-			try {
-				vmInstance.systemInstance.getClass().getField(fieldName)
-						.set(dstObj, srcObj);
-				//				print("after put the system field : "
-				//						+ fieldName
-				//						+ " : "
-				//						+ vmInstance.systemInstance.getClass()
-				//								.getField(fieldName)
-				//								.get(vmInstance.systemInstance));
-			} catch (IllegalArgumentException | IllegalAccessException
-					| NoSuchFieldException | SecurityException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			Object field = vmInstance.fieldMap.get(fieldName);
-			((VmField) field).content = srcObj;
-			//			print("after put the ast field : " + fieldName + " : "
-			//					+ ((VmField) field).content);
-		}
-
+    /*
+        obj.fieldName = src;
+     */
+	public void instancePut(String srcReg, String objReg, String fieldName) {
+        VmInstance obj = (VmInstance) getObjectByReg(objReg);
+        obj.setField(fieldName, getObjectByReg(srcReg));
 	}
 
-	@Override
+    private void iget(String dstReg, String objReg, String fieldName){
+        this.instanceGet(dstReg, objReg, fieldName);
+        this.ip++;
+    }
+    private void iput(String srcReg, String objReg, String fieldName){
+        this.instancePut(srcReg, objReg, fieldName);
+        this.ip++;
+    }
+
+
+    @Override
 	public void visit(Iget inst) {
-		// TODO Auto-generated method stub
-		this.instanceGet(inst.field, inst.dest, inst.type.fieldName);
-		this.ip++;
+       /*
+            Maybe we should change the filed names in the Instruction.Iget like classes.
+         */
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetWide inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	/*
@@ -1541,37 +1471,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(IgetOjbect inst) {
-		// TODO Auto-generated method stub
-		this.instanceGet(inst.field, inst.dest, inst.type.fieldName);
-		this.ip++;
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetBoolean inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetByte inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
-	}
+        iget(inst.field, inst.dest, inst.type.fieldName);
+    }
 
 	@Override
 	public void visit(IgetChar inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetShort inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	/*
@@ -1579,16 +1499,12 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(Iput inst) {
-		// TODO Auto-generated method stub
-		this.instancePut(inst.src, inst.field, inst.type.fieldName);
-		this.ip++;
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputWide inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	/*
@@ -1597,37 +1513,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(IputObject inst) {
-		// TODO Auto-generated method stub
-		this.instancePut(inst.src, inst.field, inst.type.fieldName);
-		this.ip++;
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputBoolean inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputByte inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputChar inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputShort inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
@@ -1749,39 +1655,66 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
+
 	@Override
 	public void visit(CmplFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Float val1 = (Float)getObjectByReg(inst.first);
+        Float val2 = (Float)getObjectByReg(inst.second);
+        if(val1.isNaN() || val2.isNaN()){
+            setObjectByReg(inst.dest, new Integer(-1));
+        }else{
+            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+            setObjectByReg(inst.dest, new Integer(result));
+        }
+        this.ip++;
 	}
 
 	@Override
 	public void visit(CmpgFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Float val1 = (Float)getObjectByReg(inst.first);
+        Float val2 = (Float)getObjectByReg(inst.second);
+        if(val1.isNaN() || val2.isNaN()){
+            setObjectByReg(inst.dest, new Integer(1));
+        }else{
+            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+            setObjectByReg(inst.dest, new Integer(result));
+        }
+        this.ip++;
 	}
 
 	@Override
 	public void visit(CmplDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Double val1 = (Double)getObjectByReg(inst.first);
+        Double val2 = (Double)getObjectByReg(inst.second);
+        if(val1.isNaN() || val2.isNaN()){
+            setObjectByReg(inst.dest, new Integer(-1));
+        }else{
+            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+            setObjectByReg(inst.dest, new Integer(result));
+        }
+        this.ip++;
 	}
 
 	@Override
 	public void visit(Cmpgdouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Double val1 = (Double)getObjectByReg(inst.first);
+        Double val2 = (Double)getObjectByReg(inst.second);
+        if(val1.isNaN() || val2.isNaN()){
+            setObjectByReg(inst.dest, new Integer(1));
+        }else{
+            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+            setObjectByReg(inst.dest, new Integer(result));
+        }
+        this.ip++;
 	}
 
 	@Override
 	public void visit(CmpLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        Long val1 = (Long)getObjectByReg(inst.first);
+        Long val2 = (Long)getObjectByReg(inst.second);
+        int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+        setObjectByReg(inst.dest, new Integer(result));
+        this.ip++;
 	}
 
 	@Override
@@ -1882,246 +1815,266 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
+
+    private void biopLit(String dstReg, String srcReg, String literal, String op){
+        Object result = null;
+        Integer src = (Integer)getObjectByReg(srcReg);
+        Integer lit = new Integer(literal);
+
+        int indexEnd = op.indexOf("/");
+        if(indexEnd == -1) indexEnd = op.length();
+        switch (op.substring(0, indexEnd)){
+            case "add-int": result = src + lit; break;
+            case "rsub-int": result = lit - src; break;
+            case "mul-int": result = src * lit; break;
+            case "div-int": result = src / lit; break;
+            case "rem-int": result = src % lit; break;
+            case "and-int": result = src & lit; break;
+            case "or-int":  result = src | lit; break;
+            case "xor-int": result = src ^ lit; break;
+            case "shl-int": result = src << lit; break;
+            case "shr-int": result = src >> lit; break;
+            case "ushr-int": result = src >>> lit; break;
+            default: unexpectedError("biopLit..swith..op.sub: unkown"); break;
+        }
+        this.ip++;
+    }
+
+    private void biop2addr(String firstReg, String secondReg, String op){
+        biop(firstReg, firstReg, secondReg, op.substring(0, op.indexOf("/")));
+    }
+
+    private void biop(String dstReg, String firstReg, String secondReg, String op){
+        Object result = null;
+
+        switch (op.substring(op.indexOf("-") + 1)){
+            case "int":
+                Integer int1  = (Integer)getObjectByReg(firstReg);
+                Integer int2 = (Integer)getObjectByReg(secondReg);
+                switch (op){
+                    case "add-int": result = int1 + int2; break;
+                    case "sub-int": result = int1 - int2; break;
+                    case "mul-int": result = int1 * int2; break;
+                    case "div-int": result = int1 / int2; break;
+                    case "rem-int": result = int1 % int2; break;
+                    case "and-int": result = int1 & int2; break;
+                    case "or-int":  result = int1 | int2; break;
+                    case "xor-int": result = int1 ^ int2; break;
+                    case "shl-int": result = int1 << int2; break;
+                    case "shr-int": result = int1 >> int2; break;
+                    case "ushr-int": result = int1 >>> int2; break;
+                    default: unexpectedError("biop..swith..int..op: unkown"); break;
+                }
+                break;
+            case "long":
+                Long long1  = (Long)getObjectByReg(firstReg);
+                Long long2 = (Long)getObjectByReg(secondReg);
+                switch (op){
+                    case "add-long": result = long1 + long2; break;
+                    case "sub-long": result = long1 - long2; break;
+                    case "mul-long": result = long1 * long2; break;
+                    case "div-long": result = long1 / long2; break;
+                    case "rem-long": result = long1 % long2; break;
+                    case "and-long": result = long1 & long2; break;
+                    case "or-long": result = long1 | long2; break;
+                    case "xor-long": result = long1 ^ long2; break;
+                    case "shl-long": result = long1 << long2; break;
+                    case "shr-long": result = long1 >> long2; break;
+                    case "ushr-long": result = long1 >> long2; break;
+                    default: unexpectedError("biop..swith..long..op: unkown"); break;
+                }
+                break;
+            case "float":
+                Float float1  = (Float)getObjectByReg(firstReg);
+                Float float2 = (Float)getObjectByReg(secondReg);
+                switch (op){
+                    case "add-float": result = float1 + float2; break;
+                    case "sub-float": result = float1 - float2; break;
+                    case "mul-float": result = float1 * float2; break;
+                    case "div-float": result = float1 / float2; break;
+                    case "rem-float": result = float1 % float2; break;
+                    default: unexpectedError("biop..swith..float..op: unkown"); break;
+                }
+                break;
+            case "double":
+                Double double1  = (Double)getObjectByReg(firstReg);
+                Double double2 = (Double)getObjectByReg(secondReg);
+                switch (op){
+                    case "add-double": result = double1 + double2; break;
+                    case "sub-double": result = double1 - double2; break;
+                    case "mul-double": result = double1 * double2; break;
+                    case "div-double": result = double1 / double2; break;
+                    case "rem-double": result = double1 % double2; break;
+                    default: unexpectedError("biop..swith..double..op: unkown"); break;
+                }
+                break;
+            default: unexpectedError("biop..swith..op's endwith: unkown"); break;
+        }
+        setObjectByReg(dstReg, result);
+        this.ip++;
+    }
+
 	/*
 	 * add-int v0,p1,p2
 	 */
 	@Override
 	public void visit(AddInt inst) {
-		// TODO Auto-generated method stub
-		Object obja = this.getObjectFromRegister(inst.first);
-		Object objb = this.getObjectFromRegister(inst.second);
-		//		print("obja " + obja);
-		//		print("objb " + objb);
-		int inta, intb;
-		if (obja instanceof VmField)
-			inta = (int) ((VmField) obja).content;
-		else
-			inta = (int) obja;
-		if (objb instanceof VmField)
-			intb = (int) ((VmField) objb).content;
-		else
-			intb = (int) objb;
-		//		print("inta : " + inta);
-		//		print("intb : " + intb);
-		this.storeObjectInRegister(inst.dest, inta + intb);
-		this.ip++;
+        biop(inst.dest, inst.first, inst.second, "add-int");
 	}
 
 	@Override
 	public void visit(SubInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "sub-int");
 	}
 
 	@Override
 	public void visit(MulInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "mul-int");
 	}
 
 	@Override
 	public void visit(DivInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "div-int");
 	}
 
 	@Override
 	public void visit(RemInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "rem-int");
 	}
 
 	@Override
 	public void visit(AndInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "and-int");
 	}
 
 	@Override
 	public void visit(OrInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "or-int");
 	}
 
 	@Override
 	public void visit(XorInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "xor-int");
 	}
 
 	@Override
 	public void visit(ShlInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "shl-int");
 	}
 
 	@Override
 	public void visit(ShrInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "shr-int");
 	}
 
 	@Override
 	public void visit(UshrInt inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "ushr-int");
 	}
 
 	@Override
 	public void visit(AddLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "add-long");
 	}
 
 	@Override
 	public void visit(SubLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "sub-long");
 	}
 
 	@Override
 	public void visit(MulLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "mul-long");
 	}
 
 	@Override
 	public void visit(DivLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "div-long");
 	}
 
 	@Override
 	public void visit(RemLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "rem-long");
 	}
 
 	@Override
 	public void visit(AndLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "and-long");
 	}
 
 	@Override
 	public void visit(OrLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "or-long");
 	}
 
 	@Override
 	public void visit(XorLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "xor-long");
 	}
 
 	@Override
 	public void visit(ShlLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "shl-long");
 	}
 
 	@Override
 	public void visit(ShrLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "shr-long");
 	}
 
 	@Override
 	public void visit(UshrLong inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "ushr-long");
 	}
 
 	@Override
 	public void visit(AddFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "add-float");
 	}
 
 	@Override
 	public void visit(SubFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "sub-float");
 	}
 
 	@Override
 	public void visit(MulFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "mul-float");
 	}
 
 	@Override
 	public void visit(DivFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "div-float");
 	}
 
 	@Override
 	public void visit(RemFloat inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "rem-float");
 	}
 
 	@Override
 	public void visit(AddDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "add-double");
 	}
 
 	@Override
 	public void visit(SubDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "sub-double");
 	}
 
 	@Override
 	public void visit(MulDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "mul-double");
 	}
 
 	@Override
 	public void visit(DivDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "div-double");
 	}
 
 	@Override
 	public void visit(RemDouble inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+        biop(inst.dest, inst.first, inst.second, "rem-double");
 	}
 
 	@Override
@@ -2131,26 +2084,9 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	@Override
-	public void visit(ConstStringJumbo inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
 
-	}
 
-	@Override
-	public void visit(Const inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
 
-	}
-
-	@Override
-	public void visit(ConstWide32 inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
-	}
 
 	@Override
 	public void visit(FillArrayData inst) {
@@ -2310,12 +2246,6 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	@Override
-	public void visit(ConstWide inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
-	}
 
 	@Override
 	public void visit(PackedSwitchDirective inst) {

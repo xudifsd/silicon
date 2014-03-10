@@ -1,22 +1,23 @@
 package vm;
 
-import java.util.Map;
-
 public class VmInstance {
 	public String name;
-	public Map<String, VmField> fieldMap;
+    private java.util.Map<String, Object> fieldMap;
 	public boolean isSystem;
 	public Object systemInstance;
-	public Object parentInstance;
-
-	public VmInstance(String name, Map<String, VmField> fieldMap) {
-		this.name = name;
-		this.fieldMap = fieldMap;
-		this.isSystem = false;
-	}
+//	public Object parentInstance;
 
 	public VmInstance(String name) {
 		this.name = name;
-		this.isSystem = true;
+        this.fieldMap = new java.util.HashMap<String, Object>();
+		this.isSystem = !Source.classMap.containsKey(name);
 	}
+
+    public void setField(String fieldName, Object value){
+        this.fieldMap.put(fieldName, value);
+    }
+
+    public Object getField(String fieldName){
+        return this.fieldMap.get(fieldName);
+    }
 }

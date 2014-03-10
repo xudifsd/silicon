@@ -243,8 +243,6 @@ public class InterpreterVisitor implements Visitor {
 	public static HashMap<String, VmClass> classMap;
 	public static HashMap<String, VmField> staticFieldMap;
 	public static HashMap<String, VmMethod> methodMap;
-	public static HashMap<String, VmMethod> staticMethodMap;
-	public static HashMap<String, VmMethod> directMethodMap;
 
 	public Stack<Frame> runStack;
 	public int ip;
@@ -273,10 +271,8 @@ public class InterpreterVisitor implements Visitor {
 
 	public InterpreterVisitor() {
 		classMap = new HashMap<String, VmClass>();
-		staticFieldMap = new HashMap<String, VmField>();
+		staticFieldMap = new HashMap<String, Object>();
 		methodMap = new HashMap<String, VmMethod>();
-		staticMethodMap = new HashMap<String, VmMethod>();
-		directMethodMap = new HashMap<String, VmMethod>();
 		runStack = new Stack<Frame>();
 		this.ip = 0;
 		this.methodEnd = false;
@@ -304,7 +300,8 @@ public class InterpreterVisitor implements Visitor {
 		return parameterList;
 	}
 
-	public static Object[] getObjectParameters(boolean isStatic, Object[] objs) {
+	public static Object[] getObjectParameters(boolean isStatic, Object[] objs,
+			List<String> parameterTypes) {
 		int i = isStatic == true ? 0 : 1;
 		Object[] result = new Object[objs.length - i];
 		for (int j = 0; i < objs.length; i++, j++) {
@@ -319,6 +316,40 @@ public class InterpreterVisitor implements Visitor {
 				result[j] = ((VmField) objs[i]).content;
 			} else {
 				result[j] = objs[i];
+			}
+		}
+		for (int j = 0; j < parameterTypes.size(); i++) {
+			String str = parameterTypes.get(i);
+			switch (str.substring(0, 1)) {
+			case "Z":
+				result[j] = ((int) result[j]) == 0 ? false : true;
+				break;
+			case "B":
+				result[j] = (byte) result[j];
+				break;
+			case "S":
+				result[j] = (short) result[j];
+				break;
+			case "C":
+				result[j] = (char) result[j];
+				break;
+			case "I":
+				break;
+			case "J":
+				//TODO
+				break;
+			case "F":
+				//TODO
+				break;
+			case "D":
+				//TODO
+				break;
+			case "L":
+				//
+				break;
+			case "[":
+				//TODO
+				break;
 			}
 		}
 		return result;
@@ -340,50 +371,68 @@ public class InterpreterVisitor implements Visitor {
 	}
 
 	public void handleVirtualMethod(InvokeVirtual inst) {
-		String fullMethodName = Util.getFullMethodName(inst.type);
-		Object[] parameters= initParameters(inst.argList);
-		VmInstance refer = (VmInstance)parameters[0];
-		if(refer.isSystem == true) {
-			//system method
+		Object[] parameters = initParameters(inst.argList);
+		VmInstance refer = (VmInstance) parameters[0];
+		boolean isSystemRef = refer.isSystem == true ? true : false;
+		VmMethod virtualMethod = Loader
+				.getVirtualMethod(isSystemRef, inst.type);
+		if (virtualMethod.isSystem) {
+			Object[] objectParameters = getObjectParameters(false, parameters,
+					inst.type.prototype.argsType);
+			Object realRef = refer.isSystem == true ? refer.systemInstance
+					: refer.parentInstance;
+			try {
+				this.returnValue = virtualMethod.systemMethod.invoke(realRef,
+						objectParameters);
+			} catch (IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		} else {
-			
+			Frame frame = new Frame();
+			frame.parameters = parameters;
+			frame.returnAddress = ip;
+			frame.ownerObject = frame.parameters[0];
+			this.runStack.push(frame);
+			virtualMethod.astMethod.accept(this);
 		}
-		
+
 	}
 
 	public void handleSuperMethod(InvokeSuper inst) {
-		
+
 	}
 
 	// invoke-direct is used to invoke a non-static direct method 
 	//(that is, an instance method that is by its nature non-overridable, 
 	//   namely either a private instance method or a constructor)
 	public void handleDircetMethod(InvokeDirect inst) {
-		String fullMethodName = Util.getFullMethodName(inst.type);
-		Object[] parameters= initParameters(inst.argList);
+		Object[] parameters = initParameters(inst.argList);
 		Object refer = parameters[0];
-		VmMethod directMethod = directMethodMap.get(fullMethodName);
-		if(directMethod == null)
-			directMethod = Loader.getDirectMethod(inst.type);
-		if(directMethod.isSystem == true) {
-			Object[] objectParameters = getObjectParameters(false,parameters);
-			if(directMethod.isSystemConstructor == true) {
+		VmMethod directMethod = Loader.getDirectMethod(inst.type);
+		if (directMethod.isSystem == true) {
+			Object[] objectParameters = getObjectParameters(false, parameters,
+					inst.type.prototype.argsType);
+			if (directMethod.isSystemConstructor == true) {
 				Object newInstance = null;
 				try {
-					 newInstance = directMethod.systemConstructor.newInstance(objectParameters);
+					newInstance = directMethod.systemConstructor
+							.newInstance(objectParameters);
 				} catch (InstantiationException | IllegalAccessException
-						| IllegalArgumentException
-						| InvocationTargetException e) {
-						// TODO Auto-generated catch block
+						| IllegalArgumentException | InvocationTargetException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				if(((VmInstance)refer).isSystem == true)
-					((VmInstance)refer).systemInstance = newInstance;
+				if (((VmInstance) refer).isSystem == true)
+					((VmInstance) refer).systemInstance = newInstance;
 				else
-					((VmInstance)refer).parentInstance = newInstance;
+					((VmInstance) refer).parentInstance = newInstance;
 			} else {
 				try {
-					this.returnValue = directMethod.systemMethod.invoke(refer, objectParameters);
+					this.returnValue = directMethod.systemMethod.invoke(refer,
+							objectParameters);
 				} catch (IllegalAccessException | IllegalArgumentException
 						| InvocationTargetException e) {
 					// TODO Auto-generated catch block
@@ -401,15 +450,14 @@ public class InterpreterVisitor implements Visitor {
 	}
 
 	public void handleStaticMethod(InvokeStatic inst) {
-		String fullMethodName = Util.getFullMethodName(inst.type);
 		Object[] parameters = initParameters(inst.argList);
-		VmMethod staticMethod = staticMethodMap.get(fullMethodName);
-		if (staticMethod == null)
-			staticMethod = Loader.getStaticMethod(inst.type);
+		VmMethod staticMethod = Loader.getStaticMethod(inst.type);
 		if (staticMethod.isSystem == true) {
 			try {
-				this.returnValue = staticMethod.systemMethod.invoke(null,
-						getObjectParameters(true, parameters));
+				this.returnValue = staticMethod.systemMethod.invoke(
+						null,
+						getObjectParameters(true, parameters,
+								inst.type.prototype.argsType));
 			} catch (IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException e) {
 				// TODO Auto-generated catch block
@@ -427,78 +475,6 @@ public class InterpreterVisitor implements Visitor {
 
 	public void handleInterfaceMethod(InvokeInterface inst) {
 
-	}
-
-	/*
-	 * if(the method is static ) stackFrame.ownerObject = null
-	 * else stackFrame.ownerObject = stackFrame.parameters[0];
-	 */
-	public void enterVmMethod(VmMethod vmMethod, List<String> argList,
-			boolean isStatic) {
-		Frame frame = new Frame();
-		frame.parameters = this.initParameters(argList);
-		frame.returnAddress = ip;
-		frame.ownerObject = null;
-		Object ownerObject = null;
-		if (!isStatic) {
-			frame.ownerObject = frame.parameters[0];
-			ownerObject = frame.parameters[0];
-		}
-
-		if (vmMethod.isSystem == true) {
-			// system method
-			//			print("is a system method");
-			int i = 0;
-			if (frame.ownerObject != null) {
-				i = 1;
-				if (ownerObject instanceof VmInstance)
-					ownerObject = ((VmInstance) ownerObject).systemInstance;
-				else if (ownerObject instanceof VmField)
-					ownerObject = ((VmField) ownerObject).content;
-				else {
-				}
-			}
-			Object[] systemParameters = new Object[frame.parameters.length - i];
-			//get the args
-			for (int j = 0; i < frame.parameters.length; i++) {
-				if (frame.parameters[i] instanceof VmInstance)
-					systemParameters[j++] = ((VmInstance) frame.parameters[i]).systemInstance;
-				else if (frame.parameters[i] instanceof VmField)
-					systemParameters[j++] = ((VmField) frame.parameters[i]).content;
-				else {
-					systemParameters[j++] = frame.parameters[i];
-				}
-			}
-
-			//needn't push the new stackframe
-			if (vmMethod.isSystemConstructor == true) {
-				//can't invoke construct method for ast object
-				//but init for a systemInstance
-				//				print("is a system constructor");
-				if (((VmInstance) frame.ownerObject).isSystem == true)
-					try {
-						((VmInstance) frame.ownerObject).systemInstance = vmMethod.systemConstructor
-								.newInstance(systemParameters);
-					} catch (InstantiationException | IllegalAccessException
-							| IllegalArgumentException
-							| InvocationTargetException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-			} else {
-				try {
-					this.returnValue = vmMethod.systemMethod.invoke(
-							ownerObject, systemParameters);
-				} catch (IllegalAccessException | IllegalArgumentException
-						| InvocationTargetException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		} else {
-			this.runStack.push(frame);
-			vmMethod.astMethod.accept(this);
-		}
 	}
 
 	/*
@@ -524,38 +500,11 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	public void printStack(String methodName) {
-		print(methodName + "----start-------");
-		if (this.runStack.size() != 0) {
-			print("para:");
-			int i = 0;
-			for (Object obj : this.runStack.peek().parameters) {
-				if (obj == null)
-					print("p" + i + " " + null);
-				else
-					print("p" + i + " " + obj);
-				i++;
-			}
-			i = 0;
-			print("var:");
-			for (Object obj : this.runStack.peek().variables) {
-				if (obj == null)
-					print("v" + i + " " + null);
-				else
-					print("v" + i + " " + obj);
-				i++;
-			}
-		} else
-			print("runStack is empty");
-		print(methodName + "----end--------");
-	}
-
 	/*
 	 * init variableList of top stackframe
 	 */
 	@Override
 	public void visit(Method method) {
-		// TODO Auto-generated method stub
 		int variableLength;
 		if (method.registers_directive.equals(".registers"))
 			variableLength = Integer.parseInt(method.registers_directive_count)
@@ -563,14 +512,9 @@ public class InterpreterVisitor implements Visitor {
 		else
 			variableLength = Integer.parseInt(method.registers_directive_count);
 		this.runStack.peek().variables = new Object[variableLength];
-		//		print("in method " + Loader.getFullMethodName("someclass", method));
-		//		print("size of variables " + this.runStack.peek().variables.length);
 		this.ip = 0;
 		while (!this.methodEnd) {
-			//			print(">>>> ip " + this.ip);
-			//			print("inst " + method.statements.get(this.ip).getClass().getName());
 			method.statements.get(this.ip).accept(this);
-			//			this.printStack(method.name);
 		}
 		this.methodEnd = false;
 	}
@@ -607,7 +551,6 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(Nop inst) {
-		// TODO Auto-generated method stub
 		System.err.println("unknow inst : " + inst.op);
 
 	}
@@ -618,7 +561,6 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(ReturnVoid inst) {
-		// TODO Auto-generated method stub
 		this.leaveVmMethod();
 	}
 
@@ -717,9 +659,7 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(MoveResult inst) {
-		// TODO Auto-generated method stub
 		this.storeObjectInRegister(inst.dest, this.returnValue);
-		//		print("return value : " +this.returnValue);
 		this.ip++;
 	}
 
@@ -735,9 +675,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(MoveResultObject inst) {
-		// TODO Auto-generated method stub
 		this.storeObjectInRegister(inst.dest, this.returnValue);
-		//		print("return value : " + this.returnValue);
 		this.ip++;
 	}
 
@@ -753,13 +691,11 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(Return inst) {
-		// TODO Auto-generated method stub
 		int index = Integer.parseInt(inst.ret.substring(1));
 		if (inst.ret.startsWith("v"))
 			this.returnValue = this.runStack.peek().variables[index];
 		else
 			this.returnValue = this.runStack.peek().parameters[index];
-		//		print("return value : " + this.returnValue);
 		this.leaveVmMethod();
 	}
 
@@ -775,13 +711,11 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(ReturnObject inst) {
-		// TODO Auto-generated method stub
 		int index = Integer.parseInt(inst.ret.substring(1));
 		if (inst.ret.startsWith("v"))
 			this.returnValue = this.runStack.peek().variables[index];
 		else
 			this.returnValue = this.runStack.peek().parameters[index];
-		//		print("return value : " + this.returnValue);
 		this.leaveVmMethod();
 	}
 
@@ -1172,9 +1106,8 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(Sget inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
@@ -1189,44 +1122,39 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(SgetObject inst) {
-		// TODO Auto-generated method stub
-		this.storeObjectInRegister(inst.dest, Loader.loadStaticField(inst.type));
-		this.ip++;
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
 	public void visit(SgetBoolean inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
 	public void visit(SgetByte inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
 	public void visit(SgetChar inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
 	public void visit(SgetShort inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		ip++;
 	}
 
 	@Override
 	public void visit(Sput inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		Object content = Loader.getStaticField(inst.type);
+		if (content instanceof VmField)
+			content = ((VmField) content).content;
 	}
 
 	@Override
@@ -1407,7 +1335,6 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println("unknow inst : " + inst.op);
 
 	}
-
 
     private Object getObjectByReg(String reg){
         if (reg.startsWith("v"))
@@ -2143,7 +2070,7 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(InvokeVirtual inst) {
 		// TODO Auto-generated method stub
-		this.enterVmMethod(Loader.loadMethod(inst.type), inst.argList, false);
+		handleVirtualMethod(inst);
 		this.ip++;
 	}
 
@@ -2159,8 +2086,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(InvokeDirect inst) {
-		// TODO Auto-generated method stub
-		this.enterVmMethod(Loader.loadMethod(inst.type), inst.argList, false);
+		handleDircetMethod(inst);
 		this.ip++;
 	}
 
@@ -2172,7 +2098,6 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(InvokeStatic inst) {
-		//		this.enterVmMethod(Loader.loadMethod(inst.type), inst.argList, true);
 		handleStaticMethod(inst);
 		this.ip++;
 	}
@@ -2187,20 +2112,10 @@ public class InterpreterVisitor implements Visitor {
 	 * can't define constructor in an interface
 	 * haven't find invoke-interface in ast method
 	 */
-	@SuppressWarnings("rawtypes")
 	@Override
 	public void visit(InvokeInterface inst) {
 		// TODO Auto-generated method stub
-		Class[] paraClass = Util.getArgsTypes(inst.type.prototype.argsType);
-		String reg = inst.argList.get(0);
-		int index = Integer.parseInt(reg.substring(1));
-		Object instance;
-		if (reg.startsWith("v"))
-			instance = this.runStack.peek().variables[index];
-		else
-			instance = this.runStack.peek().parameters[index];
-		this.enterVmMethod(Loader.loadInterfaceMethod(instance, paraClass,
-				inst.type.methodName), inst.argList, false);
+		System.err.println("unknow inst : " + inst.op);
 		this.ip++;
 	}
 

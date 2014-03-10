@@ -31,9 +31,9 @@ public class Util {
 				+ fieldItem.fieldType;
 	}
 	
-	public static void updateStaticFieldPool(String fullFieldName,
-			VmField vmField) {
-		InterpreterVisitor.staticFieldMap.put(fullFieldName, vmField);
+	public static void updateStaticFieldMap(String fullFieldName,
+			Object content) {
+		InterpreterVisitor.staticFieldMap.put(fullFieldName, content);
 	}
 
 	public static void updateMethodPool(String fullMethodName, VmMethod vmMethod) {

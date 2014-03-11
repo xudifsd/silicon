@@ -23,7 +23,7 @@ public class InterpreterVisitor implements Visitor {
 	public static HashMap<String, Object> staticFieldMap;
 	public static HashMap<String, VmMethod> methodMap;
 
-	public CallStack callStack;
+  public CallStack callStack;
 	public int ip;
 	public boolean methodEnd;
 	public Object returnValue;
@@ -205,27 +205,8 @@ public class InterpreterVisitor implements Visitor {
 		}
 	}
 
-	public void handleStaticMethod(InvokeStatic inst) {
-		Object[] parameters = initParameters(inst.argList);
-		VmMethod staticMethod = Loader.getStaticMethod(inst.type);
-		if (staticMethod.isSystem == true) {
-			try {
-				this.returnValue = staticMethod.systemMethod.invoke(
-						null,
-						getObjectParameters(true, parameters,
-								inst.type.prototype.argsType));
-			} catch (IllegalAccessException | IllegalArgumentException
-					| InvocationTargetException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			Frame frame = new Frame();
-			frame.parameters = parameters;
-			frame.returnAddress = ip;
-			this.callStack.push(frame);
-			staticMethod.astMethod.accept(this);
-		}
+	public void handleStaticMethod2(InvokeStatic inst) {
+		
 	}
 
 	public void handleInterfaceMethod(InvokeInterface inst) {
@@ -1936,7 +1917,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(InvokeStatic inst) {
-		handleStaticMethod(inst);
+	  Object[] parameters = initParameters(inst.argList);
+    VmMethod staticMethod = Loader.getStaticMethod(inst.type);
+    if (staticMethod.isSystem) {
+      try {
+        this.returnValue = staticMethod.systemMethod.invoke(
+            null,
+            getObjectParameters(true, parameters,
+                inst.type.prototype.argsType));
+      } catch (IllegalAccessException | IllegalArgumentException
+          | InvocationTargetException e) {
+        // TODO Auto-generated catch block
+        e.printStackTrace();
+      }
+    } else {
+      Frame frame = new Frame();
+      frame.parameters = parameters;
+      frame.returnAddress = ip;
+      this.callStack.push(frame);
+      staticMethod.astMethod.accept(this);
+    }
+    // What's the use for this?
 		this.ip++;
 	}
 

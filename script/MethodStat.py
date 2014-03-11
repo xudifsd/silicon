@@ -4,7 +4,7 @@ import os
 import re
 from operator import itemgetter
 
-work_dir = '/root'
+work_dir = '/home/rocky/sandbox'
 
 
 def method_stat(apk_list):
@@ -14,7 +14,7 @@ def method_stat(apk_list):
 
     result_all = open(result_dir+'/MethodStaResAll.txt', 'a')
     result_detail = open(result_dir+'/MethodStaResDet.txt', 'a')
-    instruction_file = open('/root/carbon/docs/DalvikInsrtuctions.txt')
+    instruction_file = open('/home/rocky/carbon/docs/DalvikInsrtuctions.txt')
     logfile = open(work_dir+'/result_stat/MethodStaLog.txt', 'a')
 
     method_cal_dic = {}
@@ -29,9 +29,9 @@ def method_stat(apk_list):
         method_cal_dic.update({each_instruction: 0})
     for apk_name in apk_list:
 
-        method_num_dic = {}
-        method_num = 0
-        instruction_num_all = 0
+        method_num_list = []
+#        method_num = 0
+#        instruction_num_all = 0
         flag = False
 
         if apk_name[-3:] == 'apk':
@@ -49,7 +49,8 @@ def method_stat(apk_list):
 
                 if is_end:
                     flag = False
-                    method_num_dic.update({apk_name + '_method_' + str(method_num): instruction_num})
+    #                method_num_dic.update({apk_name + '_method_' + str(method_num): instruction_num})
+                    method_num_list.append(instruction_num)
                     instruction_num = 0
                 if flag:
                     op = eachLine.split(' ', 1)[0]
@@ -57,14 +58,17 @@ def method_stat(apk_list):
                         instruction_num += 1
                 if is_start:
                     flag = True
-                    method_num += 1
+  #                  method_num += 1
                     instruction_num = 0
 
-            for method_name, method_ins_num in method_num_dic.items():
-                instruction_num_all += method_ins_num
-                result_detail.write(method_name+', '+str(method_ins_num)+'\n')
+            for method_ins_num in method_num_list:
+                result_detail.write(str(method_ins_num)+'\n')
+            if len(method_num_list) > 0:
+                average_inst_num = reduce(lambda x, y: x + y, method_num_list) / len(method_num_list)
+            else:
+                average_inst_num = 0
 
-            apk_cal_dic.update({apk_name: int(instruction_num_all/method_num)})
+            apk_cal_dic.update({apk_name: average_inst_num})
             logfile.writelines(apk_name+' is good\n')
             smali_file.close()
 

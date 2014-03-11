@@ -1,11 +1,5 @@
 package vm;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Stack;
-
 import ast.Visitor;
 import ast.annotation.Annotation;
 import ast.annotation.Annotation.ElementLiteral;
@@ -15,228 +9,14 @@ import ast.classs.MethodItem;
 import ast.method.Method;
 import ast.method.Method.MethodPrototype;
 import ast.program.Program;
-import ast.stm.*;
-import ast.stm.Instruction.AddDouble;
-import ast.stm.Instruction.AddDouble2Addr;
-import ast.stm.Instruction.AddFloat;
-import ast.stm.Instruction.AddFloat2Addr;
-import ast.stm.Instruction.AddInt;
-import ast.stm.Instruction.AddInt2Addr;
-import ast.stm.Instruction.AddIntLit16;
-import ast.stm.Instruction.AddIntLit8;
-import ast.stm.Instruction.AddLong;
-import ast.stm.Instruction.AddLong2Addr;
-import ast.stm.Instruction.Aget;
-import ast.stm.Instruction.AgetBoolean;
-import ast.stm.Instruction.AgetByte;
-import ast.stm.Instruction.AgetChar;
-import ast.stm.Instruction.AgetObject;
-import ast.stm.Instruction.AgetShort;
-import ast.stm.Instruction.AgetWide;
-import ast.stm.Instruction.AndInt;
-import ast.stm.Instruction.AndInt2Addr;
-import ast.stm.Instruction.AndIntLit16;
-import ast.stm.Instruction.AndIntLit8;
-import ast.stm.Instruction.AndLong;
-import ast.stm.Instruction.AndLong2Addr;
-import ast.stm.Instruction.Aput;
-import ast.stm.Instruction.AputBoolean;
-import ast.stm.Instruction.AputByte;
-import ast.stm.Instruction.AputChar;
-import ast.stm.Instruction.AputObject;
-import ast.stm.Instruction.AputShort;
-import ast.stm.Instruction.AputWide;
-import ast.stm.Instruction.ArrayDataDirective;
-import ast.stm.Instruction.CheckCast;
-import ast.stm.Instruction.CmpLong;
-import ast.stm.Instruction.CmpgFloat;
-import ast.stm.Instruction.Cmpgdouble;
-import ast.stm.Instruction.CmplDouble;
-import ast.stm.Instruction.CmplFloat;
-import ast.stm.Instruction.Const;
-import ast.stm.Instruction.Const16;
-import ast.stm.Instruction.Const4;
-import ast.stm.Instruction.ConstClass;
-import ast.stm.Instruction.ConstHigh16;
-import ast.stm.Instruction.ConstString;
-import ast.stm.Instruction.ConstStringJumbo;
-import ast.stm.Instruction.ConstWide;
-import ast.stm.Instruction.ConstWide16;
-import ast.stm.Instruction.ConstWide32;
-import ast.stm.Instruction.ConstWideHigh16;
-import ast.stm.Instruction.DivDouble;
-import ast.stm.Instruction.DivDouble2Addr;
-import ast.stm.Instruction.DivFloat;
-import ast.stm.Instruction.DivFloat2Addr;
-import ast.stm.Instruction.DivInt;
-import ast.stm.Instruction.DivInt2Addr;
-import ast.stm.Instruction.DivIntLit16;
-import ast.stm.Instruction.DivIntLit8;
-import ast.stm.Instruction.DivLong;
-import ast.stm.Instruction.DivLong2Addr;
-import ast.stm.Instruction.DoubleToFloat;
-import ast.stm.Instruction.DoubleToInt;
-import ast.stm.Instruction.DoubleToLong;
-import ast.stm.Instruction.FillArrayData;
-import ast.stm.Instruction.FilledNewArray;
-import ast.stm.Instruction.FilledNewArrayRange;
-import ast.stm.Instruction.FloatToDouble;
-import ast.stm.Instruction.FloatToInt;
-import ast.stm.Instruction.FloatToLong;
-import ast.stm.Instruction.Goto;
-import ast.stm.Instruction.Goto16;
-import ast.stm.Instruction.Goto32;
-import ast.stm.Instruction.IfEq;
-import ast.stm.Instruction.IfEqz;
-import ast.stm.Instruction.IfGe;
-import ast.stm.Instruction.IfGez;
-import ast.stm.Instruction.IfGt;
-import ast.stm.Instruction.IfGtz;
-import ast.stm.Instruction.IfLe;
-import ast.stm.Instruction.IfLez;
-import ast.stm.Instruction.IfLt;
-import ast.stm.Instruction.IfLtz;
-import ast.stm.Instruction.IfNe;
-import ast.stm.Instruction.IfNez;
-import ast.stm.Instruction.Iget;
-import ast.stm.Instruction.IgetBoolean;
-import ast.stm.Instruction.IgetByte;
-import ast.stm.Instruction.IgetChar;
-import ast.stm.Instruction.IgetOjbect;
-import ast.stm.Instruction.IgetShort;
-import ast.stm.Instruction.IgetWide;
-import ast.stm.Instruction.InstanceOf;
-import ast.stm.Instruction.IntToByte;
-import ast.stm.Instruction.IntToChar;
-import ast.stm.Instruction.IntToDouble;
-import ast.stm.Instruction.IntToFloat;
-import ast.stm.Instruction.IntToLong;
-import ast.stm.Instruction.IntToShort;
-import ast.stm.Instruction.InvokeDirect;
-import ast.stm.Instruction.InvokeDirectRange;
-import ast.stm.Instruction.InvokeInterface;
-import ast.stm.Instruction.InvokeInterfaceRange;
-import ast.stm.Instruction.InvokeStatic;
-import ast.stm.Instruction.InvokeStaticRange;
-import ast.stm.Instruction.InvokeSuper;
-import ast.stm.Instruction.InvokeSuperRange;
-import ast.stm.Instruction.InvokeVirtual;
-import ast.stm.Instruction.InvokeVirtualRange;
-import ast.stm.Instruction.Iput;
-import ast.stm.Instruction.IputBoolean;
-import ast.stm.Instruction.IputByte;
-import ast.stm.Instruction.IputChar;
-import ast.stm.Instruction.IputObject;
-import ast.stm.Instruction.IputShort;
-import ast.stm.Instruction.IputWide;
-import ast.stm.Instruction.LongToDouble;
-import ast.stm.Instruction.LongToFloat;
-import ast.stm.Instruction.LongToInt;
-import ast.stm.Instruction.MonitorEnter;
-import ast.stm.Instruction.MonitorExit;
-import ast.stm.Instruction.Move;
-import ast.stm.Instruction.Move16;
-import ast.stm.Instruction.MoveException;
-import ast.stm.Instruction.MoveFrom16;
-import ast.stm.Instruction.MoveObject;
-import ast.stm.Instruction.MoveObject16;
-import ast.stm.Instruction.MoveOjbectFrom16;
-import ast.stm.Instruction.MoveResult;
-import ast.stm.Instruction.MoveResultObject;
-import ast.stm.Instruction.MoveResultWide;
-import ast.stm.Instruction.MoveWide;
-import ast.stm.Instruction.MoveWide16;
-import ast.stm.Instruction.MoveWideFrom16;
-import ast.stm.Instruction.MulDouble;
-import ast.stm.Instruction.MulDouble2Addr;
-import ast.stm.Instruction.MulFloat;
-import ast.stm.Instruction.MulFloat2Addr;
-import ast.stm.Instruction.MulInt;
-import ast.stm.Instruction.MulInt2Addr;
-import ast.stm.Instruction.MulIntLit16;
-import ast.stm.Instruction.MulIntLit8;
-import ast.stm.Instruction.MulLong;
-import ast.stm.Instruction.MulLong2Addr;
-import ast.stm.Instruction.NegDouble;
-import ast.stm.Instruction.NegFloat;
-import ast.stm.Instruction.NegInt;
-import ast.stm.Instruction.NegLong;
-import ast.stm.Instruction.NewArray;
-import ast.stm.Instruction.NewInstance;
-import ast.stm.Instruction.Nop;
-import ast.stm.Instruction.NotInt;
-import ast.stm.Instruction.NotLong;
-import ast.stm.Instruction.OrInt;
-import ast.stm.Instruction.OrInt2Addr;
-import ast.stm.Instruction.OrIntLit16;
-import ast.stm.Instruction.OrIntLit8;
-import ast.stm.Instruction.OrLong;
-import ast.stm.Instruction.OrLong2Addr;
-import ast.stm.Instruction.PackedSwitch;
-import ast.stm.Instruction.PackedSwitchDirective;
-import ast.stm.Instruction.RemDouble;
-import ast.stm.Instruction.RemDouble2Addr;
-import ast.stm.Instruction.RemFloat;
-import ast.stm.Instruction.RemFloat2Addr;
-import ast.stm.Instruction.RemInt;
-import ast.stm.Instruction.RemInt2Addr;
-import ast.stm.Instruction.RemIntLit16;
-import ast.stm.Instruction.RemIntLit8;
-import ast.stm.Instruction.RemLong;
-import ast.stm.Instruction.RemLong2Addr;
-import ast.stm.Instruction.Return;
-import ast.stm.Instruction.ReturnObject;
-import ast.stm.Instruction.ReturnVoid;
-import ast.stm.Instruction.ReturnWide;
-import ast.stm.Instruction.RsubInt;
-import ast.stm.Instruction.RsubIntLit8;
-import ast.stm.Instruction.Sget;
-import ast.stm.Instruction.SgetBoolean;
-import ast.stm.Instruction.SgetByte;
-import ast.stm.Instruction.SgetChar;
-import ast.stm.Instruction.SgetObject;
-import ast.stm.Instruction.SgetShort;
-import ast.stm.Instruction.SgetWide;
-import ast.stm.Instruction.ShlInt;
-import ast.stm.Instruction.ShlInt2Addr;
-import ast.stm.Instruction.ShlIntLit8;
-import ast.stm.Instruction.ShlLong;
-import ast.stm.Instruction.ShlLong2Addr;
-import ast.stm.Instruction.ShrInt;
-import ast.stm.Instruction.ShrInt2Addr;
-import ast.stm.Instruction.ShrIntLit8;
-import ast.stm.Instruction.ShrLong;
-import ast.stm.Instruction.ShrLong2Addr;
-import ast.stm.Instruction.SparseSwitch;
-import ast.stm.Instruction.SparseSwitchDirective;
-import ast.stm.Instruction.Sput;
-import ast.stm.Instruction.SputBoolean;
-import ast.stm.Instruction.SputByte;
-import ast.stm.Instruction.SputChar;
-import ast.stm.Instruction.SputObject;
-import ast.stm.Instruction.SputShort;
-import ast.stm.Instruction.SputWide;
-import ast.stm.Instruction.SubDouble;
-import ast.stm.Instruction.SubDouble2Addr;
-import ast.stm.Instruction.SubFloat;
-import ast.stm.Instruction.SubFloat2Addr;
-import ast.stm.Instruction.SubInt;
-import ast.stm.Instruction.SubInt2Addr;
-import ast.stm.Instruction.SubLong;
-import ast.stm.Instruction.SubLong2Addr;
-import ast.stm.Instruction.Throw;
-import ast.stm.Instruction.UshrInt;
-import ast.stm.Instruction.UshrInt2Addr;
-import ast.stm.Instruction.UshrIntLit8;
-import ast.stm.Instruction.UshrLong;
-import ast.stm.Instruction.UshrLong2Addr;
-import ast.stm.Instruction.XorInt;
-import ast.stm.Instruction.XorInt2Addr;
-import ast.stm.Instruction.XorIntLit16;
-import ast.stm.Instruction.XorIntLit8;
-import ast.stm.Instruction.XorLong;
-import ast.stm.Instruction.XorLong2Addr;
-import ast.stm.Instruction.arrayLength;
+import ast.stm.Instruction;
+import ast.stm.Instruction.*;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Stack;
 
 public class InterpreterVisitor implements Visitor {
 
@@ -559,7 +339,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(Const4 inst) {
-		setObjectByReg(inst.dest, hex2int(inst.value));
+		setObjectToReg(inst.dest, hex2int(inst.value));
 		this.ip++;
 	}
 
@@ -572,43 +352,43 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(Const16 inst) {
-		setObjectByReg(inst.dest, hex2int(inst.value));
+		setObjectToReg(inst.dest, hex2int(inst.value));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(Const inst) {
-		setObjectByReg(inst.dest, hex2int(inst.value));
+		setObjectToReg(inst.dest, hex2int(inst.value));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstHigh16 inst) {
-		setObjectByReg(inst.dest, hex2int(inst.value) << 16);
+		setObjectToReg(inst.dest, hex2int(inst.value) << 16);
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstWide16 inst) {
-		setObjectByReg(inst.dest, new Long((long) hex2int(inst.value)));
+		setObjectToReg(inst.dest, new Long((long) hex2int(inst.value)));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstWide32 inst) {
-		setObjectByReg(inst.dest, new Long((long) hex2int(inst.value)));
+		setObjectToReg(inst.dest, new Long((long) hex2int(inst.value)));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstWide inst) {
-		setObjectByReg(inst.dest, new Long(hex2long(inst.value)));
+		setObjectToReg(inst.dest, new Long(hex2long(inst.value)));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstWideHigh16 inst) {
-		setObjectByReg(inst.dest, new Long(hex2long(inst.value) << 48));
+		setObjectToReg(inst.dest, new Long(hex2long(inst.value) << 48));
 		this.ip++;
 	}
 
@@ -618,13 +398,13 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(ConstString inst) {
-		setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
+		setObjectToReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(ConstStringJumbo inst) {
-		setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
+		setObjectToReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
 		this.ip++;
 	}
 
@@ -637,7 +417,7 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(MoveResult inst) {
-		this.setObjectByReg(inst.dest, this.returnValue);
+		this.setObjectToReg(inst.dest, this.returnValue);
 		this.ip++;
 	}
 
@@ -653,7 +433,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(MoveResultObject inst) {
-		this.setObjectByReg(inst.dest, this.returnValue);
+		this.setObjectToReg(inst.dest, this.returnValue);
 		this.ip++;
 	}
 
@@ -740,14 +520,14 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(NegInt inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Integer(-((Integer) src).intValue()));
+		setObjectToReg(inst.dest, new Integer(-((Integer) src).intValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(NotInt inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Integer(
+		setObjectToReg(inst.dest, new Integer(
 				((Integer) src).intValue() ^ 0xffffffff));
 		this.ip++;
 	}
@@ -755,14 +535,14 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(NegLong inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Long(-((Long) src).longValue()));
+		setObjectToReg(inst.dest, new Long(-((Long) src).longValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(NotLong inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest,
+		setObjectToReg(inst.dest,
 				new Long(((Long) src).longValue()) ^ 0xffffffffffffffffL);
 		this.ip++;
 	}
@@ -770,112 +550,112 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(NegFloat inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Float(-((Float) src).floatValue()));
+		setObjectToReg(inst.dest, new Float(-((Float) src).floatValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(NegDouble inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Double(-((Double) src).doubleValue()));
+		setObjectToReg(inst.dest, new Double(-((Double) src).doubleValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToLong inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Long(((Integer) src).longValue()));
+		setObjectToReg(inst.dest, new Long(((Integer) src).longValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToFloat inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Float(((Integer) src).floatValue()));
+		setObjectToReg(inst.dest, new Float(((Integer) src).floatValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToDouble inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Double(((Integer) src).doubleValue()));
+		setObjectToReg(inst.dest, new Double(((Integer) src).doubleValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToInt inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Integer(((Long) src).intValue()));
+		setObjectToReg(inst.dest, new Integer(((Long) src).intValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToFloat inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Float(((Long) src).floatValue()));
+		setObjectToReg(inst.dest, new Float(((Long) src).floatValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToDouble inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Double(((Long) src).doubleValue()));
+		setObjectToReg(inst.dest, new Double(((Long) src).doubleValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToInt inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Integer(((Float) src).intValue()));
+		setObjectToReg(inst.dest, new Integer(((Float) src).intValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToLong inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Long(((Float) src).longValue()));
+		setObjectToReg(inst.dest, new Long(((Float) src).longValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToDouble inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Double(((Float) src).doubleValue()));
+		setObjectToReg(inst.dest, new Double(((Float) src).doubleValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToInt inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Integer(((Double) src).intValue()));
+		setObjectToReg(inst.dest, new Integer(((Double) src).intValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToLong inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Long(((Double) src).longValue()));
+		setObjectToReg(inst.dest, new Long(((Double) src).longValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToFloat inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Float(((Double) src).floatValue()));
+		setObjectToReg(inst.dest, new Float(((Double) src).floatValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToByte inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Byte(((Integer) src).byteValue()));
+		setObjectToReg(inst.dest, new Byte(((Integer) src).byteValue()));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToChar inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest,
+		setObjectToReg(inst.dest,
 				new Character((char) ((Integer) src).intValue())); // Right?
 		this.ip++;
 	}
@@ -883,7 +663,7 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(IntToShort inst) {
 		Object src = getObjectByReg(inst.src);
-		setObjectByReg(inst.dest, new Short(((Integer) src).shortValue()));
+		setObjectToReg(inst.dest, new Short(((Integer) src).shortValue()));
 		this.ip++;
 	}
 
@@ -1070,13 +850,13 @@ public class InterpreterVisitor implements Visitor {
 	public void visit(NewInstance inst) {
 		// TODO Auto-generated method stub
 		//		this.storeObjectInRegister(inst.dest, Loader.loadInstance(inst.type));
-		this.setObjectByReg(inst.dest, new VmInstance(inst.type));
+		this.setObjectToReg(inst.dest, new VmInstance(inst.type));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(Sget inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
@@ -1092,31 +872,31 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(SgetObject inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetBoolean inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetByte inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetChar inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetShort inst) {
-		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
+		setObjectToReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
@@ -1311,7 +1091,7 @@ public class InterpreterVisitor implements Visitor {
 					.substring(1))];
 	}
 
-	private void setObjectByReg(String reg, Object obj) {
+	private void setObjectToReg(String reg, Object obj) {
 		if (reg.startsWith("v"))
 			this.runStack.peek().variables[Integer.parseInt(reg.substring(1))] = obj;
 		else
@@ -1324,7 +1104,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	public void instanceGet(String dstReg, String objReg, String fieldName) {
 		VmInstance obj = (VmInstance) getObjectByReg(objReg);
-		setObjectByReg(dstReg, obj.getField(fieldName));
+		setObjectToReg(dstReg, obj.getField(fieldName));
 	}
 
 	/*
@@ -1350,12 +1130,12 @@ public class InterpreterVisitor implements Visitor {
 		/*
 		     Maybe we should change the filed names in the Instruction.Iget like classes.
 		  */
-		iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetWide inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	/*
@@ -1363,27 +1143,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(IgetOjbect inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetBoolean inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetByte inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetChar inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetShort inst) {
-		iget(inst.field, inst.dest, inst.type.fieldName);
+        iget(inst.dest, inst.field, inst.type.fieldName);
 	}
 
 	/*
@@ -1552,10 +1332,10 @@ public class InterpreterVisitor implements Visitor {
 		Float val1 = (Float) getObjectByReg(inst.first);
 		Float val2 = (Float) getObjectByReg(inst.second);
 		if (val1.isNaN() || val2.isNaN()) {
-			setObjectByReg(inst.dest, new Integer(-1));
+			setObjectToReg(inst.dest, new Integer(-1));
 		} else {
 			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-			setObjectByReg(inst.dest, new Integer(result));
+			setObjectToReg(inst.dest, new Integer(result));
 		}
 		this.ip++;
 	}
@@ -1565,10 +1345,10 @@ public class InterpreterVisitor implements Visitor {
 		Float val1 = (Float) getObjectByReg(inst.first);
 		Float val2 = (Float) getObjectByReg(inst.second);
 		if (val1.isNaN() || val2.isNaN()) {
-			setObjectByReg(inst.dest, new Integer(1));
+			setObjectToReg(inst.dest, new Integer(1));
 		} else {
 			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-			setObjectByReg(inst.dest, new Integer(result));
+			setObjectToReg(inst.dest, new Integer(result));
 		}
 		this.ip++;
 	}
@@ -1578,10 +1358,10 @@ public class InterpreterVisitor implements Visitor {
 		Double val1 = (Double) getObjectByReg(inst.first);
 		Double val2 = (Double) getObjectByReg(inst.second);
 		if (val1.isNaN() || val2.isNaN()) {
-			setObjectByReg(inst.dest, new Integer(-1));
+			setObjectToReg(inst.dest, new Integer(-1));
 		} else {
 			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-			setObjectByReg(inst.dest, new Integer(result));
+			setObjectToReg(inst.dest, new Integer(result));
 		}
 		this.ip++;
 	}
@@ -1591,10 +1371,10 @@ public class InterpreterVisitor implements Visitor {
 		Double val1 = (Double) getObjectByReg(inst.first);
 		Double val2 = (Double) getObjectByReg(inst.second);
 		if (val1.isNaN() || val2.isNaN()) {
-			setObjectByReg(inst.dest, new Integer(1));
+			setObjectToReg(inst.dest, new Integer(1));
 		} else {
 			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-			setObjectByReg(inst.dest, new Integer(result));
+			setObjectToReg(inst.dest, new Integer(result));
 		}
 		this.ip++;
 	}
@@ -1604,7 +1384,7 @@ public class InterpreterVisitor implements Visitor {
 		Long val1 = (Long) getObjectByReg(inst.first);
 		Long val2 = (Long) getObjectByReg(inst.second);
 		int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-		setObjectByReg(inst.dest, new Integer(result));
+		setObjectToReg(inst.dest, new Integer(result));
 		this.ip++;
 	}
 
@@ -1900,7 +1680,7 @@ public class InterpreterVisitor implements Visitor {
 			unexpectedError("biop..swith..op's endwith: unkown");
 			break;
 		}
-		setObjectByReg(dstReg, result);
+		setObjectToReg(dstReg, result);
 		this.ip++;
 	}
 

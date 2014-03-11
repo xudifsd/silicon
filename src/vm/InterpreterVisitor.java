@@ -16,7 +16,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
 
 public class InterpreterVisitor implements Visitor {
 
@@ -24,7 +23,7 @@ public class InterpreterVisitor implements Visitor {
 	public static HashMap<String, Object> staticFieldMap;
 	public static HashMap<String, VmMethod> methodMap;
 
-	public Stack<Frame> runStack;
+	public CallStack callStack;
 	public int ip;
 	public boolean methodEnd;
 	public Object returnValue;
@@ -47,7 +46,7 @@ public class InterpreterVisitor implements Visitor {
 		classMap = new HashMap<String, VmClass>();
 		staticFieldMap = new HashMap<String, Object>();
 		methodMap = new HashMap<String, VmMethod>();
-		runStack = new Stack<Frame>();
+		callStack = new CallStack();
 		this.ip = 0;
 		this.methodEnd = false;
 	}
@@ -153,7 +152,7 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			this.runStack.push(frame);
+			this.callStack.push(frame);
 			virtualMethod.astMethod.accept(this);
 		}
 
@@ -201,7 +200,7 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			this.runStack.push(frame);
+			this.callStack.push(frame);
 			directMethod.astMethod.accept(this);
 		}
 	}
@@ -224,7 +223,7 @@ public class InterpreterVisitor implements Visitor {
 			Frame frame = new Frame();
 			frame.parameters = parameters;
 			frame.returnAddress = ip;
-			this.runStack.push(frame);
+			this.callStack.push(frame);
 			staticMethod.astMethod.accept(this);
 		}
 	}
@@ -240,8 +239,8 @@ public class InterpreterVisitor implements Visitor {
 
 	public void leaveVmMethod() {
 		this.methodEnd = true;
-		this.ip = this.runStack.peek().returnAddress;
-		this.runStack.pop();
+		this.ip = this.callStack.peek().returnAddress;
+		this.callStack.pop();
 	}
 
 	@Override
@@ -264,10 +263,10 @@ public class InterpreterVisitor implements Visitor {
 		int variableLength;
 		if (method.registers_directive.equals(".registers"))
 			variableLength = Integer.parseInt(method.registers_directive_count)
-					- this.runStack.peek().parameters.length;
+					- this.callStack.peek().parameters.length;
 		else
 			variableLength = Integer.parseInt(method.registers_directive_count);
-		this.runStack.peek().variables = new Object[variableLength];
+		this.callStack.peek().variables = new Object[variableLength];
 		this.ip = 0;
 		while (!this.methodEnd) {
 			method.statements.get(this.ip).accept(this);
@@ -694,7 +693,7 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(AndInt2Addr inst) {
-		// TODO Auto-generated method stub
+    // TODO Auto-generated method stub
 		System.err.println("unknow inst : " + inst.op);
 
 	}
@@ -1084,18 +1083,18 @@ public class InterpreterVisitor implements Visitor {
 
 	private Object getObjectByReg(String reg) {
 		if (reg.startsWith("v"))
-			return this.runStack.peek().variables[Integer.parseInt(reg
+			return this.callStack.peek().variables[Integer.parseInt(reg
 					.substring(1))];
 		else
-			return this.runStack.peek().parameters[Integer.parseInt(reg
+			return this.callStack.peek().parameters[Integer.parseInt(reg
 					.substring(1))];
 	}
 
 	private void setObjectToReg(String reg, Object obj) {
 		if (reg.startsWith("v"))
-			this.runStack.peek().variables[Integer.parseInt(reg.substring(1))] = obj;
+			this.callStack.peek().variables[Integer.parseInt(reg.substring(1))] = obj;
 		else
-			this.runStack.peek().parameters[Integer.parseInt(reg.substring(1))] = obj;
+			this.callStack.peek().parameters[Integer.parseInt(reg.substring(1))] = obj;
 
 	}
 

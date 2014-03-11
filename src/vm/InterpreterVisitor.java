@@ -257,11 +257,11 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println(obj);
 		System.exit(-1);
 	}
-    private void unexpectedError(String msg){
-        System.err.println(msg);
-        System.exit(-1);
-    }
 
+	private void unexpectedError(String msg) {
+		System.err.println(msg);
+		System.exit(-1);
+	}
 
 	public InterpreterVisitor() {
 		classMap = new HashMap<String, VmClass>();
@@ -278,8 +278,8 @@ public class InterpreterVisitor implements Visitor {
 	public void Init(MethodItem methodItem) throws ClassNotFoundException,
 			NoSuchMethodException, SecurityException, IllegalAccessException,
 			IllegalArgumentException, InvocationTargetException {
-		if(Loader.getUserClass(methodItem.classType) == null)
-			printErr("can't find main class : " +  methodItem.classType);
+		if (Loader.getUserClass(methodItem.classType) == null)
+			printErr("can't find main class : " + methodItem.classType);
 		InvokeStatic mainMethod = new InvokeStatic("invoke-static",
 				new ArrayList<String>(), methodItem);
 		mainMethod.accept(this);
@@ -289,7 +289,7 @@ public class InterpreterVisitor implements Visitor {
 		Object[] parameterList = new Object[argsType.size()];
 		for (int i = 0; i < argsType.size(); i++) {
 			String arg = argsType.get(i);
-			parameterList[i] = this.getObjectFromRegister(arg);
+			parameterList[i] = getObjectByReg(arg);
 		}
 		return parameterList;
 	}
@@ -349,21 +349,6 @@ public class InterpreterVisitor implements Visitor {
 		return result;
 	}
 
-	public void storeObjectInRegister(String register, Object content) {
-		int index = Integer.parseInt(register.substring(1));
-		if (register.startsWith("v"))
-			this.runStack.peek().variables[index] = content;
-		else
-			this.runStack.peek().parameters[index] = content;
-	}
-
-	public Object getObjectFromRegister(String register) {
-		int index = Integer.parseInt(register.substring(1));
-		if (register.startsWith("v"))
-			return this.runStack.peek().variables[index];
-		return this.runStack.peek().parameters[index];
-	}
-
 	public void handleVirtualMethod(InvokeVirtual inst) {
 		Object[] parameters = initParameters(inst.argList);
 		VmInstance refer = (VmInstance) parameters[0];
@@ -395,7 +380,7 @@ public class InterpreterVisitor implements Visitor {
 	}
 
 	public void handleSuperMethod(InvokeSuper inst) {
-
+		//TODO
 	}
 
 	// invoke-direct is used to invoke a non-static direct method 
@@ -465,7 +450,7 @@ public class InterpreterVisitor implements Visitor {
 	}
 
 	public void handleInterfaceMethod(InvokeInterface inst) {
-
+		//TODO
 	}
 
 	/*
@@ -555,102 +540,104 @@ public class InterpreterVisitor implements Visitor {
 		this.leaveVmMethod();
 	}
 
+	private int hex2int(String s) {
+		if (s.startsWith("-"))
+			return -(Integer.parseInt(s.substring(3), 16));
+		else
+			return Integer.parseInt(s.substring(2), 16);
+	}
 
+	private long hex2long(String s) {
+		if (s.startsWith("-"))
+			return -(Long.parseLong(s.substring(3), 16));
+		else
+			return Long.parseLong(s.substring(2), 16);
+	}
 
-    private int hex2int(String s){
-        if (s.startsWith("-"))
-            return  -(Integer.parseInt(s.substring(3), 16));
-        else
-            return Integer.parseInt(s.substring(2), 16);
-    }
-    private long hex2long(String s){
-        if (s.startsWith("-"))
-            return  -(Long.parseLong(s.substring(3), 16));
-        else
-            return Long.parseLong(s.substring(2), 16);
-    }
 	/*
 	 * const/4 v6 0x2
 	 */
 	@Override
 	public void visit(Const4 inst) {
-        setObjectByReg(inst.dest, hex2int(inst.value));
+		setObjectByReg(inst.dest, hex2int(inst.value));
 		this.ip++;
 	}
 
-    /*
-     * const/16 vAA, #+BBBB
-     * const/16 v2,-0xb  (-0xb==-11)
-     * Move the given literal value (sign-extended to 32 bits) into the specified register.
-     * A: destination register (8 bits)
-       B: signed int (16 bits)
-     */
-    @Override
-    public void visit(Const16 inst) {
-        setObjectByReg(inst.dest, hex2int(inst.value));
-        this.ip++;
-    }
+	/*
+	 * const/16 vAA, #+BBBB
+	 * const/16 v2,-0xb  (-0xb==-11)
+	 * Move the given literal value (sign-extended to 32 bits) into the specified register.
+	 * A: destination register (8 bits)
+	   B: signed int (16 bits)
+	 */
+	@Override
+	public void visit(Const16 inst) {
+		setObjectByReg(inst.dest, hex2int(inst.value));
+		this.ip++;
+	}
 
-    @Override
-    public void visit(Const inst) {
-        setObjectByReg(inst.dest, hex2int(inst.value));
-        this.ip++;
-    }
+	@Override
+	public void visit(Const inst) {
+		setObjectByReg(inst.dest, hex2int(inst.value));
+		this.ip++;
+	}
 
-    @Override
-    public void visit(ConstHigh16 inst) {
-        setObjectByReg(inst.dest, hex2int(inst.value) << 16);
-        this.ip++;
-    }
+	@Override
+	public void visit(ConstHigh16 inst) {
+		setObjectByReg(inst.dest, hex2int(inst.value) << 16);
+		this.ip++;
+	}
 
-    @Override
-    public void visit(ConstWide16 inst) {
-        setObjectByReg(inst.dest, new Long((long)hex2int(inst.value)));
-        this.ip++;
-    }
-    @Override
-    public void visit(ConstWide32 inst) {
-        setObjectByReg(inst.dest, new Long((long)hex2int(inst.value)));
-        this.ip++;
-    }
+	@Override
+	public void visit(ConstWide16 inst) {
+		setObjectByReg(inst.dest, new Long((long) hex2int(inst.value)));
+		this.ip++;
+	}
 
-    @Override
-    public void visit(ConstWide inst) {
-        setObjectByReg(inst.dest, new Long(hex2long(inst.value)));
-        this.ip++;
-    }
-    @Override
-    public void visit(ConstWideHigh16 inst) {
-        setObjectByReg(inst.dest, new Long(hex2long(inst.value) << 48));
-        this.ip++;
-    }
+	@Override
+	public void visit(ConstWide32 inst) {
+		setObjectByReg(inst.dest, new Long((long) hex2int(inst.value)));
+		this.ip++;
+	}
 
-    /*
-     * const-string v1, "xiaoming"
-     * "xiaoming" --> xiaoming
-     */
-    @Override
-    public void visit(ConstString inst) {
-        setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
-        this.ip++;
-    }
-    @Override
-    public void visit(ConstStringJumbo inst) {
-        // TODO Auto-generated method stub
-        System.err.println("unknow inst : " + inst.op);
+	@Override
+	public void visit(ConstWide inst) {
+		setObjectByReg(inst.dest, new Long(hex2long(inst.value)));
+		this.ip++;
+	}
 
-    }
-    @Override
-    public void visit(ConstClass inst) {
-        // TODO Auto-generated method stub
-        System.err.println("unknow inst : " + inst.op);
+	@Override
+	public void visit(ConstWideHigh16 inst) {
+		setObjectByReg(inst.dest, new Long(hex2long(inst.value) << 48));
+		this.ip++;
+	}
 
-    }
+	/*
+	 * const-string v1, "xiaoming"
+	 * "xiaoming" --> xiaoming
+	 */
+	@Override
+	public void visit(ConstString inst) {
+		setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
+		this.ip++;
+	}
 
+	@Override
+	public void visit(ConstStringJumbo inst) {
+		setObjectByReg(inst.dest, inst.str.substring(1, inst.str.length() - 1));
+		this.ip++;
+	}
+
+	@Override
+	public void visit(ConstClass inst) {
+		// TODO Auto-generated method stub
+		System.err.println("unknow inst : " + inst.op);
+
+	}
 
 	@Override
 	public void visit(MoveResult inst) {
-		this.storeObjectInRegister(inst.dest, this.returnValue);
+		this.setObjectByReg(inst.dest, this.returnValue);
 		this.ip++;
 	}
 
@@ -666,7 +653,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(MoveResultObject inst) {
-		this.storeObjectInRegister(inst.dest, this.returnValue);
+		this.setObjectByReg(inst.dest, this.returnValue);
 		this.ip++;
 	}
 
@@ -682,19 +669,14 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(Return inst) {
-		int index = Integer.parseInt(inst.ret.substring(1));
-		if (inst.ret.startsWith("v"))
-			this.returnValue = this.runStack.peek().variables[index];
-		else
-			this.returnValue = this.runStack.peek().parameters[index];
+		this.returnValue = getObjectByReg(inst.ret);
 		this.leaveVmMethod();
 	}
 
 	@Override
 	public void visit(ReturnWide inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		this.returnValue = getObjectByReg(inst.ret);
+		this.leaveVmMethod();
 	}
 
 	/*
@@ -702,11 +684,7 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(ReturnObject inst) {
-		int index = Integer.parseInt(inst.ret.substring(1));
-		if (inst.ret.startsWith("v"))
-			this.returnValue = this.runStack.peek().variables[index];
-		else
-			this.returnValue = this.runStack.peek().parameters[index];
+		this.returnValue = getObjectByReg(inst.ret);
 		this.leaveVmMethod();
 	}
 
@@ -761,174 +739,177 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(NegInt inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Integer(-((Integer)src).intValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Integer(-((Integer) src).intValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(NotInt inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Integer(((Integer)src).intValue() ^ 0xffffffff));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Integer(
+				((Integer) src).intValue() ^ 0xffffffff));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(NegLong inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Long(-((Long)src).longValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Long(-((Long) src).longValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(NotLong inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Long(((Long)src).longValue()) ^ 0xffffffffffffffffL);
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest,
+				new Long(((Long) src).longValue()) ^ 0xffffffffffffffffL);
+		this.ip++;
 	}
 
 	@Override
 	public void visit(NegFloat inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Float(-((Float) src).floatValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Float(-((Float) src).floatValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(NegDouble inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Double(-((Double) src).doubleValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Double(-((Double) src).doubleValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToLong inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Long(((Integer) src).longValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Long(((Integer) src).longValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToFloat inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Float(((Integer) src).floatValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Float(((Integer) src).floatValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToDouble inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Double(((Integer) src).doubleValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Double(((Integer) src).doubleValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToInt inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Integer(((Long) src).intValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Integer(((Long) src).intValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToFloat inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Float(((Long) src).floatValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Float(((Long) src).floatValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(LongToDouble inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Double(((Long) src).doubleValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Double(((Long) src).doubleValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToInt inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Integer(((Float) src).intValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Integer(((Float) src).intValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToLong inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Long(((Float) src).longValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Long(((Float) src).longValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(FloatToDouble inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Double(((Float) src).doubleValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Double(((Float) src).doubleValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToInt inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Integer(((Double) src).intValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Integer(((Double) src).intValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToLong inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Long(((Double) src).longValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Long(((Double) src).longValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(DoubleToFloat inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Float(((Double) src).floatValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Float(((Double) src).floatValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToByte inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Byte(((Integer) src).byteValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Byte(((Integer) src).byteValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToChar inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Character((char) ((Integer) src).intValue())); // Right?
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest,
+				new Character((char) ((Integer) src).intValue())); // Right?
+		this.ip++;
 	}
 
 	@Override
 	public void visit(IntToShort inst) {
-        Object src = getObjectByReg(inst.src);
-        setObjectByReg(inst.dest, new Short(((Integer) src).shortValue()));
-        this.ip++;
+		Object src = getObjectByReg(inst.src);
+		setObjectByReg(inst.dest, new Short(((Integer) src).shortValue()));
+		this.ip++;
 	}
 
 	@Override
 	public void visit(AddInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
@@ -940,132 +921,132 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(OrInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(XorInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShlInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShrInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(UshrInt2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AndLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(OrLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(XorLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShlLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(ShrLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(UshrLong2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddFloat2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubFloat2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulFloat2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivFloat2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemFloat2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(AddDouble2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(SubDouble2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(MulDouble2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(DivDouble2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
 	public void visit(RemDouble2Addr inst) {
-        biop2addr(inst.dest, inst.src, inst.op);
+		biop2addr(inst.dest, inst.src, inst.op);
 	}
 
 	@Override
@@ -1074,8 +1055,6 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println("unknow inst : " + inst.op);
 
 	}
-
-
 
 	@Override
 	public void visit(CheckCast inst) {
@@ -1090,14 +1069,14 @@ public class InterpreterVisitor implements Visitor {
 	@Override
 	public void visit(NewInstance inst) {
 		// TODO Auto-generated method stub
-//		this.storeObjectInRegister(inst.dest, Loader.loadInstance(inst.type));
-        this.storeObjectInRegister(inst.dest, new VmInstance(inst.type));
+		//		this.storeObjectInRegister(inst.dest, Loader.loadInstance(inst.type));
+		this.setObjectByReg(inst.dest, new VmInstance(inst.type));
 		this.ip++;
 	}
 
 	@Override
 	public void visit(Sget inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
@@ -1113,31 +1092,31 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(SgetObject inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetBoolean inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetByte inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetChar inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
 	@Override
 	public void visit(SgetShort inst) {
-		storeObjectInRegister(inst.dest, Loader.getStaticField(inst.type));
+		setObjectByReg(inst.dest, Loader.getStaticField(inst.type));
 		ip++;
 	}
 
@@ -1189,10 +1168,6 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println("unknow inst : " + inst.op);
 
 	}
-
-
-
-
 
 	@Override
 	public void visit(IfEqz inst) {
@@ -1327,61 +1302,60 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-    private Object getObjectByReg(String reg){
-        if (reg.startsWith("v"))
-            return this.runStack.peek().variables[Integer.parseInt(reg
-                    .substring(1))];
-        else
-            return this.runStack.peek().parameters[Integer.parseInt(reg
-                    .substring(1))];
-    }
-    private void setObjectByReg(String reg, Object obj){
-        if (reg.startsWith("v"))
-            this.runStack.peek().variables[Integer
-                    .parseInt(reg.substring(1))] = obj;
-        else
-            this.runStack.peek().parameters[Integer.parseInt(reg
-                    .substring(1))] = obj;
+	private Object getObjectByReg(String reg) {
+		if (reg.startsWith("v"))
+			return this.runStack.peek().variables[Integer.parseInt(reg
+					.substring(1))];
+		else
+			return this.runStack.peek().parameters[Integer.parseInt(reg
+					.substring(1))];
+	}
 
-    }
+	private void setObjectByReg(String reg, Object obj) {
+		if (reg.startsWith("v"))
+			this.runStack.peek().variables[Integer.parseInt(reg.substring(1))] = obj;
+		else
+			this.runStack.peek().parameters[Integer.parseInt(reg.substring(1))] = obj;
 
-    /*
-        det = obj.fieldName;
-     */
+	}
+
+	/*
+	    det = obj.fieldName;
+	 */
 	public void instanceGet(String dstReg, String objReg, String fieldName) {
 		VmInstance obj = (VmInstance) getObjectByReg(objReg);
-        setObjectByReg(dstReg, obj.getField(fieldName));
+		setObjectByReg(dstReg, obj.getField(fieldName));
 	}
 
-    /*
-        obj.fieldName = src;
-     */
+	/*
+	    obj.fieldName = src;
+	 */
 	public void instancePut(String srcReg, String objReg, String fieldName) {
-        VmInstance obj = (VmInstance) getObjectByReg(objReg);
-        obj.setField(fieldName, getObjectByReg(srcReg));
+		VmInstance obj = (VmInstance) getObjectByReg(objReg);
+		obj.setField(fieldName, getObjectByReg(srcReg));
 	}
 
-    private void iget(String dstReg, String objReg, String fieldName){
-        this.instanceGet(dstReg, objReg, fieldName);
-        this.ip++;
-    }
-    private void iput(String srcReg, String objReg, String fieldName){
-        this.instancePut(srcReg, objReg, fieldName);
-        this.ip++;
-    }
+	private void iget(String dstReg, String objReg, String fieldName) {
+		this.instanceGet(dstReg, objReg, fieldName);
+		this.ip++;
+	}
 
+	private void iput(String srcReg, String objReg, String fieldName) {
+		this.instancePut(srcReg, objReg, fieldName);
+		this.ip++;
+	}
 
-    @Override
+	@Override
 	public void visit(Iget inst) {
-       /*
-            Maybe we should change the filed names in the Instruction.Iget like classes.
-         */
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		/*
+		     Maybe we should change the filed names in the Instruction.Iget like classes.
+		  */
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetWide inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	/*
@@ -1389,27 +1363,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(IgetOjbect inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetBoolean inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetByte inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
-    }
+		iget(inst.field, inst.dest, inst.type.fieldName);
+	}
 
 	@Override
 	public void visit(IgetChar inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IgetShort inst) {
-        iget(inst.field, inst.dest, inst.type.fieldName);
+		iget(inst.field, inst.dest, inst.type.fieldName);
 	}
 
 	/*
@@ -1422,7 +1396,7 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(IputWide inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	/*
@@ -1431,27 +1405,27 @@ public class InterpreterVisitor implements Visitor {
 	 */
 	@Override
 	public void visit(IputObject inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputBoolean inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputByte inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputChar inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
 	public void visit(IputShort inst) {
-        iput(inst.src, inst.field, inst.type.fieldName);
+		iput(inst.src, inst.field, inst.type.fieldName);
 	}
 
 	@Override
@@ -1573,66 +1547,65 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-
 	@Override
 	public void visit(CmplFloat inst) {
-        Float val1 = (Float)getObjectByReg(inst.first);
-        Float val2 = (Float)getObjectByReg(inst.second);
-        if(val1.isNaN() || val2.isNaN()){
-            setObjectByReg(inst.dest, new Integer(-1));
-        }else{
-            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-            setObjectByReg(inst.dest, new Integer(result));
-        }
-        this.ip++;
+		Float val1 = (Float) getObjectByReg(inst.first);
+		Float val2 = (Float) getObjectByReg(inst.second);
+		if (val1.isNaN() || val2.isNaN()) {
+			setObjectByReg(inst.dest, new Integer(-1));
+		} else {
+			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+			setObjectByReg(inst.dest, new Integer(result));
+		}
+		this.ip++;
 	}
 
 	@Override
 	public void visit(CmpgFloat inst) {
-        Float val1 = (Float)getObjectByReg(inst.first);
-        Float val2 = (Float)getObjectByReg(inst.second);
-        if(val1.isNaN() || val2.isNaN()){
-            setObjectByReg(inst.dest, new Integer(1));
-        }else{
-            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-            setObjectByReg(inst.dest, new Integer(result));
-        }
-        this.ip++;
+		Float val1 = (Float) getObjectByReg(inst.first);
+		Float val2 = (Float) getObjectByReg(inst.second);
+		if (val1.isNaN() || val2.isNaN()) {
+			setObjectByReg(inst.dest, new Integer(1));
+		} else {
+			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+			setObjectByReg(inst.dest, new Integer(result));
+		}
+		this.ip++;
 	}
 
 	@Override
 	public void visit(CmplDouble inst) {
-        Double val1 = (Double)getObjectByReg(inst.first);
-        Double val2 = (Double)getObjectByReg(inst.second);
-        if(val1.isNaN() || val2.isNaN()){
-            setObjectByReg(inst.dest, new Integer(-1));
-        }else{
-            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-            setObjectByReg(inst.dest, new Integer(result));
-        }
-        this.ip++;
+		Double val1 = (Double) getObjectByReg(inst.first);
+		Double val2 = (Double) getObjectByReg(inst.second);
+		if (val1.isNaN() || val2.isNaN()) {
+			setObjectByReg(inst.dest, new Integer(-1));
+		} else {
+			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+			setObjectByReg(inst.dest, new Integer(result));
+		}
+		this.ip++;
 	}
 
 	@Override
 	public void visit(Cmpgdouble inst) {
-        Double val1 = (Double)getObjectByReg(inst.first);
-        Double val2 = (Double)getObjectByReg(inst.second);
-        if(val1.isNaN() || val2.isNaN()){
-            setObjectByReg(inst.dest, new Integer(1));
-        }else{
-            int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-            setObjectByReg(inst.dest, new Integer(result));
-        }
-        this.ip++;
+		Double val1 = (Double) getObjectByReg(inst.first);
+		Double val2 = (Double) getObjectByReg(inst.second);
+		if (val1.isNaN() || val2.isNaN()) {
+			setObjectByReg(inst.dest, new Integer(1));
+		} else {
+			int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+			setObjectByReg(inst.dest, new Integer(result));
+		}
+		this.ip++;
 	}
 
 	@Override
 	public void visit(CmpLong inst) {
-        Long val1 = (Long)getObjectByReg(inst.first);
-        Long val2 = (Long)getObjectByReg(inst.second);
-        int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
-        setObjectByReg(inst.dest, new Integer(result));
-        this.ip++;
+		Long val1 = (Long) getObjectByReg(inst.first);
+		Long val2 = (Long) getObjectByReg(inst.second);
+		int result = val1.equals(val2) ? 0 : val1 > val2 ? 1 : -1;
+		setObjectByReg(inst.dest, new Integer(result));
+		this.ip++;
 	}
 
 	@Override
@@ -1733,266 +1706,365 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
+	private void biopLit(String dstReg, String srcReg, String literal, String op) {
+		Object result = null;
+		Integer src = (Integer) getObjectByReg(srcReg);
+		Integer lit = new Integer(literal);
 
-    private void biopLit(String dstReg, String srcReg, String literal, String op){
-        Object result = null;
-        Integer src = (Integer)getObjectByReg(srcReg);
-        Integer lit = new Integer(literal);
+		int indexEnd = op.indexOf("/");
+		if (indexEnd == -1)
+			indexEnd = op.length();
+		switch (op.substring(0, indexEnd)) {
+		case "add-int":
+			result = src + lit;
+			break;
+		case "rsub-int":
+			result = lit - src;
+			break;
+		case "mul-int":
+			result = src * lit;
+			break;
+		case "div-int":
+			result = src / lit;
+			break;
+		case "rem-int":
+			result = src % lit;
+			break;
+		case "and-int":
+			result = src & lit;
+			break;
+		case "or-int":
+			result = src | lit;
+			break;
+		case "xor-int":
+			result = src ^ lit;
+			break;
+		case "shl-int":
+			result = src << lit;
+			break;
+		case "shr-int":
+			result = src >> lit;
+			break;
+		case "ushr-int":
+			result = src >>> lit;
+			break;
+		default:
+			unexpectedError("biopLit..swith..op.sub: unkown");
+			break;
+		}
+		this.ip++;
+	}
 
-        int indexEnd = op.indexOf("/");
-        if(indexEnd == -1) indexEnd = op.length();
-        switch (op.substring(0, indexEnd)){
-            case "add-int": result = src + lit; break;
-            case "rsub-int": result = lit - src; break;
-            case "mul-int": result = src * lit; break;
-            case "div-int": result = src / lit; break;
-            case "rem-int": result = src % lit; break;
-            case "and-int": result = src & lit; break;
-            case "or-int":  result = src | lit; break;
-            case "xor-int": result = src ^ lit; break;
-            case "shl-int": result = src << lit; break;
-            case "shr-int": result = src >> lit; break;
-            case "ushr-int": result = src >>> lit; break;
-            default: unexpectedError("biopLit..swith..op.sub: unkown"); break;
-        }
-        this.ip++;
-    }
+	private void biop2addr(String firstReg, String secondReg, String op) {
+		biop(firstReg, firstReg, secondReg, op.substring(0, op.indexOf("/")));
+	}
 
-    private void biop2addr(String firstReg, String secondReg, String op){
-        biop(firstReg, firstReg, secondReg, op.substring(0, op.indexOf("/")));
-    }
+	private void biop(String dstReg, String firstReg, String secondReg,
+			String op) {
+		Object result = null;
 
-    private void biop(String dstReg, String firstReg, String secondReg, String op){
-        Object result = null;
-
-        switch (op.substring(op.indexOf("-") + 1)){
-            case "int":
-                Integer int1  = (Integer)getObjectByReg(firstReg);
-                Integer int2 = (Integer)getObjectByReg(secondReg);
-                switch (op){
-                    case "add-int": result = int1 + int2; break;
-                    case "sub-int": result = int1 - int2; break;
-                    case "mul-int": result = int1 * int2; break;
-                    case "div-int": result = int1 / int2; break;
-                    case "rem-int": result = int1 % int2; break;
-                    case "and-int": result = int1 & int2; break;
-                    case "or-int":  result = int1 | int2; break;
-                    case "xor-int": result = int1 ^ int2; break;
-                    case "shl-int": result = int1 << int2; break;
-                    case "shr-int": result = int1 >> int2; break;
-                    case "ushr-int": result = int1 >>> int2; break;
-                    default: unexpectedError("biop..swith..int..op: unkown"); break;
-                }
-                break;
-            case "long":
-                Long long1  = (Long)getObjectByReg(firstReg);
-                Long long2 = (Long)getObjectByReg(secondReg);
-                switch (op){
-                    case "add-long": result = long1 + long2; break;
-                    case "sub-long": result = long1 - long2; break;
-                    case "mul-long": result = long1 * long2; break;
-                    case "div-long": result = long1 / long2; break;
-                    case "rem-long": result = long1 % long2; break;
-                    case "and-long": result = long1 & long2; break;
-                    case "or-long": result = long1 | long2; break;
-                    case "xor-long": result = long1 ^ long2; break;
-                    case "shl-long": result = long1 << long2; break;
-                    case "shr-long": result = long1 >> long2; break;
-                    case "ushr-long": result = long1 >> long2; break;
-                    default: unexpectedError("biop..swith..long..op: unkown"); break;
-                }
-                break;
-            case "float":
-                Float float1  = (Float)getObjectByReg(firstReg);
-                Float float2 = (Float)getObjectByReg(secondReg);
-                switch (op){
-                    case "add-float": result = float1 + float2; break;
-                    case "sub-float": result = float1 - float2; break;
-                    case "mul-float": result = float1 * float2; break;
-                    case "div-float": result = float1 / float2; break;
-                    case "rem-float": result = float1 % float2; break;
-                    default: unexpectedError("biop..swith..float..op: unkown"); break;
-                }
-                break;
-            case "double":
-                Double double1  = (Double)getObjectByReg(firstReg);
-                Double double2 = (Double)getObjectByReg(secondReg);
-                switch (op){
-                    case "add-double": result = double1 + double2; break;
-                    case "sub-double": result = double1 - double2; break;
-                    case "mul-double": result = double1 * double2; break;
-                    case "div-double": result = double1 / double2; break;
-                    case "rem-double": result = double1 % double2; break;
-                    default: unexpectedError("biop..swith..double..op: unkown"); break;
-                }
-                break;
-            default: unexpectedError("biop..swith..op's endwith: unkown"); break;
-        }
-        setObjectByReg(dstReg, result);
-        this.ip++;
-    }
+		switch (op.substring(op.indexOf("-") + 1)) {
+		case "int":
+			Integer int1 = (Integer) getObjectByReg(firstReg);
+			Integer int2 = (Integer) getObjectByReg(secondReg);
+			switch (op) {
+			case "add-int":
+				result = int1 + int2;
+				break;
+			case "sub-int":
+				result = int1 - int2;
+				break;
+			case "mul-int":
+				result = int1 * int2;
+				break;
+			case "div-int":
+				result = int1 / int2;
+				break;
+			case "rem-int":
+				result = int1 % int2;
+				break;
+			case "and-int":
+				result = int1 & int2;
+				break;
+			case "or-int":
+				result = int1 | int2;
+				break;
+			case "xor-int":
+				result = int1 ^ int2;
+				break;
+			case "shl-int":
+				result = int1 << int2;
+				break;
+			case "shr-int":
+				result = int1 >> int2;
+				break;
+			case "ushr-int":
+				result = int1 >>> int2;
+				break;
+			default:
+				unexpectedError("biop..swith..int..op: unkown");
+				break;
+			}
+			break;
+		case "long":
+			Long long1 = (Long) getObjectByReg(firstReg);
+			Long long2 = (Long) getObjectByReg(secondReg);
+			switch (op) {
+			case "add-long":
+				result = long1 + long2;
+				break;
+			case "sub-long":
+				result = long1 - long2;
+				break;
+			case "mul-long":
+				result = long1 * long2;
+				break;
+			case "div-long":
+				result = long1 / long2;
+				break;
+			case "rem-long":
+				result = long1 % long2;
+				break;
+			case "and-long":
+				result = long1 & long2;
+				break;
+			case "or-long":
+				result = long1 | long2;
+				break;
+			case "xor-long":
+				result = long1 ^ long2;
+				break;
+			case "shl-long":
+				result = long1 << long2;
+				break;
+			case "shr-long":
+				result = long1 >> long2;
+				break;
+			case "ushr-long":
+				result = long1 >> long2;
+				break;
+			default:
+				unexpectedError("biop..swith..long..op: unkown");
+				break;
+			}
+			break;
+		case "float":
+			Float float1 = (Float) getObjectByReg(firstReg);
+			Float float2 = (Float) getObjectByReg(secondReg);
+			switch (op) {
+			case "add-float":
+				result = float1 + float2;
+				break;
+			case "sub-float":
+				result = float1 - float2;
+				break;
+			case "mul-float":
+				result = float1 * float2;
+				break;
+			case "div-float":
+				result = float1 / float2;
+				break;
+			case "rem-float":
+				result = float1 % float2;
+				break;
+			default:
+				unexpectedError("biop..swith..float..op: unkown");
+				break;
+			}
+			break;
+		case "double":
+			Double double1 = (Double) getObjectByReg(firstReg);
+			Double double2 = (Double) getObjectByReg(secondReg);
+			switch (op) {
+			case "add-double":
+				result = double1 + double2;
+				break;
+			case "sub-double":
+				result = double1 - double2;
+				break;
+			case "mul-double":
+				result = double1 * double2;
+				break;
+			case "div-double":
+				result = double1 / double2;
+				break;
+			case "rem-double":
+				result = double1 % double2;
+				break;
+			default:
+				unexpectedError("biop..swith..double..op: unkown");
+				break;
+			}
+			break;
+		default:
+			unexpectedError("biop..swith..op's endwith: unkown");
+			break;
+		}
+		setObjectByReg(dstReg, result);
+		this.ip++;
+	}
 
 	/*
 	 * add-int v0,p1,p2
 	 */
 	@Override
 	public void visit(AddInt inst) {
-        biop(inst.dest, inst.first, inst.second, "add-int");
+		biop(inst.dest, inst.first, inst.second, "add-int");
 	}
 
 	@Override
 	public void visit(SubInt inst) {
-        biop(inst.dest, inst.first, inst.second, "sub-int");
+		biop(inst.dest, inst.first, inst.second, "sub-int");
 	}
 
 	@Override
 	public void visit(MulInt inst) {
-        biop(inst.dest, inst.first, inst.second, "mul-int");
+		biop(inst.dest, inst.first, inst.second, "mul-int");
 	}
 
 	@Override
 	public void visit(DivInt inst) {
-        biop(inst.dest, inst.first, inst.second, "div-int");
+		biop(inst.dest, inst.first, inst.second, "div-int");
 	}
 
 	@Override
 	public void visit(RemInt inst) {
-        biop(inst.dest, inst.first, inst.second, "rem-int");
+		biop(inst.dest, inst.first, inst.second, "rem-int");
 	}
 
 	@Override
 	public void visit(AndInt inst) {
-        biop(inst.dest, inst.first, inst.second, "and-int");
+		biop(inst.dest, inst.first, inst.second, "and-int");
 	}
 
 	@Override
 	public void visit(OrInt inst) {
-        biop(inst.dest, inst.first, inst.second, "or-int");
+		biop(inst.dest, inst.first, inst.second, "or-int");
 	}
 
 	@Override
 	public void visit(XorInt inst) {
-        biop(inst.dest, inst.first, inst.second, "xor-int");
+		biop(inst.dest, inst.first, inst.second, "xor-int");
 	}
 
 	@Override
 	public void visit(ShlInt inst) {
-        biop(inst.dest, inst.first, inst.second, "shl-int");
+		biop(inst.dest, inst.first, inst.second, "shl-int");
 	}
 
 	@Override
 	public void visit(ShrInt inst) {
-        biop(inst.dest, inst.first, inst.second, "shr-int");
+		biop(inst.dest, inst.first, inst.second, "shr-int");
 	}
 
 	@Override
 	public void visit(UshrInt inst) {
-        biop(inst.dest, inst.first, inst.second, "ushr-int");
+		biop(inst.dest, inst.first, inst.second, "ushr-int");
 	}
 
 	@Override
 	public void visit(AddLong inst) {
-        biop(inst.dest, inst.first, inst.second, "add-long");
+		biop(inst.dest, inst.first, inst.second, "add-long");
 	}
 
 	@Override
 	public void visit(SubLong inst) {
-        biop(inst.dest, inst.first, inst.second, "sub-long");
+		biop(inst.dest, inst.first, inst.second, "sub-long");
 	}
 
 	@Override
 	public void visit(MulLong inst) {
-        biop(inst.dest, inst.first, inst.second, "mul-long");
+		biop(inst.dest, inst.first, inst.second, "mul-long");
 	}
 
 	@Override
 	public void visit(DivLong inst) {
-        biop(inst.dest, inst.first, inst.second, "div-long");
+		biop(inst.dest, inst.first, inst.second, "div-long");
 	}
 
 	@Override
 	public void visit(RemLong inst) {
-        biop(inst.dest, inst.first, inst.second, "rem-long");
+		biop(inst.dest, inst.first, inst.second, "rem-long");
 	}
 
 	@Override
 	public void visit(AndLong inst) {
-        biop(inst.dest, inst.first, inst.second, "and-long");
+		biop(inst.dest, inst.first, inst.second, "and-long");
 	}
 
 	@Override
 	public void visit(OrLong inst) {
-        biop(inst.dest, inst.first, inst.second, "or-long");
+		biop(inst.dest, inst.first, inst.second, "or-long");
 	}
 
 	@Override
 	public void visit(XorLong inst) {
-        biop(inst.dest, inst.first, inst.second, "xor-long");
+		biop(inst.dest, inst.first, inst.second, "xor-long");
 	}
 
 	@Override
 	public void visit(ShlLong inst) {
-        biop(inst.dest, inst.first, inst.second, "shl-long");
+		biop(inst.dest, inst.first, inst.second, "shl-long");
 	}
 
 	@Override
 	public void visit(ShrLong inst) {
-        biop(inst.dest, inst.first, inst.second, "shr-long");
+		biop(inst.dest, inst.first, inst.second, "shr-long");
 	}
 
 	@Override
 	public void visit(UshrLong inst) {
-        biop(inst.dest, inst.first, inst.second, "ushr-long");
+		biop(inst.dest, inst.first, inst.second, "ushr-long");
 	}
 
 	@Override
 	public void visit(AddFloat inst) {
-        biop(inst.dest, inst.first, inst.second, "add-float");
+		biop(inst.dest, inst.first, inst.second, "add-float");
 	}
 
 	@Override
 	public void visit(SubFloat inst) {
-        biop(inst.dest, inst.first, inst.second, "sub-float");
+		biop(inst.dest, inst.first, inst.second, "sub-float");
 	}
 
 	@Override
 	public void visit(MulFloat inst) {
-        biop(inst.dest, inst.first, inst.second, "mul-float");
+		biop(inst.dest, inst.first, inst.second, "mul-float");
 	}
 
 	@Override
 	public void visit(DivFloat inst) {
-        biop(inst.dest, inst.first, inst.second, "div-float");
+		biop(inst.dest, inst.first, inst.second, "div-float");
 	}
 
 	@Override
 	public void visit(RemFloat inst) {
-        biop(inst.dest, inst.first, inst.second, "rem-float");
+		biop(inst.dest, inst.first, inst.second, "rem-float");
 	}
 
 	@Override
 	public void visit(AddDouble inst) {
-        biop(inst.dest, inst.first, inst.second, "add-double");
+		biop(inst.dest, inst.first, inst.second, "add-double");
 	}
 
 	@Override
 	public void visit(SubDouble inst) {
-        biop(inst.dest, inst.first, inst.second, "sub-double");
+		biop(inst.dest, inst.first, inst.second, "sub-double");
 	}
 
 	@Override
 	public void visit(MulDouble inst) {
-        biop(inst.dest, inst.first, inst.second, "mul-double");
+		biop(inst.dest, inst.first, inst.second, "mul-double");
 	}
 
 	@Override
 	public void visit(DivDouble inst) {
-        biop(inst.dest, inst.first, inst.second, "div-double");
+		biop(inst.dest, inst.first, inst.second, "div-double");
 	}
 
 	@Override
 	public void visit(RemDouble inst) {
-        biop(inst.dest, inst.first, inst.second, "rem-double");
+		biop(inst.dest, inst.first, inst.second, "rem-double");
 	}
 
 	@Override
@@ -2001,10 +2073,6 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println("unknow inst : " + inst.op);
 
 	}
-
-
-
-
 
 	@Override
 	public void visit(FillArrayData inst) {
@@ -2110,11 +2178,23 @@ public class InterpreterVisitor implements Visitor {
 		this.ip++;
 	}
 
+	public List<String> getRegList(String regStart, String regEnd) {
+		char pv = regStart.charAt(0);
+		int startIndex = Integer.parseInt(regStart.substring(1));
+		int endIndex = Integer.parseInt(regEnd.substring(1));
+		List<String> regList = new ArrayList<String>();
+		for (int i = startIndex; i <= endIndex; i++) {
+			regList.add(pv + String.valueOf(i));
+		}
+		return regList;
+	}
+
 	@Override
 	public void visit(InvokeVirtualRange inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		List<String> regList = getRegList(inst.start, inst.end);
+		InvokeVirtual virtualMethod = new InvokeVirtual("invoke-virtual",
+				regList, inst.type);
+		virtualMethod.accept(this);
 	}
 
 	@Override
@@ -2126,15 +2206,18 @@ public class InterpreterVisitor implements Visitor {
 
 	@Override
 	public void visit(InvokeDirectRange inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
-
+		List<String> regList = getRegList(inst.start, inst.end);
+		InvokeDirect DirectMethod = new InvokeDirect("invoke-direct", regList,
+				inst.type);
+		DirectMethod.accept(this);
 	}
 
 	@Override
 	public void visit(InvokeStaticRange inst) {
-		// TODO Auto-generated method stub
-		System.err.println("unknow inst : " + inst.op);
+		List<String> regList = getRegList(inst.start, inst.end);
+		InvokeStatic StaticMethod = new InvokeStatic("invoke-static", regList,
+				inst.type);
+		StaticMethod.accept(this);
 
 	}
 
@@ -2151,7 +2234,6 @@ public class InterpreterVisitor implements Visitor {
 		System.err.println("unknow inst : " + inst.op);
 
 	}
-
 
 	@Override
 	public void visit(PackedSwitchDirective inst) {

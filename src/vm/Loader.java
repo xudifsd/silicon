@@ -64,19 +64,19 @@ public class Loader {
 	public static VmClass loadUserClass(String fullClassName) {
 		TranslateWorker worker = Source.classMap.get(fullClassName);
 		VmClass vmClass = null;
-			try {
-				vmClass = Loader.updateClassPool(fullClassName, worker.call());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+		try {
+			vmClass = Loader.updateClassPool(fullClassName, worker.call());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return vmClass;
 	}
-	
+
 	public static VmClass getUserClass(String fullClassName) {
 		VmClass vmClass = InterpreterVisitor.classMap.get(fullClassName);
-		if(vmClass != null)
+		if (vmClass != null)
 			return vmClass;
-		if(Source.classMap.containsKey(fullClassName))
+		if (Source.classMap.containsKey(fullClassName))
 			return loadUserClass(fullClassName);
 		return null;
 	}
@@ -110,10 +110,10 @@ public class Loader {
 
 	public static ast.method.Method getUserMethod(VmClass vmClass,
 			String fullMethodName) {
-		if(!vmClass.methodMap.containsKey(fullMethodName))
+		if (!vmClass.methodMap.containsKey(fullMethodName))
 			printErr("can't find user method : + " + fullMethodName);
-		
-		return vmClass.methodMap.get(fullMethodName);	
+
+		return vmClass.methodMap.get(fullMethodName);
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -122,8 +122,8 @@ public class Loader {
 		Method systemMethod = null;
 		String formatClassName = Util.getFormatClassName(fullClassName);
 		try {
-			systemMethod = Class.forName(formatClassName).getMethod(
-					methodName, parameterTypes);
+			systemMethod = Class.forName(formatClassName).getMethod(methodName,
+					parameterTypes);
 		} catch (NoSuchMethodException | SecurityException
 				| ClassNotFoundException e) {
 			e.printStackTrace();
@@ -139,7 +139,7 @@ public class Loader {
 		if (vmMethod != null)
 			return vmMethod;
 		VmClass vmClass = getUserClass(fullClassName);
-		if (vmClass !=null) {
+		if (vmClass != null) {
 			// user method
 			vmMethod = new VmMethod(methodItem.methodName, getUserMethod(
 					vmClass, fullMethodName));
@@ -212,24 +212,22 @@ public class Loader {
 			vmMethod = new VmMethod(methodItem.methodName, systemMethod);
 			return new VmMethod(methodItem.methodName, systemMethod);
 		}
-		
+
 		// user class
 		VmClass currentClass = getUserClass(fullClassName);
 		String superName = currentClass.superClass;
 		while (true) {
-			if(currentClass != null) {
+			if (currentClass != null) {
 				// user class
 				if (currentClass.methodMap.containsKey(fullMethodName)) {
 					vmMethod = new VmMethod(methodItem.methodName,
 							currentClass.methodMap.get(fullMethodName));
 					break;
-				}
-				else {
+				} else {
 					superName = currentClass.superClass;
 					currentClass = getUserClass(superName);
 				}
-			}
-			else{
+			} else {
 				//virtual method is system method
 				systemMethod = getSystemMethod(superName,
 						methodItem.methodName, parameterTypes);

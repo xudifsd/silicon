@@ -4,6 +4,7 @@
 	<classpathentry kind="lib" path="jar/antlr-3.2.jar"/>
 	<classpathentry kind="lib" path="jar/apktool.jar"/>
 	<classpathentry kind="lib" path="jar/dx.jar"/>
+	<classpathentry kind="lib" path="jar/clojure-1.5.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

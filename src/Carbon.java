@@ -11,6 +11,8 @@ import util.MultiThreadUtils.SimplifyWorker;
 import util.MultiThreadUtils.TranslateWorker;
 import util.MultiThreadUtils.ParserWorker;
 
+import sym.SymbolicExecutor;
+
 public class Carbon {
 	static Carbon carbon;
 
@@ -53,21 +55,29 @@ public class Carbon {
 		classes = CompilePass.translate(workers);
 		workers = null;
 
-		if (Control.dump.equals("ast")) {
-			CompilePass.prettyPrint(classes);
-		} else if (Control.dump.equals("sim")) {
+		if (Control.action.equals("dump")) {
+			if (Control.dump.equals("ast")) {
+				CompilePass.prettyPrint(classes);
+			} else if (Control.dump.equals("sim")) {
+				List<SimplifyWorker> sims;
+				sims = CompilePass.simplify(classes);
+				classes = null;
+
+				CompilePass.prettyPrintSim(sims);
+			} else {
+				System.err.println("unknow dump args " + Control.dump);
+				System.exit(2);
+			}
+		} else if (Control.action.equals("sym")) {
 			List<SimplifyWorker> sims;
 			sims = CompilePass.simplify(classes);
 			classes = null;
 
-			CompilePass.prettyPrintSim(sims);
-		} else if (Control.dump.equals("astvm")) {
-			//			CompilePass.astInterpreter(classes, "Lhong/example/Person;");
-			//			CompilePass.astInterpreter(classes, "LHello;");
-			//			CompilePass.astInterpreter(classes, "Lcomplex/Complex;");
-			System.out.println("perfect!");
+			SymbolicExecutor symbolicExe = new SymbolicExecutor(sims, new File(
+					Control.symoutput));
+			symbolicExe.execute();
 		} else {
-			System.err.println("unknow dump args " + Control.dump);
+			System.err.println("unknow action args " + Control.dump);
 			System.exit(2);
 		}
 	}

@@ -75,6 +75,19 @@ public class CommandLine {
 					public void f(Object i) {
 						Control.dump = (String) i;
 					}
+				}), new Arg<Object>("action", "<dump|sym>", "action to take",
+				Kind.String, new F<Object>() {
+					@Override
+					public void f(Object i) {
+						Control.dump = (String) i;
+					}
+				}), new Arg<Object>("symoutput", "path",
+				"path to output symbolic executing", Kind.String,
+				new F<Object>() {
+					@Override
+					public void f(Object i) {
+						Control.dump = (String) i;
+					}
 				}));
 	}
 

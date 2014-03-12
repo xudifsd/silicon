@@ -8,10 +8,13 @@ public class Control {
 
 	public static String apkoutput = "/tmp/output";
 
+	public static String symoutput = "/tmp/symoutput";
+
 	public static int numWorkers = 4;
 
-//	public static String dump = "sim";
-	public static String dump = "astvm";
+	public static String dump = "sim";
+
+	public static String action = "dump";
 
 	// verbose level
 	public enum Verbose_t {

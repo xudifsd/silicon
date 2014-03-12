@@ -9,4 +9,9 @@ public class ClazzArea {
      * value:  superClazzName
      */
     public Map<String, String> clazzz;
+
+    public boolean isLoaded(String clazzName){
+        // TODO
+        return false;
+    }
 }

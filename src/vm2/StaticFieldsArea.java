@@ -3,6 +3,8 @@ package vm2;
 import java.util.Map;
 
 public class StaticFieldsArea {
+    VM vm;
+
     /**
      * key:    fullQualifiedStaticFieldName
      * value:  field

@@ -7,25 +7,33 @@ public class ClazzLoader {
     }
 
     public void loadClazz(String clazzName){
-        initClazzArea(clazzName);
-        initMethodArea(clazzName);
-        initStaticFields(clazzName);
-        initInstanceFieldsCopy(clazzName);
+        if(vm.clazzArea.isLoaded(clazzName)){
+            return;
+        }
+
+
+        ast.classs.Class clazz = null; // TODO
+        initClazzArea(clazz);
+        initMethodArea(clazz);
+        initStaticFields(clazz);
+        initInstanceFieldsCopy(clazz);
     }
 
-    private void initClazzArea(String clazzName){
+    private void getASTClass(String clazzName){
 
     }
 
-    private void initMethodArea(String clazzName){
+    private void initClazzArea(ast.classs.Class clazz){
+    }
+
+    private void initMethodArea(ast.classs.Class clazz){
+    }
+
+    private void initStaticFields(ast.classs.Class clazz){
 
     }
 
-    private void initStaticFields(String clazzName){
-
-    }
-
-    private void initInstanceFieldsCopy(String clazzName){
+    private void initInstanceFieldsCopy(ast.classs.Class clazz){
 
     }
 }

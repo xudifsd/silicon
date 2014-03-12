@@ -1,36 +1,12 @@
 package vm2;
 
-import java.util.Map;
 import java.util.Stack;
 
 public class VM {
-
-    /**
-     * key:    clazzName
-     * value:  superClazzName
-     */
-    public Map<String, String> clazzArea;
-
-    /**
-     * key:    fullQualifiedMethodName
-     * value:  vm2.Method
-     */
-    public Map<String, Method> methodArea;
-
-    /**
-     * key:    fullQualifiedStaticFieldName
-     * value:  field
-     */
-    public Map<String, Object> staticFieldsArea;
-
-
-    /**
-     *  key:    clazzName
-     *  value:  instanceFieldsMap
-     *            key:    fieldName
-     *            value:  field
-     */
-    public Map<String, Map<String, Object>> instanceFieldsCopyArea;
+    ClazzArea clazzArea;
+    MethodArea methodArea;
+    StaticFieldsArea staticFieldsArea;
+    InstanceFieldsCopyArea instanceFieldsCopyArea;
 
     Object returnValue;         /* hen xian ran --comment by boss */
     Stack<Frame> callstack;     /* you know it  --comment by boss */

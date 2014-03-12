@@ -14,19 +14,8 @@ public class Loader {
 		System.exit(1);
 	}
 
-	public static Object getSystemInstance(String className) {
-		Object systemInstance = null;
-		try {
-			systemInstance = Class.forName(Util.getFormatClassName(className))
-					.newInstance();
-		} catch (InstantiationException | IllegalAccessException
-				| ClassNotFoundException e) {
-			e.printStackTrace();
-		}
-		return systemInstance;
-	}
-
 	/*
+	 * update the InterpreterVisitor.classMap when load a user class
 	 * format of fullMethodName : Lhong/example/Person;-><init>(Ljava/lang/String；I)V
 	 */
 	public static VmClass updateClassPool(String className,
@@ -61,6 +50,9 @@ public class Loader {
 		return vmClass;
 	}
 
+	/*
+	 * always return a UserClass
+	 */
 	public static VmClass loadUserClass(String fullClassName) {
 		TranslateWorker worker = Source.classMap.get(fullClassName);
 		VmClass vmClass = null;
@@ -72,6 +64,9 @@ public class Loader {
 		return vmClass;
 	}
 
+	/*
+	 * return a user Class or return null if the class is system class
+	 */
 	public static VmClass getUserClass(String fullClassName) {
 		VmClass vmClass = InterpreterVisitor.classMap.get(fullClassName);
 		if (vmClass != null)
@@ -81,6 +76,9 @@ public class Loader {
 		return null;
 	}
 
+	/*
+	 * get a system or user static field
+	 */
 	public static Object getStaticField(ast.classs.FieldItem fieldItem) {
 		String fullFieldName = Util.getFullFieldName(fieldItem);
 		Object content = InterpreterVisitor.staticFieldMap.get(fullFieldName);
@@ -108,6 +106,9 @@ public class Loader {
 		return content;
 	}
 
+	/*
+	 * get user method in a  specific user class
+	 */
 	public static ast.method.Method getUserMethod(VmClass vmClass,
 			String fullMethodName) {
 		if (!vmClass.methodMap.containsKey(fullMethodName))
@@ -116,6 +117,9 @@ public class Loader {
 		return vmClass.methodMap.get(fullMethodName);
 	}
 
+	/*
+	 * get system method
+	 */
 	@SuppressWarnings("rawtypes")
 	public static Method getSystemMethod(String fullClassName,
 			String methodName, Class[] parameterTypes) {
@@ -238,5 +242,14 @@ public class Loader {
 		if (vmMethod == null)
 			printErr("can't find virtual method: + " + fullMethodName);
 		return vmMethod;
+	}
+	
+	public VmMethod getSuperMethod() {
+		//TODO
+		return null;
+	}
+	public VmMethod getInterfaceMethod() {
+		//TODO
+		return null;
 	}
 }

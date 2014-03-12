@@ -4,7 +4,7 @@ import os
 import re
 from operator import itemgetter
 
-work_dir = '/home/rocky/sandbox'
+work_dir = '/root'
 
 
 def method_stat(apk_list):
@@ -14,7 +14,7 @@ def method_stat(apk_list):
 
     result_all = open(result_dir+'/MethodStaResAll.txt', 'a')
     result_detail = open(result_dir+'/MethodStaResDet.txt', 'a')
-    instruction_file = open('/home/rocky/carbon/docs/DalvikInsrtuctions.txt')
+    instruction_file = open('/root/carbon/docs/DalvikInsrtuctions.txt')
     logfile = open(work_dir+'/result_stat/MethodStaLog.txt', 'a')
 
     method_cal_dic = {}

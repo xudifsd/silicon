@@ -86,7 +86,7 @@ public class MultiThreadUtils {
 			CommonTree tree = parserWorker.call();
 			CommonTreeNodeStream treeStream = new CommonTreeNodeStream(tree);
 
-			TranslateWalker walker = new TranslateWalker(treeStream);
+			TranslateWorker walker = new TranslateWorker(treeStream);
 			return walker.smali_file();
 		}
 	}

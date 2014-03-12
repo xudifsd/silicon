@@ -1933,11 +1933,12 @@ public class InterpreterVisitor implements Visitor {
     } else {
       Frame frame = new Frame();
       frame.parameters = parameters;
+      // HBJ: return to current ip?
       frame.returnAddress = ip;
       this.callStack.push(frame);
       staticMethod.astMethod.accept(this);
     }
-    // What's the use for this?
+    // HBJ: what's the use for this?
 		this.ip++;
 	}
 

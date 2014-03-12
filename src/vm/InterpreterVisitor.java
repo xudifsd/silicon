@@ -73,6 +73,12 @@ public class InterpreterVisitor implements Visitor {
 		return parameterList;
 	}
 
+	/*
+	 * input: 
+	 *    objs : arguments
+	 *    parameterTypes : the argument type of system method
+	 * get the Object[] for system invoke
+	 */
 	public static Object[] getObjectParameters(boolean isStatic, Object[] objs,
 			List<String> parameterTypes) {
 		int i = isStatic == true ? 0 : 1;
@@ -213,11 +219,8 @@ public class InterpreterVisitor implements Visitor {
 		//TODO
 	}
 
-	/*
-	 * step 1 : update ip and methodEnd
-	 * step 2 : remove current stack frame
-	 */
-
+	
+	
 	public void leaveVmMethod() {
 		this.methodEnd = true;
 		this.ip = this.callStack.peek().returnAddress;
@@ -236,9 +239,7 @@ public class InterpreterVisitor implements Visitor {
 
 	}
 
-	/*
-	 * init variableList of top stackframe
-	 */
+	
 	@Override
 	public void visit(Method method) {
 		int variableLength;

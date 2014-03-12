@@ -1,19 +1,15 @@
 package ast;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import control.Control;
 import ast.annotation.Annotation;
 import ast.annotation.Annotation.ElementLiteral;
 import ast.annotation.Annotation.SubAnnotation;
 import ast.stm.Instruction;
+import control.Control;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.*;
 
 /* *
  * This class should be thread safe
@@ -602,7 +598,7 @@ public class PrettyPrintVisitor implements Visitor {
 	}
 
 	// 08 22x move-object/from16 vAA, vBBBB --
-	public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst) {
+	public void visit(ast.stm.Instruction.MoveObjectFrom16 inst) {
 		this.position += instLen.get(inst.op);
 		this.sayln(inst.op + " " + inst.dest + ", " + inst.src);
 

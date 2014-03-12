@@ -347,7 +347,7 @@ public class SimplifyVisitor implements ast.Visitor {
 
 	// 08 22x move-object/from16 vAA, vBBBB --
 	@Override
-	public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst) {
+	public void visit(ast.stm.Instruction.MoveObjectFrom16 inst) {
 		emit(new sim.stm.Instruction.Move("move-object/16", inst.dest, inst.src),
 				inst.op);
 	}

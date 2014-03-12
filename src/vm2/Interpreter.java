@@ -774,7 +774,7 @@ public class Interpreter implements Visitor {
     }
 
     @Override
-    public void visit(Instruction.MoveOjbectFrom16 moveOjbectFrom16) {
+    public void visit(Instruction.MoveObjectFrom16 moveOjbectFrom16) {
 
     }
 

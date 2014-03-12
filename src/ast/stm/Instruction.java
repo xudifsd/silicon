@@ -3375,13 +3375,13 @@ public class Instruction
   }
 
   // 08 22x move-object/from16 vAA, vBBBB
-  public static class MoveOjbectFrom16 extends T
+  public static class MoveObjectFrom16 extends T
   {
     public String op;
     public String dest;
     public String src;
 
-    public MoveOjbectFrom16(String op, String dest, String src)
+    public MoveObjectFrom16(String op, String dest, String src)
     {
       super();
       this.op = op;

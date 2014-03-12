@@ -1209,8 +1209,8 @@ insn_format22x returns [ast.stm.T inst]
         case "move/from16" : $inst = new ast.stm.Instruction.MoveFrom16($a.text,$b.text,$c.text);break;
         //05  move-wide/from16 MoveWideFrom16
         case "move-wide/from16" : $inst = new ast.stm.Instruction.MoveWideFrom16($a.text,$b.text,$c.text);break;
-        //08  move-object/from16 MoveOjbectFrom16
-        case "move-object/from16" : $inst = new ast.stm.Instruction.MoveOjbectFrom16($a.text,$b.text,$c.text);break;
+        //08  move-object/from16 MoveObjectFrom16
+        case "move-object/from16" : $inst = new ast.stm.Instruction.MoveObjectFrom16($a.text,$b.text,$c.text);break;
         default: System.err.println("insn_format22x: " + $a.text + " unknown");
       }
     };

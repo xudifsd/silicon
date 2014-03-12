@@ -20,7 +20,7 @@ public interface Visitor {
     public void visit(ast.stm.Instruction.MoveWideFrom16 inst);
     public void visit(ast.stm.Instruction.MoveWide16 inst);
     public void visit(ast.stm.Instruction.MoveObject inst);
-    public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst);
+    public void visit(ast.stm.Instruction.MoveObjectFrom16 inst);
     public void visit(ast.stm.Instruction.MoveObject16 inst);
     public void visit(ast.stm.Instruction.MoveResult inst);
     public void visit(ast.stm.Instruction.MoveResultWide inst);

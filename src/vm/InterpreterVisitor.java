@@ -1302,7 +1302,7 @@ public class InterpreterVisitor implements Visitor {
 	}
 
 	@Override
-	public void visit(MoveOjbectFrom16 inst) {
+	public void visit(MoveObjectFrom16 inst) {
 		// TODO Auto-generated method stub
 		System.err.println("unknow inst : " + inst.op);
 

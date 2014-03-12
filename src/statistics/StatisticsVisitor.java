@@ -611,7 +611,7 @@ public class StatisticsVisitor implements ast.Visitor
 
   // 08 22x move-object/from16 vAA, vBBBB --
   @Override
-  public void visit(ast.stm.Instruction.MoveOjbectFrom16 inst)
+  public void visit(ast.stm.Instruction.MoveObjectFrom16 inst)
   {
     instMap.put(inst.op, instMap.get(inst.op) + 1);
   }

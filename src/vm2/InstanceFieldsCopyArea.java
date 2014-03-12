@@ -2,9 +2,6 @@ package vm2;
 
 import java.util.Map;
 
-/**
- * Created by YKG on 14-3-12.
- */
 public class InstanceFieldsCopyArea {
     /**
      *  key:    clazzName

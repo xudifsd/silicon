@@ -2,8 +2,7 @@ package vm2;
 
 import ast.Visitor;
 import ast.annotation.Annotation;
-import ast.classs.FieldItem;
-import ast.classs.MethodItem;
+import ast.classs.*;
 import ast.method.Method;
 import ast.program.Program;
 import ast.stm.Instruction;
@@ -11,12 +10,10 @@ import ast.stm.Instruction;
 public class Interpreter implements Visitor {
     VM vm;
 
-
     // invoke-*:
     //  1. pc++
     //  2. save frame
     //  3. set code/pc/reg
-
 
     // return-*:
     //  1. set result
@@ -59,1092 +56,1092 @@ public class Interpreter implements Visitor {
     }
 
     @Override
-    public void visit(Instruction.Goto goto1) {
+    public void visit(Instruction.Nop inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Nop nop) {
+    public void visit(Instruction.Move inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ReturnVoid returnVoid) {
+    public void visit(Instruction.MoveFrom16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Const4 const4) {
+    public void visit(Instruction.Move16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveResult moveResult) {
+    public void visit(Instruction.MoveWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveResultWide moveResultWide) {
+    public void visit(Instruction.MoveWideFrom16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveResultObject moveResultObject) {
+    public void visit(Instruction.MoveWide16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveException moveException) {
+    public void visit(Instruction.MoveObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Return return1) {
+    public void visit(Instruction.MoveObjectFrom16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ReturnWide returnWide) {
+    public void visit(Instruction.MoveObject16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ReturnObject returnObject) {
+    public void visit(Instruction.MoveResult inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MonitorEnter monitorEnter) {
+    public void visit(Instruction.MoveResultWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MonitorExit monitorExit) {
+    public void visit(Instruction.MoveResultObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Throw throw1) {
+    public void visit(Instruction.MoveException inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Move move) {
+    public void visit(Instruction.ReturnVoid inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveWide moveWide) {
+    public void visit(Instruction.Return inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveObject moveObject) {
+    public void visit(Instruction.ReturnWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.arrayLength arrayLength) {
+    public void visit(Instruction.ReturnObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NegInt negInt) {
+    public void visit(Instruction.Const4 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NotInt notInt) {
+    public void visit(Instruction.Const16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NegLong negLong) {
+    public void visit(Instruction.Const inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NotLong notLong) {
+    public void visit(Instruction.ConstHigh16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NegFloat negFloat) {
+    public void visit(Instruction.ConstWide16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NegDouble negDouble) {
+    public void visit(Instruction.ConstWide32 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToLong intToLong) {
+    public void visit(Instruction.ConstWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToFloat intToFloat) {
+    public void visit(Instruction.ConstWideHigh16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToDouble intToDouble) {
+    public void visit(Instruction.ConstString inst) {
 
     }
 
     @Override
-    public void visit(Instruction.LongToInt longToInt) {
+    public void visit(Instruction.ConstStringJumbo inst) {
 
     }
 
     @Override
-    public void visit(Instruction.LongToFloat longToFloat) {
+    public void visit(Instruction.ConstClass inst) {
 
     }
 
     @Override
-    public void visit(Instruction.LongToDouble longToDouble) {
+    public void visit(Instruction.MonitorEnter inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FloatToInt floatToInt) {
+    public void visit(Instruction.MonitorExit inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FloatToLong floatToLong) {
+    public void visit(Instruction.CheckCast inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FloatToDouble floatToDouble) {
+    public void visit(Instruction.InstanceOf inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DoubleToInt doubleToInt) {
+    public void visit(Instruction.arrayLength inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DoubleToLong doubleToLong) {
+    public void visit(Instruction.NewInstance inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DoubleToFloat doubleToFloat) {
+    public void visit(Instruction.NewArray inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToByte intToByte) {
+    public void visit(Instruction.FilledNewArray inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToChar intToChar) {
+    public void visit(Instruction.FilledNewArrayRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IntToShort intToShort) {
+    public void visit(Instruction.FillArrayData inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddInt2Addr addInt2Addr) {
+    public void visit(Instruction.Throw inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubInt2Addr subInt2Addr) {
+    public void visit(Instruction.Goto inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulInt2Addr mulInt2Addr) {
+    public void visit(Instruction.Goto16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivInt2Addr divInt2Addr) {
+    public void visit(Instruction.Goto32 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemInt2Addr remInt2Addr) {
+    public void visit(Instruction.PackedSwitch inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndInt2Addr andInt2Addr) {
+    public void visit(Instruction.SparseSwitch inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrInt2Addr orInt2Addr) {
+    public void visit(Instruction.CmplFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorInt2Addr xorInt2Addr) {
+    public void visit(Instruction.CmpgFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShlInt2Addr shlInt2Addr) {
+    public void visit(Instruction.CmplDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShrInt2Addr shrInt2Addr) {
+    public void visit(Instruction.Cmpgdouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.UshrInt2Addr ushrInt2Addr) {
+    public void visit(Instruction.CmpLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddLong2Addr addLong2Addr) {
+    public void visit(Instruction.IfEq inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubLong2Addr subLong2Addr) {
+    public void visit(Instruction.IfNe inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulLong2Addr mulLong2Addr) {
+    public void visit(Instruction.IfLt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivLong2Addr divLong2Addr) {
+    public void visit(Instruction.IfGe inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemLong2Addr remLong2Addr) {
+    public void visit(Instruction.IfGt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndLong2Addr andLong2Addr) {
+    public void visit(Instruction.IfLe inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrLong2Addr orLong2Addr) {
+    public void visit(Instruction.IfEqz inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorLong2Addr xorLong2Addr) {
+    public void visit(Instruction.IfNez inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShlLong2Addr shlLong2Addr) {
+    public void visit(Instruction.IfLtz inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShrLong2Addr shrLong2Addr) {
+    public void visit(Instruction.IfGez inst) {
 
     }
 
     @Override
-    public void visit(Instruction.UshrLong2Addr ushrLong2Addr) {
+    public void visit(Instruction.IfGtz inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddFloat2Addr addFloat2Addr) {
+    public void visit(Instruction.IfLez inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubFloat2Addr subFloat2Addr) {
+    public void visit(Instruction.Aget inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulFloat2Addr mulFloat2Addr) {
+    public void visit(Instruction.AgetWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivFloat2Addr divFloat2Addr) {
+    public void visit(Instruction.AgetObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemFloat2Addr remFloat2Addr) {
+    public void visit(Instruction.AgetBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddDouble2Addr addDouble2Addr) {
+    public void visit(Instruction.AgetByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubDouble2Addr subDouble2Addr) {
+    public void visit(Instruction.AgetChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulDouble2Addr mulDouble2Addr) {
+    public void visit(Instruction.AgetShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivDouble2Addr divDouble2Addr) {
+    public void visit(Instruction.Aput inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemDouble2Addr remDouble2Addr) {
+    public void visit(Instruction.AputWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Goto16 goto16) {
+    public void visit(Instruction.AputObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstString constString) {
+    public void visit(Instruction.AputBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstClass constClass) {
+    public void visit(Instruction.AputByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.CheckCast checkCast) {
+    public void visit(Instruction.AputChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NewInstance newInstance) {
+    public void visit(Instruction.AputShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Sget sget) {
+    public void visit(Instruction.Iget inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetWide sgetWide) {
+    public void visit(Instruction.IgetWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetObject sgetObject) {
+    public void visit(Instruction.IgetOjbect inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetBoolean sgetBoolean) {
+    public void visit(Instruction.IgetBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetByte sgetByte) {
+    public void visit(Instruction.IgetByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetChar sgetChar) {
+    public void visit(Instruction.IgetChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SgetShort sgetShort) {
+    public void visit(Instruction.IgetShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Sput sput) {
+    public void visit(Instruction.Iput inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputWide sputWide) {
+    public void visit(Instruction.IputWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputObject sputObject) {
+    public void visit(Instruction.IputObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputBoolean sputBoolean) {
+    public void visit(Instruction.IputBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputByte sputByte) {
+    public void visit(Instruction.IputByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputChar sputChar) {
+    public void visit(Instruction.IputChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SputShort sputShort) {
+    public void visit(Instruction.IputShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstHigh16 constHigh16) {
+    public void visit(Instruction.Sget inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstWideHigh16 constWideHigh16) {
+    public void visit(Instruction.SgetWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Const16 const16) {
+    public void visit(Instruction.SgetObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstWide16 constWide16) {
+    public void visit(Instruction.SgetBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfEqz ifEqz) {
+    public void visit(Instruction.SgetByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfNez ifNez) {
+    public void visit(Instruction.SgetChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfLtz ifLtz) {
+    public void visit(Instruction.SgetShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfGez ifGez) {
+    public void visit(Instruction.Sput inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfGtz ifGtz) {
+    public void visit(Instruction.SputWide inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfLez ifLez) {
+    public void visit(Instruction.SputObject inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddIntLit8 addIntLit8) {
+    public void visit(Instruction.SputBoolean inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RsubIntLit8 rsubIntLit8) {
+    public void visit(Instruction.SputByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulIntLit8 mulIntLit8) {
+    public void visit(Instruction.SputChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivIntLit8 divIntLit8) {
+    public void visit(Instruction.SputShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemIntLit8 remIntLit8) {
+    public void visit(Instruction.InvokeVirtual inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndIntLit8 andIntLit8) {
+    public void visit(Instruction.InvokeSuper inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrIntLit8 orIntLit8) {
+    public void visit(Instruction.InvokeDirect inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorIntLit8 xorIntLit8) {
+    public void visit(Instruction.InvokeStatic inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShlIntLit8 shlIntLit8) {
+    public void visit(Instruction.InvokeInterface inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShrIntLit8 shrIntLit8) {
+    public void visit(Instruction.InvokeVirtualRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.UshrIntLit8 ushrIntLit8) {
+    public void visit(Instruction.InvokeSuperRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InstanceOf instanceOf) {
+    public void visit(Instruction.InvokeDirectRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.NewArray newArray) {
+    public void visit(Instruction.InvokeStaticRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Iget iget) {
+    public void visit(Instruction.InvokeInterfaceRange inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetWide igetWide) {
+    public void visit(Instruction.NegInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetOjbect igetOjbect) {
+    public void visit(Instruction.NotInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetBoolean igetBoolean) {
+    public void visit(Instruction.NegLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetByte igetByte) {
+    public void visit(Instruction.NotLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetChar igetChar) {
+    public void visit(Instruction.NegFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IgetShort igetShort) {
+    public void visit(Instruction.NegDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Iput iput) {
+    public void visit(Instruction.IntToLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputWide iputWide) {
+    public void visit(Instruction.IntToFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputObject iputObject) {
+    public void visit(Instruction.IntToDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputBoolean iputBoolean) {
+    public void visit(Instruction.LongToInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputByte iputByte) {
+    public void visit(Instruction.LongToFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputChar iputChar) {
+    public void visit(Instruction.LongToDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IputShort iputShort) {
+    public void visit(Instruction.FloatToInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddIntLit16 addIntLit16) {
+    public void visit(Instruction.FloatToLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RsubInt rsubInt) {
+    public void visit(Instruction.FloatToDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulIntLit16 mulIntLit16) {
+    public void visit(Instruction.DoubleToInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivIntLit16 divIntLit16) {
+    public void visit(Instruction.DoubleToLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemIntLit16 remIntLit16) {
+    public void visit(Instruction.DoubleToFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndIntLit16 andIntLit16) {
+    public void visit(Instruction.IntToByte inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrIntLit16 orIntLit16) {
+    public void visit(Instruction.IntToChar inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorIntLit16 xorIntLit16) {
+    public void visit(Instruction.IntToShort inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfEq ifEq) {
+    public void visit(Instruction.AddInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfNe ifNe) {
+    public void visit(Instruction.SubInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfLt ifLt) {
+    public void visit(Instruction.MulInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfGe ifGe) {
+    public void visit(Instruction.DivInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfGt ifGt) {
+    public void visit(Instruction.RemInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.IfLe ifLe) {
+    public void visit(Instruction.AndInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveFrom16 moveFrom16) {
+    public void visit(Instruction.OrInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveWideFrom16 moveWideFrom16) {
+    public void visit(Instruction.XorInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveObjectFrom16 moveOjbectFrom16) {
+    public void visit(Instruction.ShlInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.CmplFloat cmplFloat) {
+    public void visit(Instruction.ShrInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.CmpgFloat cmpgFloat) {
+    public void visit(Instruction.UshrInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.CmplDouble cmplDouble) {
+    public void visit(Instruction.AddLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Cmpgdouble cmpgdouble) {
+    public void visit(Instruction.SubLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.CmpLong cmpLong) {
+    public void visit(Instruction.MulLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Aget aget) {
+    public void visit(Instruction.DivLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetWide agetWide) {
+    public void visit(Instruction.RemLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetObject agetObject) {
+    public void visit(Instruction.AndLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetBoolean agetBoolean) {
+    public void visit(Instruction.OrLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetByte agetByte) {
+    public void visit(Instruction.XorLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetChar agetChar) {
+    public void visit(Instruction.ShlLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AgetShort agetShort) {
+    public void visit(Instruction.ShrLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Aput aput) {
+    public void visit(Instruction.UshrLong inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputWide aputWide) {
+    public void visit(Instruction.AddFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputObject aputObject) {
+    public void visit(Instruction.SubFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputBoolean aputBoolean) {
+    public void visit(Instruction.MulFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputByte aputByte) {
+    public void visit(Instruction.DivFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputChar aputChar) {
+    public void visit(Instruction.RemFloat inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AputShort aputShort) {
+    public void visit(Instruction.AddDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddInt addInt) {
+    public void visit(Instruction.SubDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubInt subInt) {
+    public void visit(Instruction.MulDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulInt mulInt) {
+    public void visit(Instruction.DivDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivInt divInt) {
+    public void visit(Instruction.RemDouble inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemInt remInt) {
+    public void visit(Instruction.AddInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndInt andInt) {
+    public void visit(Instruction.SubInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrInt orInt) {
+    public void visit(Instruction.MulInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorInt xorInt) {
+    public void visit(Instruction.DivInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShlInt shlInt) {
+    public void visit(Instruction.RemInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShrInt shrInt) {
+    public void visit(Instruction.AndInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.UshrInt ushrInt) {
+    public void visit(Instruction.OrInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddLong addLong) {
+    public void visit(Instruction.XorInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubLong subLong) {
+    public void visit(Instruction.ShlInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulLong mulLong) {
+    public void visit(Instruction.ShrInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivLong divLong) {
+    public void visit(Instruction.UshrInt2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemLong remLong) {
+    public void visit(Instruction.AddLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AndLong andLong) {
+    public void visit(Instruction.SubLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.OrLong orLong) {
+    public void visit(Instruction.MulLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.XorLong xorLong) {
+    public void visit(Instruction.DivLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShlLong shlLong) {
+    public void visit(Instruction.RemLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ShrLong shrLong) {
+    public void visit(Instruction.AndLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.UshrLong ushrLong) {
+    public void visit(Instruction.OrLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddFloat addFloat) {
+    public void visit(Instruction.XorLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubFloat subFloat) {
+    public void visit(Instruction.ShlLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulFloat mulFloat) {
+    public void visit(Instruction.ShrLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivFloat divFloat) {
+    public void visit(Instruction.UshrLong2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemFloat remFloat) {
+    public void visit(Instruction.AddFloat2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.AddDouble addDouble) {
+    public void visit(Instruction.SubFloat2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SubDouble subDouble) {
+    public void visit(Instruction.MulFloat2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MulDouble mulDouble) {
+    public void visit(Instruction.DivFloat2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.DivDouble divDouble) {
+    public void visit(Instruction.RemFloat2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.RemDouble remDouble) {
+    public void visit(Instruction.AddDouble2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Goto32 goto32) {
+    public void visit(Instruction.SubDouble2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstStringJumbo constStringJumbo) {
+    public void visit(Instruction.MulDouble2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Const const1) {
+    public void visit(Instruction.DivDouble2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstWide32 constWide32) {
+    public void visit(Instruction.RemDouble2Addr inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FillArrayData fillArrayData) {
+    public void visit(Instruction.AddIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.PackedSwitch packedSwitch) {
+    public void visit(Instruction.RsubInt inst) {
 
     }
 
     @Override
-    public void visit(Instruction.SparseSwitch sparseSwitch) {
+    public void visit(Instruction.MulIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.Move16 move16) {
+    public void visit(Instruction.DivIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveWide16 moveWide16) {
+    public void visit(Instruction.RemIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.MoveObject16 moveObject16) {
+    public void visit(Instruction.AndIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FilledNewArray filledNewArray) {
+    public void visit(Instruction.OrIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeVirtual invokeVirtual) {
+    public void visit(Instruction.XorIntLit16 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeSuper invokeSuper) {
+    public void visit(Instruction.AddIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeDirect invokeDirect) {
+    public void visit(Instruction.RsubIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeStatic invokeStatic) {
+    public void visit(Instruction.MulIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeInterface invokeInterface) {
+    public void visit(Instruction.DivIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeVirtualRange invokeVirtualRange) {
+    public void visit(Instruction.RemIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeSuperRange invokeSuperRange) {
+    public void visit(Instruction.AndIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeDirectRange invokeDirectRange) {
+    public void visit(Instruction.OrIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeStaticRange invokeStaticRange) {
+    public void visit(Instruction.XorIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.InvokeInterfaceRange invokeInterfaceRange) {
+    public void visit(Instruction.ShlIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.FilledNewArrayRange filledNewArrayRange) {
+    public void visit(Instruction.ShrIntLit8 inst) {
 
     }
 
     @Override
-    public void visit(Instruction.ConstWide constWide) {
+    public void visit(Instruction.UshrIntLit8 inst) {
 
     }
 
@@ -1177,7 +1174,5 @@ public class Interpreter implements Visitor {
     public void visit(Annotation.ElementLiteral elementLiteral) {
 
     }
-
-
 
 }

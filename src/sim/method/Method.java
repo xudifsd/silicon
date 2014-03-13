@@ -11,19 +11,19 @@ public class Method extends T {
 	// 1.method_name_and_prototype
 	public String name;
 	public MethodPrototype prototype;
-	
+
 	// 2.access_list
 	public List<String> accessList;
-	
+
 	// 3.registers_directive
 	public String registers_directive;
-	
+
 	public String registers_directive_count;
 	// 4.labels
 	public List<sim.method.Method.Label> labelList;
 	// 7.statements
 	public List<sim.stm.T> statements;
-	
+
 	// 8.catches
 	public List<sim.method.Method.Catch> catchList;
 
@@ -34,7 +34,8 @@ public class Method extends T {
 	public List<sim.annotation.Annotation> annotationList;
 
 	// hashMap[label][index in simpleinstruction list]
-	public HashMap<String,Integer> labels;
+	public HashMap<String, Integer> labels;
+
 	public static class Label implements Comparable<Label> {
 		public String lab;
 		public String add;
@@ -43,7 +44,6 @@ public class Method extends T {
 			super();
 			this.lab = lab;
 			this.add = add;
-
 		}
 
 		public int compareTo(Label la) {
@@ -54,7 +54,6 @@ public class Method extends T {
 		public String toString() {
 			return ":" + this.lab;
 		}
-
 	}
 
 	public static class Parameter {
@@ -78,8 +77,8 @@ public class Method extends T {
 		public String endLab;
 		public String catchLab;
 
-		public Catch(String add, boolean isAll, String type, String startLab, String endLab,
-				String catchLab) {
+		public Catch(String add, boolean isAll, String type, String startLab,
+				String endLab, String catchLab) {
 			super();
 			this.add = add;
 			this.isAll = isAll;
@@ -103,6 +102,7 @@ public class Method extends T {
 			return Integer.parseInt(this.add) - (Integer.parseInt(cat.add));
 		}
 	}
+
 	public static class MethodPrototype extends T {
 		public String returnType;
 		public List<String> argsType;

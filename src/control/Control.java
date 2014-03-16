@@ -16,7 +16,7 @@ public class Control {
 
 	public static String action = "dump";
 
-	public static int symExeSec = 20; // default to execute for 20 seconds
+	public static int symExeSec = 60; // default to execute at most 60 seconds
 
 	// verbose level
 	public enum Verbose_t {

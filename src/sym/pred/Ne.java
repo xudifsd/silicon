@@ -13,6 +13,7 @@ public class Ne implements IPrediction {
 
 	@Override
 	public String toString() {
-		return "(" + left.toString() + ") != (" + right.toString() + ")";
+		return String.format("(not (= %s %s))", left.toString(),
+				right.toString());
 	}
 }

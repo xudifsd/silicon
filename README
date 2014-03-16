@@ -1,10 +1,7 @@
-first compile src/antlr3/TranslateWalker.g:
+compile like:
 
-    cd src/antlr3
-    java org.antlr.Tool TranslateWalker.g
+    (cd script/ && ./compile.sh)
 
-and then use eclipse to compile all the java code
+use like:
 
-use like this:
-
-    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar" Carbon test/apk/Complete.apk
+    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar:jar/antlr-3.2.jar:jar/clojure-1.5.1.jar" Silicon test/apk/IndexOOB.apk -action sym

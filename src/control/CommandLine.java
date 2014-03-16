@@ -79,7 +79,7 @@ public class CommandLine {
 				Kind.String, new F<Object>() {
 					@Override
 					public void f(Object i) {
-						Control.dump = (String) i;
+						Control.action = (String) i;
 					}
 				}), new Arg<Object>("symoutput", "path",
 				"path to output symbolic executing", Kind.String,
@@ -205,8 +205,8 @@ public class CommandLine {
 	}
 
 	private static void usage() {
-		System.out.println("The Carbon. Copyright (C) 2013-, SSE of USTC.\n"
-				+ "Usage: java Carbon [options] <filename>\n");
+		System.out.println("The Silicon. Copyright (C) 2013-, SSE of USTC.\n"
+				+ "Usage: java Silicon [options] <filename>\n");
 		output();
 		System.exit(2);
 	}

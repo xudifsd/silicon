@@ -1,6 +1,13 @@
 public class IndexOOB {
     public static void main(String[] args) {
-        int[] array = new int[10];
-        array[10] = 10;
+        test(10);
+    }
+    public static void test(int x) {
+        int[] array = new int[x];
+        if (x > 10) {
+            System.out.println("error!");
+        } else {
+            array[x] = x;
+        }
     }
 }

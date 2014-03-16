@@ -1,7 +1,5 @@
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -16,9 +14,6 @@ import util.MultiThreadUtils.SimplifyWorker;
 import util.MultiThreadUtils.TranslateWorker;
 import util.MultiThreadUtils.PrettyPrintSimWorker;
 import util.MultiThreadUtils.PrettyPrintWorker;
-import vm.InterpreterVisitor;
-import vm.Source;
-
 
 public class CompilePass {
 	private static ArrayList<File> getAllSmali(File startPoint) {
@@ -66,8 +61,7 @@ public class CompilePass {
 
 	public static void prettyPrintSim(List<SimplifyWorker> workers)
 			throws RecognitionException, ExecutionException {
-		ExecutorService executor = Executors
-				.newFixedThreadPool(Control.numWorkers);
+		ExecutorService executor = Executors.newFixedThreadPool(Control.numWorkers);
 
 		for (SimplifyWorker worker : workers)
 			executor.submit(new PrettyPrintSimWorker(worker));
@@ -85,8 +79,7 @@ public class CompilePass {
 
 	public static void prettyPrint(List<TranslateWorker> workers)
 			throws RecognitionException, ExecutionException {
-		ExecutorService executor = Executors
-				.newFixedThreadPool(Control.numWorkers);
+		ExecutorService executor = Executors.newFixedThreadPool(Control.numWorkers);
 
 		for (TranslateWorker worker : workers)
 			executor.submit(new PrettyPrintWorker(worker));
@@ -100,33 +93,5 @@ public class CompilePass {
 				continue;
 			}
 		}
-	}
-
-	/*
-	 * format of worker.parserWorker.path : /tmp/output/com/example/Main.smali
-	 * format of className : Lcom/example/Main;
-	 */
-	public static void astInterpreter(List<TranslateWorker> workers,
-			String mainClassName) throws ClassNotFoundException,
-			NoSuchMethodException, SecurityException, IllegalAccessException,
-			IllegalArgumentException, InvocationTargetException {
-		Source.classMap = new HashMap<String, TranslateWorker>();
-		for (TranslateWorker worker : workers) {
-			String className = worker.parserWorker.path;
-			className = "L"
-					+ className.substring(Control.apkoutput.length() + 1,
-							className.length() - 6) + ";";
-			Source.classMap.put(className, worker);
-		}
-		InterpreterVisitor visitor = new InterpreterVisitor();
-		ast.classs.MethodItem methodItem = new ast.classs.MethodItem();
-		ast.method.Method.MethodPrototype prototype = new ast.method.Method.MethodPrototype();
-		prototype.argsType = new ArrayList<String>();
-		prototype.argsType.add("[Ljava/lang/String;");
-		prototype.returnType = "V";
-		methodItem.classType = mainClassName;
-		methodItem.methodName = "main";
-		methodItem.prototype = prototype;
-		visitor.Init(methodItem);
 	}
 }

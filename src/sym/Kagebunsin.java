@@ -1,11 +1,14 @@
 package sym;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import sim.method.Method;
 import sym.SymbolicExecutor.ThreadSafeFileWriter;
+import sym.op.IOp;
+import sym.pred.IPrediction;
 import clojure.lang.IPersistentMap;
 import clojure.lang.PersistentVector;
 
@@ -14,20 +17,20 @@ import clojure.lang.PersistentVector;
  * basic block, create another Kagebunsin upon branch
  * */
 public class Kagebunsin implements Runnable {
-	public static final int countThreshold = 3;
+	public static final int countThreshold = 4;
 	private Z3Stub z3;
-	private ExecutorService executor;
-	private ConcurrentHashMap<String, AtomicInteger> labelCount;
+	private ThreadPoolExecutor executor;
+	private HashMap<String, AtomicInteger> labelCount;
 	private final Method currentMethod;
 	private int pc;
 	private IPersistentMap mapToSym; //register to their value(represented by sym.op.IOp)
 	private PersistentVector conditions; //vector of IPrediction
 	private ThreadSafeFileWriter writer;
 
-	public Kagebunsin(Z3Stub z3, ExecutorService executor,
-			ConcurrentHashMap<String, AtomicInteger> labelCount,
-			Method currentMethod, int pc, IPersistentMap mapToSym,
-			PersistentVector conditions, ThreadSafeFileWriter writer) {
+	public Kagebunsin(Z3Stub z3, ThreadPoolExecutor executor,
+			HashMap<String, AtomicInteger> labelCount, Method currentMethod,
+			int pc, IPersistentMap mapToSym, PersistentVector conditions,
+			ThreadSafeFileWriter writer) {
 		this.z3 = z3;
 		this.executor = executor;
 		this.labelCount = labelCount;
@@ -38,14 +41,53 @@ public class Kagebunsin implements Runnable {
 		this.writer = writer;
 	}
 
+	private void unknow(sim.stm.T i) {
+		System.err.format("unknow instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
+	}
+
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unknow instrcution %s in method %s\n", i.getClass()
-				.getName(), currentMethod.name);
+		System.err.format("unsupport instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
+	}
+
+	public static long hex2long(String s) {
+		if (s.endsWith("L")) {
+			s = s.substring(0, s.indexOf("L"));
+			if (s.startsWith("-"))
+				return -(Long.parseLong(s.substring(3), 16));
+			else
+				return Long.parseLong(s.substring(2), 16);
+		} else {
+			if (s.startsWith("-"))
+				return -(Integer.parseInt(s.substring(3), 16));
+			else
+				return Integer.parseInt(s.substring(2), 16);
+		}
+	}
+
+	private IOp getSym(String reg) {
+		return (IOp) mapToSym.valAt(reg);
+	}
+
+	@SuppressWarnings("rawtypes")
+	private String andAllCond() {
+		Iterator it = conditions.iterator();
+		StringBuilder sb = new StringBuilder("(and ");
+		while (it.hasNext()) {
+			sym.pred.IPrediction cond = (IPrediction) it.next();
+			sb.append(cond.toString());
+			sb.append(" ");
+		}
+		sb.deleteCharAt(sb.length() - 1);
+		sb.append(")");
+		return sb.toString();
 	}
 
 	@Override
 	public void run() {
-		for (sim.stm.T currentInstruction = currentMethod.statements.get(pc);; pc++) {
+		for (; pc < currentMethod.statements.size(); pc++) {
+			sim.stm.T currentInstruction = currentMethod.statements.get(pc);
 			// sort according to instruction popularity
 			if (currentInstruction instanceof sim.stm.Instruction.Invoke) {
 				unsupport(currentInstruction);
@@ -57,8 +99,16 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Const) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Const ci = (sim.stm.Instruction.Const) currentInstruction;
+				switch (ci.op) {
+				case "const":
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Const(
+							hex2long(ci.value)));
+					break;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
 				return; //abort executing
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
@@ -66,13 +116,11 @@ public class Kagebunsin implements Runnable {
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Goto) {
 				sim.stm.Instruction.Goto ci = (sim.stm.Instruction.Goto) currentInstruction;
-				if (labelCount.get(ci.label).addAndGet(1) > sym.SymbolicExecutor.threadPoolSize)
-					return; //abort executing when count exceed threshold
-				else {
-					//FIXME pc is unsure
+				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
 					pc = currentMethod.labels.get(ci.label) - 1;
 					continue;
-				}
+				} else
+					return; //abort executing when count exceed countThreshold
 			} else if (currentInstruction instanceof sim.stm.Instruction.IfTestz) {
 				unsupport(currentInstruction);
 				return;
@@ -95,8 +143,28 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Aput) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Aput ci = (sim.stm.Instruction.Aput) currentInstruction;
+
+				// TODO we should also check it's type
+				switch (ci.op) {
+				case "aput":
+				case "aput-wide":
+				case "aput-object":
+				case "aput-boolean":
+				case "aput-byte":
+				case "aput-char":
+				case "aput-short":
+					// current ignore src
+					// IOp src = getSym(ci.src);
+					IOp index = getSym(ci.index);
+					IOp array = getSym(ci.array);
+					writer.writeln("trying to index '" + array + "'[" + index
+							+ "] under condition " + andAllCond());
+					continue;
+				default:
+					unknow(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.BinOpLit) {
 				unsupport(currentInstruction);
 				return;
@@ -110,11 +178,58 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.IfTest) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.IfTest ci = (sim.stm.Instruction.IfTest) currentInstruction;
+				sym.pred.IPrediction r;
+				switch (ci.op) {
+				case "if-eq":
+					r = new sym.pred.Eq(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				case "if-ne":
+					r = new sym.pred.Ne(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				case "if-lt":
+					r = new sym.pred.Lt(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				case "if-ge":
+					r = new sym.pred.Ge(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				case "if-gt":
+					r = new sym.pred.Gt(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				case "if-le":
+					r = new sym.pred.Le(getSym(ci.firstSrc),
+							getSym(ci.secondSrc));
+					break;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
+				// condition to walk true branch
+				PersistentVector rc = conditions.cons(r);
+
+				// we walk the false branch
+				conditions = conditions.cons(new sym.pred.Not(r));
+
+				//Kagebunsin no jyutu!
+				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
+					executor.submit(new Kagebunsin(z3, executor, labelCount,
+							currentMethod, currentMethod.labels.get(ci.label),
+							mapToSym, rc, writer));
+				}
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewArray) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.NewArray ci = (sim.stm.Instruction.NewArray) currentInstruction;
+				IOp len = getSym(ci.size);
+				assert len != null;
+
+				mapToSym = mapToSym.assoc(ci.dst,
+						new sym.op.Array(ci.type, len));
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Throw) {
 				unsupport(currentInstruction);
 				return;
@@ -148,9 +263,7 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.Nop) {
 				continue;
 			} else {
-				System.err.format("unknow instrcution %s in method %s\n",
-						currentInstruction.getClass().getName(),
-						currentMethod.name);
+				unknow(currentInstruction);
 				return;
 			}
 		}

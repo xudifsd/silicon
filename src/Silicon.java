@@ -13,8 +13,8 @@ import util.MultiThreadUtils.ParserWorker;
 
 import sym.SymbolicExecutor;
 
-public class Carbon {
-	static Carbon carbon;
+public class Silicon {
+	static Silicon silicon;
 
 	public static int executeInShell(String cmd, PrintStream stdout,
 			PrintStream stderr) throws IOException, InterruptedException {
@@ -84,8 +84,8 @@ public class Carbon {
 
 	public static void main(String[] args) {
 		try {
-			carbon = new Carbon();
-			carbon.run(args);
+			silicon = new Silicon();
+			silicon.run(args);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

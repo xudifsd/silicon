@@ -13,6 +13,6 @@ public class Eq implements IPrediction {
 
 	@Override
 	public String toString() {
-		return "(" + left.toString() + ") == (" + right.toString() + ")";
+		return String.format("(= %s %s)", left.toString(), right.toString());
 	}
 }

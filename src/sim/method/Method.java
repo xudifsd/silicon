@@ -65,7 +65,6 @@ public class Method extends T {
 			this.value = value;
 			this.annotationList = annotationList;
 		}
-
 	}
 
 	public static class Catch implements Comparable<Catch> {

@@ -136,9 +136,6 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sget) {
 				unsupport(currentInstruction);
 				return;
-			} else if (currentInstruction instanceof sim.stm.Instruction.CheckCast) {
-				unsupport(currentInstruction);
-				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Move) {
 				unsupport(currentInstruction);
 				return;

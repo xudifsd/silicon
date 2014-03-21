@@ -11,6 +11,6 @@ public class Minus implements IOp {
 
 	@Override
 	public String toString() {
-		return "(" + left.toString() + ") - (" + right.toString() + ")";
+		return String.format("(- %s %s)", left.toString(), right.toString());
 	}
 }

@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import sim.method.Method;
 import sym.SymbolicExecutor.ThreadSafeFileWriter;
+import sym.Z3Stub.Z3Result;
 import sym.op.IOp;
 import sym.pred.IPrediction;
 import clojure.lang.IPersistentMap;
@@ -23,8 +24,9 @@ public class Kagebunsin implements Runnable {
 	private HashMap<String, AtomicInteger> labelCount;
 	private final Method currentMethod;
 	private int pc;
-	private IPersistentMap mapToSym; //register to their value(represented by sym.op.IOp)
-	private PersistentVector conditions; //vector of IPrediction
+	private IPersistentMap mapToSym; // register to their IOp(represented by
+										// sym.op.IOp)
+	private PersistentVector conditions; // vector of IPrediction
 	private ThreadSafeFileWriter writer;
 
 	public Kagebunsin(Z3Stub z3, ThreadPoolExecutor executor,
@@ -42,13 +44,13 @@ public class Kagebunsin implements Runnable {
 	}
 
 	private void unknow(sim.stm.T i) {
-		System.err.format("unknow instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		System.err.format("unknow instruction %s in method %s\n", i.getClass()
+				.getName(), currentMethod.name);
 	}
 
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unsupport instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		System.err.format("unsupport instruction %s in method %s\n", i
+				.getClass().getName(), currentMethod.name);
 	}
 
 	public static long hex2long(String s) {
@@ -73,7 +75,7 @@ public class Kagebunsin implements Runnable {
 	@SuppressWarnings("rawtypes")
 	private String andAllCond() {
 		Iterator it = conditions.iterator();
-		StringBuilder sb = new StringBuilder("(and ");
+		StringBuilder sb = new StringBuilder("(assert (and ");
 		while (it.hasNext()) {
 			sym.pred.IPrediction cond = (IPrediction) it.next();
 			sb.append(cond.toString());
@@ -84,6 +86,7 @@ public class Kagebunsin implements Runnable {
 		return sb.toString();
 	}
 
+	@SuppressWarnings("static-access")
 	@Override
 	public void run() {
 		for (; pc < currentMethod.statements.size(); pc++) {
@@ -96,7 +99,7 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iget) {
-				unsupport(currentInstruction);
+				unknow(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Const) {
 				sim.stm.Instruction.Const ci = (sim.stm.Instruction.Const) currentInstruction;
@@ -110,7 +113,7 @@ public class Kagebunsin implements Runnable {
 					return;
 				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
-				return; //abort executing
+				return; // abort executing
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
 				unsupport(currentInstruction);
 				return;
@@ -120,7 +123,7 @@ public class Kagebunsin implements Runnable {
 					pc = currentMethod.labels.get(ci.label) - 1;
 					continue;
 				} else
-					return; //abort executing when count exceed countThreshold
+					return; // abort executing when count exceed countThreshold
 			} else if (currentInstruction instanceof sim.stm.Instruction.IfTestz) {
 				unsupport(currentInstruction);
 				return;
@@ -134,6 +137,9 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sget) {
+				unsupport(currentInstruction);
+				return;
+			} else if (currentInstruction instanceof sim.stm.Instruction.CheckCast) {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Move) {
@@ -155,8 +161,16 @@ public class Kagebunsin implements Runnable {
 					// IOp src = getSym(ci.src);
 					IOp index = getSym(ci.index);
 					IOp array = getSym(ci.array);
-					writer.writeln("trying to index '" + array + "'[" + index
-							+ "] under condition " + andAllCond());
+					sym.pred.IPrediction r;
+					r = new sym.pred.Lt(index, ((sym.op.Array) array).length);
+					conditions = conditions.cons(r);
+					Z3Result z3result = z3.calculate(mapToSym, conditions);
+					if (!z3result.satOrNot) {
+						writer.writeln("trying to index '" + array + "'["
+								+ index + "] under condition " + andAllCond());
+						writer.writeln("unsat");
+					}
+
 					continue;
 				default:
 					unknow(currentInstruction);
@@ -212,11 +226,20 @@ public class Kagebunsin implements Runnable {
 				// we walk the false branch
 				conditions = conditions.cons(new sym.pred.Not(r));
 
-				//Kagebunsin no jyutu!
+				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
-					executor.submit(new Kagebunsin(z3, executor, labelCount,
-							currentMethod, currentMethod.labels.get(ci.label),
-							mapToSym, rc, writer));
+					Z3Result z3result = z3.calculate(mapToSym, conditions);
+					if (z3result.satOrNot) {
+						executor.submit(new Kagebunsin(z3, executor,
+								labelCount, currentMethod, currentMethod.labels
+										.get(ci.label), mapToSym, conditions,
+								writer));
+					} else if ((z3result = z3.calculate(mapToSym, rc)).satOrNot) {
+						executor.submit(new Kagebunsin(z3, executor,
+								labelCount, currentMethod, currentMethod.labels
+										.get(ci.label), mapToSym, rc, writer));
+					}
+
 				}
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewArray) {

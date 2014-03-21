@@ -162,15 +162,14 @@ public class Kagebunsin implements Runnable {
 					IOp index = getSym(ci.index);
 					IOp array = getSym(ci.array);
 					sym.pred.IPrediction r;
-					r = new sym.pred.Lt(index, ((sym.op.Array) array).length);
-					conditions = conditions.cons(r);
-					Z3Result z3result = z3.calculate(mapToSym, conditions);
-					if (!z3result.satOrNot) {
+					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
+					Z3Result z3result = z3.calculate(mapToSym,
+							conditions.cons(r));
+					if (z3result.satOrNot) {
 						writer.writeln("trying to index '" + array + "'["
 								+ index + "] under condition " + andAllCond());
-						writer.writeln("unsat");
+						writer.writeln("sat");
 					}
-
 					continue;
 				default:
 					unknow(currentInstruction);
@@ -183,8 +182,36 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.BinOp) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.BinOp ci = (sim.stm.Instruction.BinOp) currentInstruction;
+				switch (ci.op) {
+				case "add-int":
+					IOp left = getSym(ci.firstSrc);
+					IOp right = getSym(ci.secondSrc);
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
+							right));
+					break;
+				case "sub-int":
+					left = getSym(ci.firstSrc);
+					right = getSym(ci.secondSrc);
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
+							right));
+					break;
+				case "mul-int":
+					left = getSym(ci.firstSrc);
+					right = getSym(ci.secondSrc);
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Mul(left,
+							right));
+					break;
+				case "div-int":
+					left = getSym(ci.firstSrc);
+					right = getSym(ci.secondSrc);
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Div(left,
+							right));
+					break;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.FilledNewArray) {
 				unsupport(currentInstruction);
 				return;
@@ -228,13 +255,8 @@ public class Kagebunsin implements Runnable {
 
 				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
-					Z3Result z3result = z3.calculate(mapToSym, conditions);
+					Z3Result z3result = z3.calculate(mapToSym, rc);
 					if (z3result.satOrNot) {
-						executor.submit(new Kagebunsin(z3, executor,
-								labelCount, currentMethod, currentMethod.labels
-										.get(ci.label), mapToSym, conditions,
-								writer));
-					} else if ((z3result = z3.calculate(mapToSym, rc)).satOrNot) {
 						executor.submit(new Kagebunsin(z3, executor,
 								labelCount, currentMethod, currentMethod.labels
 										.get(ci.label), mapToSym, rc, writer));

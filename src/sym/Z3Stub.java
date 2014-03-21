@@ -30,8 +30,8 @@ public class Z3Stub {
 		public boolean satOrNot;
 	}
 
-	public static synchronized Z3Result calculate(
-			IPersistentMap mapToSym, PersistentVector conditions) {
+	public static synchronized Z3Result calculate(IPersistentMap mapToSym,
+			PersistentVector conditions) {
 		HashMap<String, String> v = new HashMap<String, String>();
 		Z3Result z3result = new Z3Result();
 		Process p;

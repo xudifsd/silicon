@@ -29,11 +29,13 @@ public class Kagebunsin implements Runnable {
 										// sym.op.IOp)
 	private PersistentVector conditions; // vector of IPrediction
 	private ThreadSafeFileWriter writer;
+	private final sym.SymGenerator symGen;
 
 	public Kagebunsin(Z3Stub z3, ThreadPoolExecutor executor,
 			HashMap<String, AtomicInteger> labelCount, sim.classs.Class clazz,
 			Method currentMethod, int pc, IPersistentMap mapToSym,
-			PersistentVector conditions, ThreadSafeFileWriter writer) {
+			PersistentVector conditions, ThreadSafeFileWriter writer,
+			sym.SymGenerator symGen) {
 		this.z3 = z3;
 		this.executor = executor;
 		this.labelCount = labelCount;
@@ -43,6 +45,7 @@ public class Kagebunsin implements Runnable {
 		this.mapToSym = mapToSym;
 		this.conditions = conditions;
 		this.writer = writer;
+		this.symGen = symGen;
 	}
 
 	private void unknow(sim.stm.T i) {
@@ -88,7 +91,6 @@ public class Kagebunsin implements Runnable {
 		return sb.toString();
 	}
 
-	@SuppressWarnings("static-access")
 	@Override
 	public void run() {
 		for (; pc < currentMethod.statements.size(); pc++) {
@@ -162,7 +164,7 @@ public class Kagebunsin implements Runnable {
 					IOp array = getSym(ci.array);
 					sym.pred.IPrediction r;
 					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
-					Z3Result z3result = z3.calculate(mapToSym,
+					Z3Result z3result = z3.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
@@ -259,14 +261,13 @@ public class Kagebunsin implements Runnable {
 
 				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
-					Z3Result z3result = z3.calculate(mapToSym, rc);
+					Z3Result z3result = z3.calculate(symGen.types, rc);
 					if (z3result.satOrNot) {
 						executor.submit(new Kagebunsin(z3, executor,
 								labelCount, clazz, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
-								rc, writer));
+								rc, writer, symGen.clone()));
 					}
-
 				}
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewArray) {

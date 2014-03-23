@@ -71,6 +71,7 @@ public class SymbolicExecutor {
 					}
 
 					IPersistentMap pReg = PersistentHashMap.EMPTY;
+					SymGenerator symGen = new SymGenerator();
 
 					int index = 0;
 					// arguments is stored at p{0..} register
@@ -79,7 +80,7 @@ public class SymbolicExecutor {
 						String reg = "p" + index;
 						switch (t) {
 						case "I":
-							pReg = pReg.assoc(reg, new sym.op.Sym(reg));
+							pReg = pReg.assoc(reg, symGen.genSym(t));
 							break;
 						default:
 							System.err.format(
@@ -91,7 +92,7 @@ public class SymbolicExecutor {
 
 					executor.submit(new Kagebunsin(z3, executor, labelCount,
 							clazz, method, 0, pReg, PersistentVector.EMPTY,
-							writer));
+							writer, symGen));
 				}
 			} catch (Exception e) {
 				System.err.format("error while processing %s\n",

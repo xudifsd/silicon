@@ -13,8 +13,6 @@ import java.util.Map.Entry;
 
 import sym.op.Array;
 import sym.pred.IPrediction;
-import clojure.lang.IPersistentMap;
-import clojure.lang.MapEntry;
 import clojure.lang.PersistentVector;
 
 /* *
@@ -48,7 +46,7 @@ public class Z3Stub {
 		}
 	}
 
-	public static synchronized Z3Result calculate(IPersistentMap mapToSym, PersistentVector conditions) {
+	public synchronized Z3Result calculate(PersistentVector types, PersistentVector conditions) {
 		Z3Result z3result = new Z3Result();
 		z3result.result = new HashMap<String, String>();
 		Process p;
@@ -59,11 +57,15 @@ public class Z3Stub {
 			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(
 					out));
 			@SuppressWarnings("rawtypes")
-			Iterator it = mapToSym.iterator();
-			while (it.hasNext()) {
-				MapEntry me = (MapEntry) it.next();
-				String s = (String) me.key();
-				writer.write("(declare-const " + s + " Int)");
+			Iterator it = types.iterator();
+			int index = 0;
+			for (; it.hasNext(); index++) {
+				String type = (String) it.next();
+				if (type.equals("I"))
+					writer.write(String.format("(declare-const sym%d Int)",
+							index));
+				else
+					System.err.println("unknow type " + type);
 			}
 
 			it = conditions.iterator();
@@ -71,7 +73,7 @@ public class Z3Stub {
 				sym.pred.IPrediction cond = (IPrediction) it.next();
 				// IOp cond = (IOp) it.next();
 				if (cond instanceof Array) {
-					// array
+					System.err.println("condition can't be type of Array");
 				} else {
 					// int
 					writer.write("(assert " + cond.toString() + ")");

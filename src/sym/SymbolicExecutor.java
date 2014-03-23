@@ -89,7 +89,8 @@ public class SymbolicExecutor {
 					}
 
 					executor.submit(new Kagebunsin(z3, executor, labelCount,
-							method, 0, pReg, PersistentVector.EMPTY, writer));
+							clazz, method, 0, pReg, PersistentVector.EMPTY,
+							writer));
 				}
 			} catch (Exception e) {
 				System.err.format("error while processing %s\n",

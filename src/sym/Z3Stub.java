@@ -9,6 +9,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map.Entry;
 
 import sym.op.Array;
 import sym.pred.IPrediction;
@@ -28,13 +29,30 @@ public class Z3Stub {
 	public static class Z3Result {
 		public HashMap<String, String> result;
 		public boolean satOrNot;
+
+		@Override
+		public String toString() {
+			StringBuilder sb = new StringBuilder();
+			sb.append(satOrNot ? "sat" : "unsat");
+			if (satOrNot) {
+				Iterator<Entry<String, String>> it = result.entrySet().iterator();
+				while (it.hasNext()) {
+					sb.append(" ");
+					Entry<String, String> entry = it.next();
+					sb.append(entry.getKey());
+					sb.append(":");
+					sb.append(entry.getValue());
+				}
+			}
+			return sb.toString();
+		}
 	}
 
-	public static synchronized Z3Result calculate(IPersistentMap mapToSym,
-			PersistentVector conditions) {
-		HashMap<String, String> v = new HashMap<String, String>();
+	public static synchronized Z3Result calculate(IPersistentMap mapToSym, PersistentVector conditions) {
 		Z3Result z3result = new Z3Result();
+		z3result.result = new HashMap<String, String>();
 		Process p;
+
 		try {
 			p = Runtime.getRuntime().exec("z3 -smt2 -in");
 			OutputStream out = p.getOutputStream();
@@ -47,6 +65,7 @@ public class Z3Stub {
 				String s = (String) me.key();
 				writer.write("(declare-const " + s + " Int)");
 			}
+
 			it = conditions.iterator();
 			while (it.hasNext()) {
 				sym.pred.IPrediction cond = (IPrediction) it.next();
@@ -58,19 +77,24 @@ public class Z3Stub {
 					writer.write("(assert " + cond.toString() + ")");
 				}
 			}
+
 			writer.write("(check-sat)");
 			writer.write("(get-model)"); // now it can only support sat
 			writer.close();
 			out.close();
+
 			InputStream in = p.getInputStream();
 			BufferedReader reader = new BufferedReader(
 					new InputStreamReader(in));
+
 			String line = null;
+
 			while ((line = reader.readLine()) != null) {
 				if (line.contains("unsat")) {
 					z3result.satOrNot = false;
 					break;
 				}
+
 				if (line.indexOf("(define-fun") != -1) {
 					int t = line.indexOf("(define-fun");
 					line = line.substring(t + 12, line.length());
@@ -86,8 +110,7 @@ public class Z3Stub {
 								char c = line.charAt(j);
 								if (c >= '0' && c <= '9') {
 									ss += c;
-									v.put(st, ss);
-									z3result.result = v;
+									z3result.result.put(st, ss);
 									z3result.satOrNot = true;
 								}
 								if (c == ')')
@@ -103,7 +126,6 @@ public class Z3Stub {
 			reader.close();
 			p.destroy();
 		} catch (IOException | InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return z3result;

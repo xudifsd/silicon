@@ -22,6 +22,7 @@ public class Kagebunsin implements Runnable {
 	private Z3Stub z3;
 	private ThreadPoolExecutor executor;
 	private HashMap<String, AtomicInteger> labelCount;
+	private final sim.classs.Class clazz;
 	private final Method currentMethod;
 	private int pc;
 	private IPersistentMap mapToSym; // register to their IOp(represented by
@@ -30,12 +31,13 @@ public class Kagebunsin implements Runnable {
 	private ThreadSafeFileWriter writer;
 
 	public Kagebunsin(Z3Stub z3, ThreadPoolExecutor executor,
-			HashMap<String, AtomicInteger> labelCount, Method currentMethod,
-			int pc, IPersistentMap mapToSym, PersistentVector conditions,
-			ThreadSafeFileWriter writer) {
+			HashMap<String, AtomicInteger> labelCount, sim.classs.Class clazz,
+			Method currentMethod, int pc, IPersistentMap mapToSym,
+			PersistentVector conditions, ThreadSafeFileWriter writer) {
 		this.z3 = z3;
 		this.executor = executor;
 		this.labelCount = labelCount;
+		this.clazz = clazz;
 		this.currentMethod = currentMethod;
 		this.pc = pc;
 		this.mapToSym = mapToSym;
@@ -44,13 +46,13 @@ public class Kagebunsin implements Runnable {
 	}
 
 	private void unknow(sim.stm.T i) {
-		System.err.format("unknow instruction %s in method %s\n", i.getClass()
-				.getName(), currentMethod.name);
+		System.err.format("unknow instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
 	}
 
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unsupport instruction %s in method %s\n", i
-				.getClass().getName(), currentMethod.name);
+		System.err.format("unsupport instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
 	}
 
 	public static long hex2long(String s) {
@@ -99,7 +101,7 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iget) {
-				unknow(currentInstruction);
+				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Const) {
 				sim.stm.Instruction.Const ci = (sim.stm.Instruction.Const) currentInstruction;
@@ -139,9 +141,6 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sget) {
 				unsupport(currentInstruction);
 				return;
-			} else if (currentInstruction instanceof sim.stm.Instruction.CheckCast) {
-				unsupport(currentInstruction);
-				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Move) {
 				unsupport(currentInstruction);
 				return;
@@ -166,9 +165,12 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = z3.calculate(mapToSym,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
-						writer.writeln("trying to index '" + array + "'["
-								+ index + "] under condition " + andAllCond());
-						writer.writeln("sat");
+						String diagnose = String.format(
+								"%s.%s: trying to index '%s'[%s] under condition %s",
+								clazz.name, currentMethod.name, array, index,
+								andAllCond());
+						writer.writeln(diagnose);
+						writer.writeln("    " + z3result);
 					}
 					continue;
 				default:
@@ -183,10 +185,12 @@ public class Kagebunsin implements Runnable {
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.BinOp) {
 				sim.stm.Instruction.BinOp ci = (sim.stm.Instruction.BinOp) currentInstruction;
+				IOp left;
+				IOp right;
 				switch (ci.op) {
 				case "add-int":
-					IOp left = getSym(ci.firstSrc);
-					IOp right = getSym(ci.secondSrc);
+					left = getSym(ci.firstSrc);
+					right = getSym(ci.secondSrc);
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
 							right));
 					break;
@@ -258,8 +262,9 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = z3.calculate(mapToSym, rc);
 					if (z3result.satOrNot) {
 						executor.submit(new Kagebunsin(z3, executor,
-								labelCount, currentMethod, currentMethod.labels
-										.get(ci.label), mapToSym, rc, writer));
+								labelCount, clazz, currentMethod,
+								currentMethod.labels.get(ci.label), mapToSym,
+								rc, writer));
 					}
 
 				}

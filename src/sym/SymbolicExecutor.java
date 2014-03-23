@@ -76,9 +76,10 @@ public class SymbolicExecutor {
 					// arguments is stored at p{0..} register
 					for (; index < method.prototype.argsType.size(); index++) {
 						String t = method.prototype.argsType.get(index);
+						String reg = "p" + index;
 						switch (t) {
 						case "I":
-							pReg = pReg.assoc("p" + index, new sym.op.Sym());
+							pReg = pReg.assoc(reg, new sym.op.Sym(reg));
 							break;
 						default:
 							System.err.format(

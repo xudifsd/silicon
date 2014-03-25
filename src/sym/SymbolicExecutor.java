@@ -83,9 +83,9 @@ public class SymbolicExecutor {
 							pReg = pReg.assoc(reg, symGen.genSym(t));
 							break;
 						default:
-							System.err.format(
-									"before symbolic executing %s, encount type %s\n",
-									method, t);
+							System.err
+									.format("before symbolic executing %s, encount type %s\n",
+											method, t);
 							continue;
 						}
 					}

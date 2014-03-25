@@ -49,13 +49,13 @@ public class Kagebunsin implements Runnable {
 	}
 
 	private void unknow(sim.stm.T i) {
-		System.err.format("unknow instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		System.err.format("unknow instruction %s in method %s\n", i.getClass()
+				.getName(), currentMethod.name);
 	}
 
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unsupport instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		System.err.format("unsupport instruction %s in method %s\n", i
+				.getClass().getName(), currentMethod.name);
 	}
 
 	public static long hex2long(String s) {
@@ -97,14 +97,41 @@ public class Kagebunsin implements Runnable {
 			sim.stm.T currentInstruction = currentMethod.statements.get(pc);
 			// sort according to instruction popularity
 			if (currentInstruction instanceof sim.stm.Instruction.Invoke) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Invoke ci = (sim.stm.Instruction.Invoke) currentInstruction;
+				switch (ci.op) {
+				case "invoke-direct":
+				case "invoke-static":
+				case "invoke-interface":
+				case "invoke-virtual":
+				case "invoke-super":
+				case "invoke-virtual/range":
+				case "invoke-super/range":
+				case "invoke-direct/range":
+				case "invoke-static/range":
+				case "invoke-interface/range":
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.MoveResult) {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iget) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Iget ci = (sim.stm.Instruction.Iget) currentInstruction;
+				switch (ci.op) {
+				case "iget":
+				case "iget-wide":
+				case "iget-object":
+				case "iget-boolean":
+				case "iget-byte":
+				case "iget-char":
+				case "iget-short ":
+					unsupport(currentInstruction);
+					continue;
+				default:
+					unknow(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Const) {
 				sim.stm.Instruction.Const ci = (sim.stm.Instruction.Const) currentInstruction;
 				switch (ci.op) {
@@ -116,11 +143,11 @@ public class Kagebunsin implements Runnable {
 					unsupport(currentInstruction);
 					return;
 				}
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
 				return; // abort executing
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
-				unsupport(currentInstruction);
-				return;
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Goto) {
 				sim.stm.Instruction.Goto ci = (sim.stm.Instruction.Goto) currentInstruction;
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
@@ -129,8 +156,54 @@ public class Kagebunsin implements Runnable {
 				} else
 					return; // abort executing when count exceed countThreshold
 			} else if (currentInstruction instanceof sim.stm.Instruction.IfTestz) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.IfTestz ci = (sim.stm.Instruction.IfTestz) currentInstruction;
+				sym.pred.IPrediction r;
+				switch (ci.op) {
+				case "if-eqz":
+					r = new sym.pred.Eq(getSym(ci.src), new sym.op.Const(0));
+					break;
+				case "if-nez":
+					r = new sym.pred.Ne(getSym(ci.src), new sym.op.Const(0));
+					break;
+				case "if-ltz":
+					r = new sym.pred.Lt(getSym(ci.src), new sym.op.Const(0));
+					break;
+				case "if-gez":
+					r = new sym.pred.Ge(getSym(ci.src), new sym.op.Const(0));
+					break;
+				case "if-gtz":
+					r = new sym.pred.Gt(getSym(ci.src), new sym.op.Const(0));
+					break;
+				case "if-lez":
+					r = new sym.pred.Le(getSym(ci.src), new sym.op.Const(0));
+					break;
+				default:
+					unknow(currentInstruction);
+					return;
+				}
+				// condition to walk true branch
+				PersistentVector rc = conditions.cons(r);
+
+				// we walk the false branch
+				conditions = conditions.cons(new sym.pred.Not(r));
+
+				// Kagebunsin no jyutu!
+				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
+					Z3Result z3result = z3.calculate(symGen.types, rc);
+					if (z3result.satOrNot) {
+						executor.submit(new Kagebunsin(z3, executor,
+								labelCount, clazz, currentMethod,
+								currentMethod.labels.get(ci.label), mapToSym,
+								rc, writer, symGen.clone()));
+					}
+				}
+
+				Z3Result z3result = z3.calculate(symGen.types, conditions);
+				if (!z3result.satOrNot) {
+					return;
+				}
+
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iput) {
 				unsupport(currentInstruction);
 				return;
@@ -144,8 +217,17 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Move) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Move ci = (sim.stm.Instruction.Move) currentInstruction;
+				switch (ci.op) {
+				case "move/16":
+				case "move-wide/16":
+				case "move-object/16":
+					mapToSym.assoc(ci.dst, getSym(ci.src));
+					continue;
+				default:
+					unknow(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Aput) {
 				sim.stm.Instruction.Aput ci = (sim.stm.Instruction.Aput) currentInstruction;
 
@@ -167,10 +249,10 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = z3.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
-						String diagnose = String.format(
-								"%s.%s: trying to index '%s'[%s] under condition %s",
-								clazz.name, currentMethod.name, array, index,
-								andAllCond());
+						String diagnose = String
+								.format("%s.%s: trying to index '%s'[%s] under condition %s",
+										clazz.name, currentMethod.name, array,
+										index, andAllCond());
 						writer.writeln(diagnose);
 						writer.writeln("    " + z3result);
 					}
@@ -180,11 +262,84 @@ public class Kagebunsin implements Runnable {
 					return;
 				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.BinOpLit) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.BinOpLit ci = (sim.stm.Instruction.BinOpLit) currentInstruction;
+				IOp left;
+				IOp right;
+				switch (ci.op) {
+				case "add-int/lit16":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
+							right));
+					continue;
+				case "rsub-int":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
+							right));
+					continue;
+				case "mul-int/lit16":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Mul(left,
+							right));
+					continue;
+				case "div-int/lit16":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Div(left,
+							right));
+					continue;
+				case "rem-int/lit16":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Rem(left,
+							right));
+					continue;
+				case "add-int/lit8":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
+							right));
+					continue;
+				case "sub-int/lit8":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
+							right));
+					continue;
+				case "mul-int/lit8":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Mul(left,
+							right));
+					continue;
+				case "div-int/lit8":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Div(left,
+							right));
+					continue;
+				case "rem-int/lit8":
+					left = getSym(ci.src);
+					right = new sym.op.Const(hex2long(ci.constt));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Rem(left,
+							right));
+					continue;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.UnOp) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.UnOp ci = (sim.stm.Instruction.UnOp) currentInstruction;
+				switch (ci.op) {
+				case "neg-int":
+					mapToSym = mapToSym.assoc(ci.dst, "-" + getSym(ci.src));
+					continue;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.BinOp) {
 				sim.stm.Instruction.BinOp ci = (sim.stm.Instruction.BinOp) currentInstruction;
 				IOp left;
@@ -195,25 +350,31 @@ public class Kagebunsin implements Runnable {
 					right = getSym(ci.secondSrc);
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
 							right));
-					break;
+					continue;
 				case "sub-int":
 					left = getSym(ci.firstSrc);
 					right = getSym(ci.secondSrc);
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
 							right));
-					break;
+					continue;
 				case "mul-int":
 					left = getSym(ci.firstSrc);
 					right = getSym(ci.secondSrc);
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Mul(left,
 							right));
-					break;
+					continue;
 				case "div-int":
 					left = getSym(ci.firstSrc);
 					right = getSym(ci.secondSrc);
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Div(left,
 							right));
-					break;
+					continue;
+				case "rem-int":
+					left = getSym(ci.firstSrc);
+					right = getSym(ci.secondSrc);
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Rem(left,
+							right));
+					continue;
 				default:
 					unsupport(currentInstruction);
 					return;
@@ -250,7 +411,7 @@ public class Kagebunsin implements Runnable {
 							getSym(ci.secondSrc));
 					break;
 				default:
-					unsupport(currentInstruction);
+					unknow(currentInstruction);
 					return;
 				}
 				// condition to walk true branch
@@ -269,6 +430,12 @@ public class Kagebunsin implements Runnable {
 								rc, writer, symGen.clone()));
 					}
 				}
+
+				Z3Result z3result = z3.calculate(symGen.types, conditions);
+				if (!z3result.satOrNot) {
+					return;
+				}
+
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewArray) {
 				sim.stm.Instruction.NewArray ci = (sim.stm.Instruction.NewArray) currentInstruction;
@@ -285,11 +452,44 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Aget) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Aget ci = (sim.stm.Instruction.Aget) currentInstruction;
+
+				// TODO we should also check it's type
+				switch (ci.op) {
+				case "aget":
+				case "aget-wide":
+				case "aget-object":
+				case "aget-boolean":
+				case "aget-byte":
+				case "aget-char":
+				case "aget-short":
+					// current ignore src
+					// IOp src = getSym(ci.src);
+					IOp index = getSym(ci.index);
+					IOp array = getSym(ci.array);
+					sym.pred.IPrediction r;
+					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
+					Z3Result z3result = z3.calculate(symGen.types,
+							conditions.cons(r));
+					if (z3result.satOrNot) {
+						String diagnose = String
+								.format("%s.%s: trying to index '%s'[%s] under condition %s",
+										clazz.name, currentMethod.name, array,
+										index, andAllCond());
+						writer.writeln(diagnose);
+						writer.writeln("    " + z3result);
+					}
+					continue;
+				default:
+					unknow(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.ArrayLength) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.ArrayLength ci = (sim.stm.Instruction.ArrayLength) currentInstruction;
+				IOp array = getSym(ci.ref);
+				mapToSym = mapToSym
+						.assoc(ci.dst, ((sym.op.Array) array).length);
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Monitor) {
 				unsupport(currentInstruction);
 				return;

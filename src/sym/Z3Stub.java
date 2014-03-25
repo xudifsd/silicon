@@ -32,8 +32,7 @@ public class Z3Stub {
 			StringBuilder sb = new StringBuilder();
 			sb.append(satOrNot ? "sat" : "unsat");
 			if (satOrNot) {
-				Iterator<Entry<String, String>> it = result.entrySet()
-						.iterator();
+				Iterator<Entry<String, String>> it = result.entrySet().iterator();
 				while (it.hasNext()) {
 					sb.append(" ");
 					Entry<String, String> entry = it.next();
@@ -46,8 +45,7 @@ public class Z3Stub {
 		}
 	}
 
-	public synchronized Z3Result calculate(PersistentVector types,
-			PersistentVector conditions) {
+	public synchronized Z3Result calculate(PersistentVector types, PersistentVector conditions) {
 		Z3Result z3result = new Z3Result();
 		z3result.result = new HashMap<String, String>();
 		Process p;
@@ -88,7 +86,6 @@ public class Z3Stub {
 			String line = null;
 
 			while ((line = reader.readLine()) != null) {
-				// System.out.println(line);
 				if (line.contains("unsat")) {
 					z3result.satOrNot = false;
 					break;
@@ -104,7 +101,6 @@ public class Z3Stub {
 							st += c;
 						} else {
 							line = reader.readLine();
-							// System.out.println(line);
 							String ss = "";
 							for (int j = 0; j < line.length(); j++) {
 								char c = line.charAt(j);

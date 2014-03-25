@@ -49,13 +49,13 @@ public class Kagebunsin implements Runnable {
 	}
 
 	private void unknow(sim.stm.T i) {
-		System.err.format("unknow instruction %s in method %s\n", i.getClass()
-				.getName(), currentMethod.name);
+		System.err.format("unknow instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
 	}
 
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unsupport instruction %s in method %s\n", i
-				.getClass().getName(), currentMethod.name);
+		System.err.format("unsupport instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name);
 	}
 
 	public static long hex2long(String s) {
@@ -127,7 +127,7 @@ public class Kagebunsin implements Runnable {
 				case "iget-char":
 				case "iget-short ":
 					unsupport(currentInstruction);
-					continue;
+					return;
 				default:
 					unknow(currentInstruction);
 					return;
@@ -249,10 +249,10 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = z3.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
-						String diagnose = String
-								.format("%s.%s: trying to index '%s'[%s] under condition %s",
-										clazz.name, currentMethod.name, array,
-										index, andAllCond());
+						String diagnose = String.format(
+								"%s.%s: trying to index '%s'[%s] under condition %s",
+								clazz.name, currentMethod.name, array, index,
+								andAllCond());
 						writer.writeln(diagnose);
 						writer.writeln("    " + z3result);
 					}
@@ -275,8 +275,8 @@ public class Kagebunsin implements Runnable {
 				case "rsub-int":
 					left = getSym(ci.src);
 					right = new sym.op.Const(hex2long(ci.constt));
-					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
-							right));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(right,
+							left));
 					continue;
 				case "mul-int/lit16":
 					left = getSym(ci.src);
@@ -302,7 +302,7 @@ public class Kagebunsin implements Runnable {
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Add(left,
 							right));
 					continue;
-				case "sub-int/lit8":
+				case "rsub-int/lit8":
 					left = getSym(ci.src);
 					right = new sym.op.Const(hex2long(ci.constt));
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
@@ -334,7 +334,8 @@ public class Kagebunsin implements Runnable {
 				sim.stm.Instruction.UnOp ci = (sim.stm.Instruction.UnOp) currentInstruction;
 				switch (ci.op) {
 				case "neg-int":
-					mapToSym = mapToSym.assoc(ci.dst, "-" + getSym(ci.src));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(
+							new sym.op.Const(0), getSym(ci.src)));
 					continue;
 				default:
 					unsupport(currentInstruction);
@@ -472,10 +473,10 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = z3.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
-						String diagnose = String
-								.format("%s.%s: trying to index '%s'[%s] under condition %s",
-										clazz.name, currentMethod.name, array,
-										index, andAllCond());
+						String diagnose = String.format(
+								"%s.%s: trying to index '%s'[%s] under condition %s",
+								clazz.name, currentMethod.name, array, index,
+								andAllCond());
 						writer.writeln(diagnose);
 						writer.writeln("    " + z3result);
 					}
@@ -487,8 +488,7 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.ArrayLength) {
 				sim.stm.Instruction.ArrayLength ci = (sim.stm.Instruction.ArrayLength) currentInstruction;
 				IOp array = getSym(ci.ref);
-				mapToSym = mapToSym
-						.assoc(ci.dst, ((sym.op.Array) array).length);
+				mapToSym = mapToSym.assoc(ci.dst, ((sym.op.Array) array).length);
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Monitor) {
 				unsupport(currentInstruction);

@@ -2,13 +2,12 @@ package sym;
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import sim.method.Method;
-import sym.SymbolicExecutor.ThreadSafeFileWriter;
 import sym.Z3Stub.Z3Result;
 import sym.op.IOp;
+import sym.op.Obj;
 import sym.pred.IPrediction;
 import clojure.lang.IPersistentMap;
 import clojure.lang.PersistentVector;
@@ -19,8 +18,7 @@ import clojure.lang.PersistentVector;
  * */
 public class Kagebunsin implements Runnable {
 	public static final int countThreshold = 4;
-	private Z3Stub z3;
-	private ThreadPoolExecutor executor;
+	private sym.SymbolicExecutor executor;
 	private HashMap<String, AtomicInteger> labelCount;
 	private final sim.classs.Class clazz;
 	private final Method currentMethod;
@@ -28,15 +26,12 @@ public class Kagebunsin implements Runnable {
 	private IPersistentMap mapToSym; // register to their IOp(represented by
 										// sym.op.IOp)
 	private PersistentVector conditions; // vector of IPrediction
-	private ThreadSafeFileWriter writer;
 	private final sym.SymGenerator symGen;
 
-	public Kagebunsin(Z3Stub z3, ThreadPoolExecutor executor,
+	public Kagebunsin(sym.SymbolicExecutor executor,
 			HashMap<String, AtomicInteger> labelCount, sim.classs.Class clazz,
 			Method currentMethod, int pc, IPersistentMap mapToSym,
-			PersistentVector conditions, ThreadSafeFileWriter writer,
-			sym.SymGenerator symGen) {
-		this.z3 = z3;
+			PersistentVector conditions, sym.SymGenerator symGen) {
 		this.executor = executor;
 		this.labelCount = labelCount;
 		this.clazz = clazz;
@@ -44,7 +39,6 @@ public class Kagebunsin implements Runnable {
 		this.pc = pc;
 		this.mapToSym = mapToSym;
 		this.conditions = conditions;
-		this.writer = writer;
 		this.symGen = symGen;
 	}
 
@@ -126,8 +120,26 @@ public class Kagebunsin implements Runnable {
 				case "iget-byte":
 				case "iget-char":
 				case "iget-short":
-					unsupport(currentInstruction);
-					return;
+					sym.op.IOp value = (IOp) mapToSym.valAt(ci.obj);
+					if (value instanceof sym.op.Const
+							&& ((sym.op.Const) value).value == 0) {
+						String diagnose = String.format(
+								"%s.%s: trying to do %s on null obj under condition %s",
+								clazz.name, currentMethod.name, ci.op,
+								andAllCond());
+						executor.writeln(diagnose);
+					}
+					sym.op.Obj obj = (sym.op.Obj) value;
+					IOp result = obj.iget(ci.field.fieldName);
+					if (result == null) {
+						System.err.format(
+								"%s.%s: iget returns null at pc %d under condition %s",
+								clazz.name, currentMethod.name, pc,
+								andAllCond());
+						return;
+					}
+					mapToSym = mapToSym.assoc(ci.dst, result);
+					continue;
 				default:
 					unknow(currentInstruction);
 					return;
@@ -147,6 +159,9 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
 				return; // abort executing
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
+				sim.stm.Instruction.NewInstance ci = (sim.stm.Instruction.NewInstance) currentInstruction;
+				mapToSym = mapToSym.assoc(ci.dst, new sym.op.Obj(ci.type));
+				// TODO we should call its constructor
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Goto) {
 				sim.stm.Instruction.Goto ci = (sim.stm.Instruction.Goto) currentInstruction;
@@ -189,33 +204,80 @@ public class Kagebunsin implements Runnable {
 
 				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
-					Z3Result z3result = z3.calculate(symGen.types, rc);
+					Z3Result z3result = executor.calculate(symGen.types, rc);
 					if (z3result.satOrNot) {
-						executor.submit(new Kagebunsin(z3, executor,
-								labelCount, clazz, currentMethod,
+						executor.submit(new Kagebunsin(executor, labelCount,
+								clazz, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
-								rc, writer, symGen.clone()));
+								rc, symGen.clone()));
 					}
 				}
 
-				Z3Result z3result = z3.calculate(symGen.types, conditions);
+				Z3Result z3result = executor.calculate(symGen.types, conditions);
 				if (!z3result.satOrNot) {
 					return;
 				}
 
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iput) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Iput ci = (sim.stm.Instruction.Iput) currentInstruction;
+
+				switch (ci.op) {
+				case "iput":
+				case "iput-wide":
+				case "iput-object":
+				case "iput-boolean":
+				case "iput-byte":
+				case "iput-char":
+				case "iput-short":
+					sym.op.IOp v = (IOp) mapToSym.valAt(ci.obj);
+					if (v instanceof sym.op.Const
+							&& ((sym.op.Const) v).value == 0) {
+						String diagnose = String.format(
+								"%s.%s: trying to do %s on null obj under condition %s",
+								clazz.name, currentMethod.name, ci.op,
+								andAllCond());
+						executor.writeln(diagnose);
+					}
+					sym.op.Obj obj = (Obj) v;
+					sym.op.IOp value = (IOp) mapToSym.valAt(ci.src);
+					obj.iput(ci.field.fieldName, value);
+					continue;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.CheckCast) {
-				unsupport(currentInstruction);
-				return;
+				continue; // TODO we should check its type or super type
 			} else if (currentInstruction instanceof sim.stm.Instruction.Return) {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sget) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Sget ci = (sim.stm.Instruction.Sget) currentInstruction;
+				switch (ci.op) {
+				case "sget":
+				case "sget-wide":
+				case "sget-object":
+				case "sget-boolean":
+				case "sget-byte":
+				case "sget-char":
+				case "sget-short":
+					sym.op.IOp r = executor.sget(ci.field.classType,
+							ci.field.fieldName);
+					if (r == null) {
+						String diagnose = String.format(
+								"%s.%s: trying to do %s on %s to get '%s' under condition %s",
+								clazz.name, currentMethod.name, ci.op,
+								ci.field.classType, ci.field.fieldName,
+								andAllCond());
+						executor.writeln(diagnose);
+					}
+					mapToSym = mapToSym.assoc(ci.dst, r);
+					continue;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Move) {
 				sim.stm.Instruction.Move ci = (sim.stm.Instruction.Move) currentInstruction;
 				switch (ci.op) {
@@ -246,15 +308,15 @@ public class Kagebunsin implements Runnable {
 					IOp array = getSym(ci.array);
 					sym.pred.IPrediction r;
 					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
-					Z3Result z3result = z3.calculate(symGen.types,
+					Z3Result z3result = executor.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
 								"%s.%s: trying to index '%s'[%s] under condition %s",
 								clazz.name, currentMethod.name, array, index,
 								andAllCond());
-						writer.writeln(diagnose);
-						writer.writeln("    " + z3result);
+						executor.writeln(diagnose);
+						executor.writeln("    " + z3result);
 					}
 					continue;
 				default:
@@ -423,16 +485,16 @@ public class Kagebunsin implements Runnable {
 
 				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
-					Z3Result z3result = z3.calculate(symGen.types, rc);
+					Z3Result z3result = executor.calculate(symGen.types, rc);
 					if (z3result.satOrNot) {
-						executor.submit(new Kagebunsin(z3, executor,
-								labelCount, clazz, currentMethod,
+						executor.submit(new Kagebunsin(executor, labelCount,
+								clazz, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
-								rc, writer, symGen.clone()));
+								rc, symGen.clone()));
 					}
 				}
 
-				Z3Result z3result = z3.calculate(symGen.types, conditions);
+				Z3Result z3result = executor.calculate(symGen.types, conditions);
 				if (!z3result.satOrNot) {
 					return;
 				}
@@ -450,8 +512,23 @@ public class Kagebunsin implements Runnable {
 				unsupport(currentInstruction);
 				return;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sput) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Sput ci = (sim.stm.Instruction.Sput) currentInstruction;
+
+				switch (ci.op) {
+				case "sput":
+				case "sput-wide":
+				case "sput-object":
+				case "sput-boolean":
+				case "sput-byte":
+				case "sput-char":
+				case "sput-short":
+					executor.sput(ci.field.classType, ci.field.fieldName,
+							(IOp) mapToSym.valAt(ci.src));
+					continue;
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Aget) {
 				sim.stm.Instruction.Aget ci = (sim.stm.Instruction.Aget) currentInstruction;
 
@@ -470,15 +547,15 @@ public class Kagebunsin implements Runnable {
 					IOp array = getSym(ci.array);
 					sym.pred.IPrediction r;
 					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
-					Z3Result z3result = z3.calculate(symGen.types,
+					Z3Result z3result = executor.calculate(symGen.types,
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
 								"%s.%s: trying to index '%s'[%s] under condition %s",
 								clazz.name, currentMethod.name, array, index,
 								andAllCond());
-						writer.writeln(diagnose);
-						writer.writeln("    " + z3result);
+						executor.writeln(diagnose);
+						executor.writeln("    " + z3result);
 					}
 					continue;
 				default:

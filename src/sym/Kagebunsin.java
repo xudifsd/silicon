@@ -125,7 +125,7 @@ public class Kagebunsin implements Runnable {
 				case "iget-boolean":
 				case "iget-byte":
 				case "iget-char":
-				case "iget-short ":
+				case "iget-short":
 					unsupport(currentInstruction);
 					return;
 				default:
@@ -305,8 +305,8 @@ public class Kagebunsin implements Runnable {
 				case "rsub-int/lit8":
 					left = getSym(ci.src);
 					right = new sym.op.Const(hex2long(ci.constt));
-					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(left,
-							right));
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Minus(right,
+							left));
 					continue;
 				case "mul-int/lit8":
 					left = getSym(ci.src);

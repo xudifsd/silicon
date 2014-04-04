@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -28,6 +30,8 @@ public class SymbolicExecutor {
 	private FileWriter writer;
 	private Z3Stub z3;
 	private HashMap<String, HashMap<String, sym.op.IOp>> staticObjs;
+	//private HashMap<String, SimplifyWorker> unaccessedClass; support it later
+	private HashMap<String, sim.classs.Class> allClass;
 	public final String path;
 
 	public SymbolicExecutor(List<SimplifyWorker> workers, File output)
@@ -41,6 +45,7 @@ public class SymbolicExecutor {
 		this.writer = new FileWriter(output);
 		this.path = output.getAbsolutePath();
 		this.z3 = new Z3Stub();
+		this.allClass = new HashMap<String, sim.classs.Class>();
 	}
 
 	public synchronized void write(String msg) {
@@ -80,43 +85,66 @@ public class SymbolicExecutor {
 		obj.put(fieldName, value);
 	}
 
+	// className should be something like java/lang/Object
+	// synchronized is not need now, but will needed in future
+	public synchronized sim.classs.Class getClass(String className) {
+		return allClass.get(className);
+	}
+
+	// wrapper for this.println, for debug usage
+	public synchronized void println(String msg) {
+		System.out.println(msg);
+	}
+
 	public void execute() {
+		// this is ugly, we'll spent a lot of memory to store ast tree, but
+		// currently we have to do this, because we must init all class before
+		// symbolic execute.
+		// TODO Change it to two HashMap when we supported enter through main
 		for (SimplifyWorker worker : workers) {
 			try {
 				sim.classs.Class clazz = worker.call();
-				for (sim.method.Method method : clazz.methods) {
-					HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
-					for (sim.method.Method.Label label : method.labelList) {
-						labelCount.put(label.lab, new AtomicInteger(0));
-					}
-
-					IPersistentMap pReg = PersistentHashMap.EMPTY;
-					SymGenerator symGen = new SymGenerator();
-
-					int index = 0;
-					// arguments is stored at p{0..} register
-					for (; index < method.prototype.argsType.size(); index++) {
-						String t = method.prototype.argsType.get(index);
-						String reg = "p" + index;
-						switch (t) {
-						case "I":
-							pReg = pReg.assoc(reg, symGen.genSym(t));
-							break;
-						default:
-							System.err.format(
-									"before symbolic executing %s, encount type %s\n",
-									method, t);
-							continue;
-						}
-					}
-
-					executor.submit(new Kagebunsin(this, labelCount, clazz,
-							method, 0, pReg, PersistentVector.EMPTY, symGen));
-				}
+				String key = clazz.name.substring(1, clazz.name.length() - 1);
+				allClass.put(key, clazz);
 			} catch (Exception e) {
 				System.err.format("error while processing %s\n",
 						worker.translateWorker.parserWorker.path);
 				e.printStackTrace();
+			}
+		}
+
+		Iterator<Entry<String, sim.classs.Class>> it = allClass.entrySet().iterator();
+
+		while (it.hasNext()) {
+			sim.classs.Class clazz = it.next().getValue();
+			for (sim.method.Method method : clazz.methods) {
+				HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
+				for (sim.method.Method.Label label : method.labelList) {
+					labelCount.put(label.lab, new AtomicInteger(0));
+				}
+
+				IPersistentMap pReg = PersistentHashMap.EMPTY;
+				SymGenerator symGen = new SymGenerator();
+
+				int index = 0;
+				// arguments is stored at p{0..} register
+				for (; index < method.prototype.argsType.size(); index++) {
+					String t = method.prototype.argsType.get(index);
+					String reg = "p" + index;
+					switch (t) {
+					case "I":
+						pReg = pReg.assoc(reg, symGen.genSym(t));
+						break;
+					default:
+						System.err.format(
+								"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
+								method, t);
+						continue;
+					}
+				}
+
+				executor.submit(new Kagebunsin(this, labelCount, clazz, method,
+						0, pReg, PersistentVector.EMPTY, symGen));
 			}
 		}
 

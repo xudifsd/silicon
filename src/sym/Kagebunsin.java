@@ -94,7 +94,18 @@ public class Kagebunsin implements Runnable {
 				sim.stm.Instruction.Invoke ci = (sim.stm.Instruction.Invoke) currentInstruction;
 				switch (ci.op) {
 				case "invoke-direct":
+					if (ci.method.classType.equals("Ljava/lang/Object;")
+							&& ci.method.methodName.equals("<init>"))
+						continue;
 				case "invoke-static":
+					String className = ci.method.classType;
+					sim.classs.Class clazz = executor.getClass(className.substring(
+							1, className.length() - 1));
+					executor.println("we should do invoke " + className + "->"
+							+ ci.method.methodName);
+					// TODO add stack support to do invoke
+					// TODO we should consider <clinit>
+					return;
 				case "invoke-interface":
 				case "invoke-virtual":
 				case "invoke-super":

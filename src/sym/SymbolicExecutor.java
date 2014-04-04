@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -30,12 +28,17 @@ public class SymbolicExecutor {
 	private FileWriter writer;
 	private Z3Stub z3;
 	private HashMap<String, HashMap<String, sym.op.IOp>> staticObjs;
-	//private HashMap<String, SimplifyWorker> unaccessedClass; support it later
-	private HashMap<String, sim.classs.Class> allClass;
-	public final String path;
 
-	public SymbolicExecutor(List<SimplifyWorker> workers, File output)
-			throws IOException {
+	// two fields below can only accessed via getClass(name), which is synchronized
+	private HashMap<String, SimplifyWorker> unaccessedClass;
+	private HashMap<String, sim.classs.Class> allClass;
+
+	public final String symResultPath;
+	public final String apkOutputPath;
+	public final String mainClass;
+
+	public SymbolicExecutor(List<SimplifyWorker> workers, File output,
+			String apkOutputPath, String mainClass) throws IOException {
 		this.staticObjs = new HashMap<String, HashMap<String, sym.op.IOp>>();
 		this.workers = workers;
 		this.latch = new CountDownLatch(1);
@@ -43,9 +46,12 @@ public class SymbolicExecutor {
 				2 * threadPoolSize, 5, TimeUnit.SECONDS,
 				new LinkedBlockingQueue<Runnable>());
 		this.writer = new FileWriter(output);
-		this.path = output.getAbsolutePath();
+		this.symResultPath = output.getAbsolutePath();
 		this.z3 = new Z3Stub();
+		this.unaccessedClass = new HashMap<String, SimplifyWorker>();
 		this.allClass = new HashMap<String, sim.classs.Class>();
+		this.apkOutputPath = apkOutputPath;
+		this.mainClass = mainClass;
 	}
 
 	public synchronized void write(String msg) {
@@ -53,7 +59,8 @@ public class SymbolicExecutor {
 			this.writer.write(msg);
 			this.writer.flush();
 		} catch (IOException e) {
-			System.err.format("exception %s when writing to %s", e, path);
+			System.err.format("exception %s when writing to %s", e,
+					symResultPath);
 		}
 	}
 
@@ -85,68 +92,90 @@ public class SymbolicExecutor {
 		obj.put(fieldName, value);
 	}
 
-	// className should be something like java/lang/Object
-	// synchronized is not need now, but will needed in future
+	// className should be something like java/lang/Object, return null
+	// on 404
 	public synchronized sim.classs.Class getClass(String className) {
-		return allClass.get(className);
+		sim.classs.Class result = allClass.get(className);
+		if (result == null) {
+			SimplifyWorker worker = unaccessedClass.get(className);
+			if (worker == null) {
+				result = null;
+			} else {
+				try {
+					result = worker.call();
+				} catch (Exception e) {
+					System.err.format("error while processing %s\n",
+							worker.translateWorker.parserWorker.path);
+					e.printStackTrace();
+				}
+				// TODO invoke result.<clinit>
+				if (result != null)
+					allClass.put(className, result);
+			}
+		}
+		return result;
 	}
 
-	// wrapper for this.println, for debug usage
+	// wrapper for System.out.println, for debug usage
 	public synchronized void println(String msg) {
 		System.out.println(msg);
 	}
 
 	public void execute() {
-		// this is ugly, we'll spent a lot of memory to store ast tree, but
-		// currently we have to do this, because we must init all class before
-		// symbolic execute.
-		// TODO Change it to two HashMap when we supported enter through main
 		for (SimplifyWorker worker : workers) {
-			try {
-				sim.classs.Class clazz = worker.call();
-				String key = clazz.name.substring(1, clazz.name.length() - 1);
-				allClass.put(key, clazz);
-			} catch (Exception e) {
-				System.err.format("error while processing %s\n",
-						worker.translateWorker.parserWorker.path);
-				e.printStackTrace();
+			String name = worker.translateWorker.parserWorker.path;
+			String key = name.substring(apkOutputPath.length() + 7,
+					name.length() - 6);
+			unaccessedClass.put(key, worker);
+		}
+
+		sim.classs.Class mainClass = getClass(this.mainClass);
+		sim.method.Method main = null;
+
+		for (sim.method.Method method : mainClass.methods) {
+			// TODO add HashMap to sim.class.Class
+			if (!method.name.equals("main"))
+				continue;
+			else {
+				main = method;
+				break;
 			}
 		}
 
-		Iterator<Entry<String, sim.classs.Class>> it = allClass.entrySet().iterator();
+		if (main == null) {
+			System.err.println("no main method found for main class "
+					+ mainClass);
+			System.exit(3);
+		}
 
-		while (it.hasNext()) {
-			sim.classs.Class clazz = it.next().getValue();
-			for (sim.method.Method method : clazz.methods) {
-				HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
-				for (sim.method.Method.Label label : method.labelList) {
-					labelCount.put(label.lab, new AtomicInteger(0));
-				}
+		HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
+		for (sim.method.Method.Label label : main.labelList) {
+			labelCount.put(label.lab, new AtomicInteger(0));
+		}
 
-				IPersistentMap pReg = PersistentHashMap.EMPTY;
-				SymGenerator symGen = new SymGenerator();
+		IPersistentMap pReg = PersistentHashMap.EMPTY;
+		SymGenerator symGen = new SymGenerator();
 
-				int index = 0;
-				// arguments is stored at p{0..} register
-				for (; index < method.prototype.argsType.size(); index++) {
-					String t = method.prototype.argsType.get(index);
-					String reg = "p" + index;
-					switch (t) {
-					case "I":
-						pReg = pReg.assoc(reg, symGen.genSym(t));
-						break;
-					default:
-						System.err.format(
-								"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
-								method, t);
-						continue;
-					}
-				}
-
-				executor.submit(new Kagebunsin(this, labelCount, clazz, method,
-						0, pReg, PersistentVector.EMPTY, symGen));
+		int index = 0;
+		// arguments is stored at p{0..} register
+		for (; index < main.prototype.argsType.size(); index++) {
+			String t = main.prototype.argsType.get(index);
+			String reg = "p" + index;
+			if (t.equals("I")) {
+				pReg = pReg.assoc(reg, symGen.genSym(t));
+			} else if (t.startsWith("[")) {
+				pReg = pReg.assoc(reg, new sym.op.Array(t, new sym.op.Const(0)));
+			} else if (t.startsWith("L")) {
+				continue; // assume object argument is null
+			} else {
+				System.err.format(
+						"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
+						main, t);
 			}
 		}
+
+		executor.submit(new Kagebunsin(this, labelCount, mainClass, main, 0,
+				pReg, PersistentVector.EMPTY, symGen, PersistentVector.EMPTY));
 
 		ScheduledThreadPoolExecutor stpe = new ScheduledThreadPoolExecutor(2);
 
@@ -196,6 +225,6 @@ public class SymbolicExecutor {
 
 		System.out.format(
 				"symbolic executing terminate normally, result is at %s\n",
-				path);
+				symResultPath);
 	}
 }

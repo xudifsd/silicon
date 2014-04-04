@@ -18,6 +18,8 @@ public class Control {
 
 	public static int symExeSec = 60; // default to execute at most 60 seconds
 
+	public static String entryPoint = null;
+
 	// verbose level
 	public enum Verbose_t {
 		Silent, Pass, Detailed

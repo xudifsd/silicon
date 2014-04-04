@@ -88,6 +88,13 @@ public class CommandLine {
 					public void f(Object i) {
 						Control.dump = (String) i;
 					}
+				}), new Arg<Object>("entry", "mainClass",
+				"class that contains main method", Kind.String,
+				new F<Object>() {
+					@Override
+					public void f(Object i) {
+						Control.entryPoint = (String) i;
+					}
 				}));
 	}
 
@@ -102,8 +109,7 @@ public class CommandLine {
 					filename = cargs[i];
 					continue;
 				} else {
-					System.out
-							.println("Error: can only decompile one apk file a time");
+					System.out.println("Error: can only decompile one apk file a time");
 					System.exit(1);
 				}
 			}

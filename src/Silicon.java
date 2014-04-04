@@ -16,8 +16,8 @@ import sym.SymbolicExecutor;
 public class Silicon {
 	static Silicon silicon;
 
-	public static int executeInShell(String cmd, PrintStream stdout,
-			PrintStream stderr) throws IOException, InterruptedException {
+	public static int executeInShell(String cmd, PrintStream stdout, PrintStream stderr)
+			throws IOException, InterruptedException {
 		Process p = Runtime.getRuntime().exec(cmd);
 
 		byte[] buffer = new byte[1024];
@@ -73,8 +73,13 @@ public class Silicon {
 			sims = CompilePass.simplify(classes);
 			classes = null;
 
+			if (Control.entryPoint == null) {
+				System.err.println("you need to specify the main Class using -entry");
+				System.exit(2);
+			}
+
 			SymbolicExecutor symbolicExe = new SymbolicExecutor(sims, new File(
-					Control.symoutput));
+					Control.symoutput), Control.apkoutput, Control.entryPoint);
 			symbolicExe.execute();
 		} else {
 			System.err.println("unknow action args " + Control.dump);

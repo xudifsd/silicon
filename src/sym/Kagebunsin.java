@@ -20,18 +20,21 @@ public class Kagebunsin implements Runnable {
 	public static final int countThreshold = 4;
 	private sym.SymbolicExecutor executor;
 	private HashMap<String, AtomicInteger> labelCount;
-	private final sim.classs.Class clazz;
-	private final Method currentMethod;
+	private sim.classs.Class clazz;
+	private Method currentMethod;
 	private int pc;
 	private IPersistentMap mapToSym; // register to their IOp(represented by
 										// sym.op.IOp)
 	private PersistentVector conditions; // vector of IPrediction
 	private final sym.SymGenerator symGen;
+	private PersistentVector stack; // stack of StackItem
+	private sym.op.IOp result; // result returned from last method
 
 	public Kagebunsin(sym.SymbolicExecutor executor,
 			HashMap<String, AtomicInteger> labelCount, sim.classs.Class clazz,
 			Method currentMethod, int pc, IPersistentMap mapToSym,
-			PersistentVector conditions, sym.SymGenerator symGen) {
+			PersistentVector conditions, sym.SymGenerator symGen,
+			PersistentVector stack) {
 		this.executor = executor;
 		this.labelCount = labelCount;
 		this.clazz = clazz;
@@ -40,6 +43,7 @@ public class Kagebunsin implements Runnable {
 		this.mapToSym = mapToSym;
 		this.conditions = conditions;
 		this.symGen = symGen;
+		this.stack = stack;
 	}
 
 	private void unknow(sim.stm.T i) {
@@ -99,13 +103,29 @@ public class Kagebunsin implements Runnable {
 						continue;
 				case "invoke-static":
 					String className = ci.method.classType;
-					sim.classs.Class clazz = executor.getClass(className.substring(
+					sim.classs.Class target = executor.getClass(className.substring(
 							1, className.length() - 1));
 					executor.println("we should do invoke " + className + "->"
 							+ ci.method.methodName);
-					// TODO add stack support to do invoke
-					// TODO we should consider <clinit>
-					return;
+					stack = stack.cons(new StackItem(clazz, currentMethod, pc));
+					clazz = target;
+					boolean found = false;
+					for (sim.method.Method m : clazz.methods) {
+						if (m.name.equals(ci.method.methodName)) {
+							// TODO dispatch on argtype, like foo() foo(I)
+							currentMethod = m;
+							found = true;
+							break;
+						}
+					}
+					// FIXME argument support
+					if (!found) {
+						System.err.println("not found " + ci.method.methodName
+								+ " for class " + target.name);
+						return;
+					}
+					pc = -1;
+					continue;
 				case "invoke-interface":
 				case "invoke-virtual":
 				case "invoke-super":
@@ -168,7 +188,15 @@ public class Kagebunsin implements Runnable {
 				}
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
-				return; // abort executing
+				if (stack.count() == 0) {
+					return; // abort executing
+				} else {
+					StackItem item = (StackItem) stack.peek();
+					this.clazz = item.clazz;
+					this.currentMethod = item.method;
+					this.pc = item.pc; // isn't `item.pc - 1`
+					continue;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
 				sim.stm.Instruction.NewInstance ci = (sim.stm.Instruction.NewInstance) currentInstruction;
 				mapToSym = mapToSym.assoc(ci.dst, new sym.op.Obj(ci.type));
@@ -220,7 +248,7 @@ public class Kagebunsin implements Runnable {
 						executor.submit(new Kagebunsin(executor, labelCount,
 								clazz, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
-								rc, symGen.clone()));
+								rc, symGen.clone(), stack));
 					}
 				}
 
@@ -501,7 +529,7 @@ public class Kagebunsin implements Runnable {
 						executor.submit(new Kagebunsin(executor, labelCount,
 								clazz, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
-								rc, symGen.clone()));
+								rc, symGen.clone(), stack));
 					}
 				}
 

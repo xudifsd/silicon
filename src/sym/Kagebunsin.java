@@ -10,6 +10,7 @@ import sym.op.IOp;
 import sym.op.Obj;
 import sym.pred.IPrediction;
 import clojure.lang.IPersistentMap;
+import clojure.lang.PersistentHashMap;
 import clojure.lang.PersistentVector;
 
 /* *
@@ -47,13 +48,15 @@ public class Kagebunsin implements Runnable {
 	}
 
 	private void unknow(sim.stm.T i) {
-		System.err.format("unknow instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		executor.printlnErr(String.format(
+				"unknow instruction %s in method %s\n", i.getClass().getName(),
+				currentMethod.name));
 	}
 
 	private void unsupport(sim.stm.T i) {
-		System.err.format("unsupport instruction %s in method %s\n",
-				i.getClass().getName(), currentMethod.name);
+		executor.printlnErr(String.format(
+				"unsupport instruction %s in method %s\n",
+				i.getClass().getName(), currentMethod.name));
 	}
 
 	public static long hex2long(String s) {
@@ -78,7 +81,9 @@ public class Kagebunsin implements Runnable {
 	@SuppressWarnings("rawtypes")
 	private String andAllCond() {
 		Iterator it = conditions.iterator();
-		StringBuilder sb = new StringBuilder("(assert (and ");
+		StringBuilder sb = new StringBuilder("(and ");
+		if (!it.hasNext())
+			sb.append(" ");
 		while (it.hasNext()) {
 			sym.pred.IPrediction cond = (IPrediction) it.next();
 			sb.append(cond.toString());
@@ -87,6 +92,43 @@ public class Kagebunsin implements Runnable {
 		sb.deleteCharAt(sb.length() - 1);
 		sb.append(")");
 		return sb.toString();
+	}
+
+	// return true on success, false on error
+	private boolean invoke(sim.stm.Instruction.Invoke invoke) {
+		String className = invoke.method.classType;
+		sim.classs.Class clazz = executor.getClass(className.substring(1,
+				className.length() - 1));
+		if (clazz == null)
+			return false;
+		sim.method.Method m = executor.getMethod(clazz, invoke.method);
+		if (m == null)
+			return false;
+
+		// target method found
+
+		IPersistentMap pReg = PersistentHashMap.EMPTY;
+		// arguments is stored at p{0..} register
+		for (int index = 0; index < invoke.args.size(); index++) {
+			String src = invoke.args.get(index);
+			String reg = "p" + index;
+
+			pReg = pReg.assoc(reg, mapToSym.valAt(src));
+		}
+
+		stack = stack.cons(new StackItem(clazz, currentMethod, pc, mapToSym,
+				labelCount));
+
+		this.clazz = clazz;
+		this.currentMethod = m;
+		this.pc = -1;
+		this.mapToSym = pReg;
+		this.labelCount = new HashMap<String, AtomicInteger>();
+		for (sim.method.Method.Label label : m.labelList) {
+			labelCount.put(label.lab, new AtomicInteger(0));
+		}
+
+		return true;
 	}
 
 	@Override
@@ -102,33 +144,27 @@ public class Kagebunsin implements Runnable {
 							&& ci.method.methodName.equals("<init>"))
 						continue;
 				case "invoke-static":
-					String className = ci.method.classType;
-					sim.classs.Class target = executor.getClass(className.substring(
-							1, className.length() - 1));
-					executor.println("we should do invoke " + className + "->"
-							+ ci.method.methodName);
-					stack = stack.cons(new StackItem(clazz, currentMethod, pc));
-					clazz = target;
-					boolean found = false;
-					for (sim.method.Method m : clazz.methods) {
-						if (m.name.equals(ci.method.methodName)) {
-							// TODO dispatch on argtype, like foo() foo(I)
-							currentMethod = m;
-							found = true;
-							break;
-						}
+					// NOTE: we also handle invoke-direct here
+					boolean succ = invoke(ci);
+					if (succ)
+						continue;
+					else {
+						executor.printlnErr("not found " + ci.method);
+						return; // abort execution
 					}
-					// FIXME argument support
-					if (!found) {
-						System.err.println("not found " + ci.method.methodName
-								+ " for class " + target.name);
-						return;
-					}
-					pc = -1;
-					continue;
 				case "invoke-interface":
 				case "invoke-virtual":
 				case "invoke-super":
+					IOp obj = (IOp) mapToSym.valAt(ci.args.get(0));
+					if (obj == null || obj instanceof sym.op.Const) {
+						String diagnose = String.format(
+								"%s.%s: trying to do %s on null obj under condition %s",
+								clazz.name, currentMethod.name, ci.op,
+								andAllCond());
+						executor.writeln(diagnose);
+					} else
+						executor.println("detect " + ci.op + " on non-null obj");
+					return;
 				case "invoke-virtual/range":
 				case "invoke-super/range":
 				case "invoke-direct/range":
@@ -139,8 +175,18 @@ public class Kagebunsin implements Runnable {
 					return;
 				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.MoveResult) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.MoveResult ci = (sim.stm.Instruction.MoveResult) currentInstruction;
+				switch (ci.op) {
+				case "move-result":
+				case "move-result-wide":
+				case "move-result-object":
+					mapToSym = mapToSym.assoc(ci.dst, result);
+					continue;
+				case "move-exception":
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Iget) {
 				sim.stm.Instruction.Iget ci = (sim.stm.Instruction.Iget) currentInstruction;
 				switch (ci.op) {
@@ -163,10 +209,10 @@ public class Kagebunsin implements Runnable {
 					sym.op.Obj obj = (sym.op.Obj) value;
 					IOp result = obj.iget(ci.field.fieldName);
 					if (result == null) {
-						System.err.format(
+						executor.printlnErr(String.format(
 								"%s.%s: iget returns null at pc %d under condition %s",
 								clazz.name, currentMethod.name, pc,
-								andAllCond());
+								andAllCond()));
 						return;
 					}
 					mapToSym = mapToSym.assoc(ci.dst, result);
@@ -181,12 +227,14 @@ public class Kagebunsin implements Runnable {
 				case "const":
 					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Const(
 							hex2long(ci.value)));
-					break;
+					continue;
+				case "const-string/jumbo":
+					mapToSym = mapToSym.assoc(ci.dst, new sym.op.Str(ci.value));
+					continue;
 				default:
 					unsupport(currentInstruction);
 					return;
 				}
-				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.ReturnVoid) {
 				if (stack.count() == 0) {
 					return; // abort executing
@@ -200,7 +248,8 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
 				sim.stm.Instruction.NewInstance ci = (sim.stm.Instruction.NewInstance) currentInstruction;
 				mapToSym = mapToSym.assoc(ci.dst, new sym.op.Obj(ci.type));
-				// TODO we should call its constructor
+				// NOTE we shouldn't call its constructor here
+				// dalvik will generate invoke-direct for us
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Goto) {
 				sim.stm.Instruction.Goto ci = (sim.stm.Instruction.Goto) currentInstruction;
@@ -289,8 +338,27 @@ public class Kagebunsin implements Runnable {
 			} else if (currentInstruction instanceof sim.stm.Instruction.CheckCast) {
 				continue; // TODO we should check its type or super type
 			} else if (currentInstruction instanceof sim.stm.Instruction.Return) {
-				unsupport(currentInstruction);
-				return;
+				sim.stm.Instruction.Return ci = (sim.stm.Instruction.Return) currentInstruction;
+				switch (ci.op) {
+				case "return":
+				case "return-wide":
+				case "return-object":
+					result = (IOp) mapToSym.valAt(ci.src);
+					if (stack.count() == 0) {
+						return; // abort executing
+					} else {
+						StackItem item = (StackItem) stack.peek();
+						this.clazz = item.clazz;
+						this.currentMethod = item.method;
+						this.pc = item.pc; // isn't `item.pc - 1`
+						this.mapToSym = item.mapToSym;
+						this.labelCount = item.labelCount;
+						continue;
+					}
+				default:
+					unsupport(currentInstruction);
+					return;
+				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sget) {
 				sim.stm.Instruction.Sget ci = (sim.stm.Instruction.Sget) currentInstruction;
 				switch (ci.op) {
@@ -548,8 +616,7 @@ public class Kagebunsin implements Runnable {
 						new sym.op.Array(ci.type, len));
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Throw) {
-				unsupport(currentInstruction);
-				return;
+				return; // abort execution TODO add support for catching it
 			} else if (currentInstruction instanceof sim.stm.Instruction.Sput) {
 				sim.stm.Instruction.Sput ci = (sim.stm.Instruction.Sput) currentInstruction;
 
@@ -607,8 +674,7 @@ public class Kagebunsin implements Runnable {
 				mapToSym = mapToSym.assoc(ci.dst, ((sym.op.Array) array).length);
 				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.Monitor) {
-				unsupport(currentInstruction);
-				return;
+				continue;
 			} else if (currentInstruction instanceof sim.stm.Instruction.InstanceOf) {
 				unsupport(currentInstruction);
 				return;

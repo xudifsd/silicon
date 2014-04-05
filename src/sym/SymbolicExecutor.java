@@ -3,6 +3,7 @@ package sym;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -35,10 +36,10 @@ public class SymbolicExecutor {
 
 	public final String symResultPath;
 	public final String apkOutputPath;
-	public final String mainClass;
+	public final String mainClassName;
 
 	public SymbolicExecutor(List<SimplifyWorker> workers, File output,
-			String apkOutputPath, String mainClass) throws IOException {
+			String apkOutputPath, String mainClassName) throws IOException {
 		this.staticObjs = new HashMap<String, HashMap<String, sym.op.IOp>>();
 		this.workers = workers;
 		this.latch = new CountDownLatch(1);
@@ -51,7 +52,7 @@ public class SymbolicExecutor {
 		this.unaccessedClass = new HashMap<String, SimplifyWorker>();
 		this.allClass = new HashMap<String, sim.classs.Class>();
 		this.apkOutputPath = apkOutputPath;
-		this.mainClass = mainClass;
+		this.mainClassName = mainClassName;
 	}
 
 	public synchronized void write(String msg) {
@@ -59,8 +60,8 @@ public class SymbolicExecutor {
 			this.writer.write(msg);
 			this.writer.flush();
 		} catch (IOException e) {
-			System.err.format("exception %s when writing to %s", e,
-					symResultPath);
+			printlnErr(String.format("exception %s when writing to %s", e,
+					symResultPath));
 		}
 	}
 
@@ -92,8 +93,7 @@ public class SymbolicExecutor {
 		obj.put(fieldName, value);
 	}
 
-	// className should be something like java/lang/Object, return null
-	// on 404
+	// className should be something like java/lang/Object, return null on 404
 	public synchronized sim.classs.Class getClass(String className) {
 		sim.classs.Class result = allClass.get(className);
 		if (result == null) {
@@ -104,9 +104,9 @@ public class SymbolicExecutor {
 				try {
 					result = worker.call();
 				} catch (Exception e) {
-					System.err.format("error while processing %s\n",
-							worker.translateWorker.parserWorker.path);
-					e.printStackTrace();
+					printlnErr(String.format("error while processing %s\n",
+							worker.translateWorker.parserWorker.path));
+					printSt(e);
 				}
 				// TODO invoke result.<clinit>
 				if (result != null)
@@ -116,9 +116,39 @@ public class SymbolicExecutor {
 		return result;
 	}
 
+	// get right method, including argtype
+	public synchronized sim.method.Method getMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
+		// FIXME make it more efficient
+		out: for (sim.method.Method target : clazz.methods) {
+			if (target.name.equals(method.methodName)
+					&& target.parameterList.size() == method.prototype.argsType.size()) {
+				for (int i = 0; i < target.prototype.argsType.size(); i++) {
+					String parameter = target.prototype.argsType.get(i);
+					String argument = method.prototype.argsType.get(i);
+					if (!parameter.equals(argument))
+						continue out;
+				}
+				return target;
+			} else
+				continue;
+		}
+		return null;
+	}
+
 	// wrapper for System.out.println, for debug usage
 	public synchronized void println(String msg) {
 		System.out.println(msg);
+	}
+
+	// wrapper for System.err.println, for debug usage
+	public synchronized void printlnErr(String msg) {
+		System.err.println(msg);
+	}
+
+	public void printSt(Throwable t) {
+		synchronized (System.err) {
+			t.printStackTrace();
+		}
 	}
 
 	public void execute() {
@@ -129,29 +159,26 @@ public class SymbolicExecutor {
 			unaccessedClass.put(key, worker);
 		}
 
-		sim.classs.Class mainClass = getClass(this.mainClass);
-		sim.method.Method main = null;
+		sim.classs.Class mainClass = getClass(mainClassName);
 
-		for (sim.method.Method method : mainClass.methods) {
-			// TODO add HashMap to sim.class.Class
-			if (!method.name.equals("main"))
-				continue;
-			else {
-				main = method;
-				break;
-			}
-		}
+		sim.method.Method.MethodPrototype mainPrototype;
+		ArrayList<String> parameterForMain = new ArrayList<String>();
+		parameterForMain.add("[Ljava/lang/String;");
+		mainPrototype = new sim.method.Method.MethodPrototype("V",
+				parameterForMain);
+		sim.classs.MethodItem mainSpec = new sim.classs.MethodItem(
+				mainClassName, "main", mainPrototype);
+
+		sim.method.Method main = getMethod(mainClass, mainSpec);
 
 		if (main == null) {
-			System.err.println("no main method found for main class "
-					+ mainClass);
+			printlnErr("no main method found for main class " + mainClass);
 			System.exit(3);
 		}
 
 		HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
-		for (sim.method.Method.Label label : main.labelList) {
+		for (sim.method.Method.Label label : main.labelList)
 			labelCount.put(label.lab, new AtomicInteger(0));
-		}
 
 		IPersistentMap pReg = PersistentHashMap.EMPTY;
 		SymGenerator symGen = new SymGenerator();
@@ -168,9 +195,9 @@ public class SymbolicExecutor {
 			} else if (t.startsWith("L")) {
 				continue; // assume object argument is null
 			} else {
-				System.err.format(
+				printlnErr(String.format(
 						"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
-						main, t);
+						main, t));
 			}
 		}
 

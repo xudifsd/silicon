@@ -16,6 +16,8 @@ public class Control {
 
 	public static String action = "dump";
 
+	public static boolean debug = false;
+
 	public static int symExeSec = 60; // default to execute at most 60 seconds
 
 	public static String entryPoint = null;

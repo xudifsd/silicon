@@ -83,14 +83,20 @@ public class Z3Stub {
 			BufferedReader reader = new BufferedReader(
 					new InputStreamReader(in));
 
-			String line = null;
+			String line = reader.readLine();
+
+			if (line.equals("unsat"))
+				z3result.satOrNot = false;
+			else if (line.equals("sat"))
+				z3result.satOrNot = true;
+			else {
+				synchronized (System.err) {
+					System.err.format("unknow %s in Z3Stub.calculate");
+				}
+				return z3result;
+			}
 
 			while ((line = reader.readLine()) != null) {
-				if (line.contains("unsat")) {
-					z3result.satOrNot = false;
-					break;
-				}
-
 				if (line.indexOf("(define-fun") != -1) {
 					int t = line.indexOf("(define-fun");
 					line = line.substring(t + 12, line.length());

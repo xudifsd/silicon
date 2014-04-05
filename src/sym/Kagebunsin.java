@@ -131,10 +131,25 @@ public class Kagebunsin implements Runnable {
 		return true;
 	}
 
+	private void popStack() {
+		StackItem item = (StackItem) stack.peek();
+		this.clazz = item.clazz;
+		this.currentMethod = item.method;
+		this.pc = item.pc; // isn't `item.pc - 1`
+		this.mapToSym = item.mapToSym;
+		this.labelCount = item.labelCount;
+		stack = stack.pop();
+	}
+
 	@Override
 	public void run() {
 		for (; pc < currentMethod.statements.size(); pc++) {
 			sim.stm.T currentInstruction = currentMethod.statements.get(pc);
+			if (control.Control.debug) {
+				executor.println(String.format(
+						"instruction is %s, mapToSym is %s\n",
+						currentInstruction.toString(), mapToSym));
+			}
 			// sort according to instruction popularity
 			if (currentInstruction instanceof sim.stm.Instruction.Invoke) {
 				sim.stm.Instruction.Invoke ci = (sim.stm.Instruction.Invoke) currentInstruction;
@@ -239,10 +254,7 @@ public class Kagebunsin implements Runnable {
 				if (stack.count() == 0) {
 					return; // abort executing
 				} else {
-					StackItem item = (StackItem) stack.peek();
-					this.clazz = item.clazz;
-					this.currentMethod = item.method;
-					this.pc = item.pc; // isn't `item.pc - 1`
+					popStack();
 					continue;
 				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
@@ -347,12 +359,7 @@ public class Kagebunsin implements Runnable {
 					if (stack.count() == 0) {
 						return; // abort executing
 					} else {
-						StackItem item = (StackItem) stack.peek();
-						this.clazz = item.clazz;
-						this.currentMethod = item.method;
-						this.pc = item.pc; // isn't `item.pc - 1`
-						this.mapToSym = item.mapToSym;
-						this.labelCount = item.labelCount;
+						popStack();
 						continue;
 					}
 				default:
@@ -593,6 +600,7 @@ public class Kagebunsin implements Runnable {
 				// Kagebunsin no jyutu!
 				if (labelCount.get(ci.label).addAndGet(1) < countThreshold) {
 					Z3Result z3result = executor.calculate(symGen.types, rc);
+
 					if (z3result.satOrNot) {
 						executor.submit(new Kagebunsin(executor, labelCount,
 								clazz, currentMethod,

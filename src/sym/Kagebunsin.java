@@ -159,6 +159,10 @@ public class Kagebunsin implements Runnable {
 							&& ci.method.methodName.equals("<init>"))
 						continue;
 				case "invoke-static":
+					String className = ci.method.classType;
+					className = className.substring(1, className.length() - 1);
+					executor.getClass(className); // to init the class
+
 					// NOTE: we also handle invoke-direct here
 					boolean succ = invoke(ci);
 					if (succ)
@@ -259,6 +263,10 @@ public class Kagebunsin implements Runnable {
 				}
 			} else if (currentInstruction instanceof sim.stm.Instruction.NewInstance) {
 				sim.stm.Instruction.NewInstance ci = (sim.stm.Instruction.NewInstance) currentInstruction;
+
+				String className = ci.type.substring(1, ci.type.length() - 1);
+				executor.getClass(className); // to init the class
+
 				mapToSym = mapToSym.assoc(ci.dst, new sym.op.Obj(ci.type));
 				// NOTE we shouldn't call its constructor here
 				// dalvik will generate invoke-direct for us
@@ -376,8 +384,10 @@ public class Kagebunsin implements Runnable {
 				case "sget-byte":
 				case "sget-char":
 				case "sget-short":
-					sym.op.IOp r = executor.sget(ci.field.classType,
-							ci.field.fieldName);
+					String className = ci.field.classType;
+					className = className.substring(1, className.length() - 1);
+
+					sym.op.IOp r = executor.sget(className, ci.field.fieldName);
 					if (r == null) {
 						String diagnose = String.format(
 								"%s.%s: trying to do %s on %s to get '%s' under condition %s",
@@ -636,7 +646,10 @@ public class Kagebunsin implements Runnable {
 				case "sput-byte":
 				case "sput-char":
 				case "sput-short":
-					executor.sput(ci.field.classType, ci.field.fieldName,
+					String className = ci.field.classType;
+					className = className.substring(1, className.length() - 1);
+
+					executor.sput(className, ci.field.fieldName,
 							(IOp) mapToSym.valAt(ci.src));
 					continue;
 				default:

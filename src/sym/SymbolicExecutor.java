@@ -78,6 +78,7 @@ public class SymbolicExecutor {
 	}
 
 	public synchronized sym.op.IOp sget(String className, String fieldName) {
+		getClass(className); // to init the class
 		HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
 		if (obj == null)
 			return null; //error
@@ -86,9 +87,11 @@ public class SymbolicExecutor {
 	}
 
 	public synchronized void sput(String className, String fieldName, sym.op.IOp value) {
+		getClass(className); // to init the class
 		HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
 		if (obj == null) {
-			staticObjs.put(className, new HashMap<String, sym.op.IOp>());
+			obj = new HashMap<String, sym.op.IOp>();
+			staticObjs.put(className, obj);
 		}
 		obj.put(fieldName, value);
 	}
@@ -108,16 +111,40 @@ public class SymbolicExecutor {
 							worker.translateWorker.parserWorker.path));
 					printSt(e);
 				}
-				// TODO invoke result.<clinit>
+
+				// NOTE!! we should put result into allClass before we call its
+				// <clinit>, because if not, we may recursively call ourselves
 				if (result != null)
 					allClass.put(className, result);
+
+				sim.method.Method.MethodPrototype clinitPrototype;
+				ArrayList<String> parameterForClinit = new ArrayList<String>();
+				clinitPrototype = new sim.method.Method.MethodPrototype("V",
+						parameterForClinit);
+				sim.classs.MethodItem clinitSpec = new sim.classs.MethodItem(
+						className, "<clinit>", clinitPrototype);
+
+				sim.method.Method clinit = getMethod(result, clinitSpec);
+
+				if (clinit != null) {
+					// invoke result.<clinit>, we assume there're no label and
+					// condition in clinit, so we use null to trigger error to
+					// let us know.
+
+					// we must invoke Kagebunsin in current thread, otherwise
+					// we have to use other method to guarantee execution order
+					Kagebunsin kagebunsin = new Kagebunsin(this, null, result,
+							clinit, 0, PersistentHashMap.EMPTY, null, null,
+							PersistentVector.EMPTY);
+					kagebunsin.run();
+				}
 			}
 		}
 		return result;
 	}
 
 	// get right method, including argtype
-	public synchronized sim.method.Method getMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
+	public sim.method.Method getMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
 		// FIXME make it more efficient
 		out: for (sim.method.Method target : clazz.methods) {
 			if (target.name.equals(method.methodName)
@@ -161,6 +188,12 @@ public class SymbolicExecutor {
 
 		sim.classs.Class mainClass = getClass(mainClassName);
 
+		if (mainClass == null) {
+			printlnErr(String.format("main class %s is not found\n",
+					mainClassName));
+			System.exit(3);
+		}
+
 		sim.method.Method.MethodPrototype mainPrototype;
 		ArrayList<String> parameterForMain = new ArrayList<String>();
 		parameterForMain.add("[Ljava/lang/String;");
@@ -172,7 +205,7 @@ public class SymbolicExecutor {
 		sim.method.Method main = getMethod(mainClass, mainSpec);
 
 		if (main == null) {
-			printlnErr("no main method found for main class " + mainClass);
+			printlnErr("no main method found for main class " + mainClassName);
 			System.exit(3);
 		}
 

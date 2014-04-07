@@ -2,8 +2,8 @@
 
 (cd ../test/tmp
     rm -rf /tmp/output /tmp/smalioutput 2> /dev/null
-    javac T.java
-    java -jar ../../jar/dx.jar --dex --output classes.dex T.class
+    javac *.java
+    java -jar ../../jar/dx.jar --dex --output classes.dex *.class
     zip tmp classes.dex
     mv tmp.zip tmp.apk
     cd ../..

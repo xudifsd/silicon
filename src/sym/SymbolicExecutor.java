@@ -148,7 +148,7 @@ public class SymbolicExecutor {
 		// FIXME make it more efficient
 		out: for (sim.method.Method target : clazz.methods) {
 			if (target.name.equals(method.methodName)
-					&& target.parameterList.size() == method.prototype.argsType.size()) {
+					&& target.prototype.argsType.size() == method.prototype.argsType.size()) {
 				for (int i = 0; i < target.prototype.argsType.size(); i++) {
 					String parameter = target.prototype.argsType.get(i);
 					String argument = method.prototype.argsType.get(i);
@@ -194,23 +194,23 @@ public class SymbolicExecutor {
 			System.exit(3);
 		}
 
-		sim.method.Method.MethodPrototype mainPrototype;
+		sim.method.Method.MethodPrototype onCreatePrototype;
 		ArrayList<String> parameterForMain = new ArrayList<String>();
-		parameterForMain.add("[Ljava/lang/String;");
-		mainPrototype = new sim.method.Method.MethodPrototype("V",
+		parameterForMain.add("Landroid/os/Bundle;");
+		onCreatePrototype = new sim.method.Method.MethodPrototype("V",
 				parameterForMain);
-		sim.classs.MethodItem mainSpec = new sim.classs.MethodItem(
-				mainClassName, "main", mainPrototype);
+		sim.classs.MethodItem onCreateSpec = new sim.classs.MethodItem(
+				mainClassName, "onCreate", onCreatePrototype);
 
-		sim.method.Method main = getMethod(mainClass, mainSpec);
+		sim.method.Method onCreate = getMethod(mainClass, onCreateSpec);
 
-		if (main == null) {
+		if (onCreate == null) {
 			printlnErr("no main method found for main class " + mainClassName);
 			System.exit(3);
 		}
 
 		HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
-		for (sim.method.Method.Label label : main.labelList)
+		for (sim.method.Method.Label label : onCreate.labelList)
 			labelCount.put(label.lab, new AtomicInteger(0));
 
 		IPersistentMap pReg = PersistentHashMap.EMPTY;
@@ -218,8 +218,8 @@ public class SymbolicExecutor {
 
 		int index = 0;
 		// arguments is stored at p{0..} register
-		for (; index < main.prototype.argsType.size(); index++) {
-			String t = main.prototype.argsType.get(index);
+		for (; index < onCreate.prototype.argsType.size(); index++) {
+			String t = onCreate.prototype.argsType.get(index);
 			String reg = "p" + index;
 			if (t.equals("I")) {
 				pReg = pReg.assoc(reg, symGen.genSym(t));
@@ -230,12 +230,12 @@ public class SymbolicExecutor {
 			} else {
 				printlnErr(String.format(
 						"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
-						main, t));
+						onCreate, t));
 			}
 		}
 
-		executor.submit(new Kagebunsin(this, labelCount, mainClass, main, 0,
-				pReg, PersistentVector.EMPTY, symGen, PersistentVector.EMPTY));
+		executor.submit(new Kagebunsin(this, labelCount, mainClass, onCreate,
+				0, pReg, PersistentVector.EMPTY, symGen, PersistentVector.EMPTY));
 
 		ScheduledThreadPoolExecutor stpe = new ScheduledThreadPoolExecutor(2);
 

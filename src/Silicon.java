@@ -126,11 +126,13 @@ public class Silicon {
 			sims = CompilePass.simplify(classes);
 			classes = null;
 
+			/*
 			if (Control.entryPoint == null) {
 				System.err.println("you need to specify the main Class using -entry");
 				System.exit(2);
 			}
-			//Control.entryPoint = getMain();
+			*/
+			Control.entryPoint = getMain();
 			SymbolicExecutor symbolicExe = new SymbolicExecutor(sims, new File(
 					Control.symoutput), Control.apkoutput, Control.entryPoint);
 			symbolicExe.execute();

@@ -133,6 +133,7 @@ public class Silicon {
 			}
 			*/
 			Control.entryPoint = getMain();
+			System.out.println("detectived main class is " + Control.entryPoint);
 			SymbolicExecutor symbolicExe = new SymbolicExecutor(sims, new File(
 					Control.symoutput), Control.apkoutput, Control.entryPoint);
 			symbolicExe.execute();

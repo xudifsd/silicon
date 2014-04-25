@@ -144,7 +144,7 @@ public class SymbolicExecutor {
 	}
 
 	// get right method, including argtype
-	public sim.method.Method getMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
+	private sim.method.Method findMatchedMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
 		// FIXME make it more efficient
 		out: for (sim.method.Method target : clazz.methods) {
 			if (target.name.equals(method.methodName)
@@ -159,6 +159,36 @@ public class SymbolicExecutor {
 			} else
 				continue;
 		}
+		return null;
+	}
+
+	// we'll find the class's super class
+	public sim.method.Method getMethod(sim.classs.Class clazz, sim.classs.MethodItem method) {
+		sim.method.Method result = findMatchedMethod(clazz, method);
+
+		if (result != null)
+			return result;
+
+		// if we're trying to get <clinit> then we don't search its super
+		if (method.methodName.equals("<clinit>"))
+			return null;
+
+		// we failed to find method in current class, so we find its super class
+		sim.classs.Class superClass = clazz;
+		do {
+			String superName = superClass.superr;
+			superName = superName.substring(1, superName.length() - 1);
+			superClass = getClass(superName);
+			if (superClass == null)
+				break;
+			result = findMatchedMethod(superClass, method);
+			if (result != null)
+				return result;
+		} while (true);
+
+		printlnErr(String.format(
+				"failed to find method %s with arg %s in class %s\n",
+				method.methodName, method.prototype.argsType, clazz.name));
 		return null;
 	}
 

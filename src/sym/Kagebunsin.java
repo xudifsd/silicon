@@ -153,6 +153,7 @@ public class Kagebunsin implements Runnable {
 			// sort according to instruction popularity
 			if (currentInstruction instanceof sim.stm.Instruction.Invoke) {
 				sim.stm.Instruction.Invoke ci = (sim.stm.Instruction.Invoke) currentInstruction;
+				boolean succ;
 				switch (ci.op) {
 				case "invoke-direct":
 					if (ci.method.classType.equals("Ljava/lang/Object;")
@@ -164,7 +165,7 @@ public class Kagebunsin implements Runnable {
 					executor.getClass(className); // to init the class
 
 					// NOTE: we also handle invoke-direct here
-					boolean succ = invoke(ci);
+					succ = invoke(ci);
 					if (succ)
 						continue;
 					else {
@@ -181,8 +182,16 @@ public class Kagebunsin implements Runnable {
 								clazz.name, currentMethod.name, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
-					} else
-						executor.println("detect " + ci.op + " on non-null obj");
+					} else {
+						succ = invoke(ci);
+						if (succ)
+							continue;
+						else {
+							executor.printlnErr("not found " + ci.method
+									+ " in invoke-virtual etc");
+							return; // abort execution
+						}
+					}
 					return;
 				case "invoke-virtual/range":
 				case "invoke-super/range":

@@ -235,7 +235,8 @@ public class SymbolicExecutor {
 		sim.method.Method onCreate = getMethod(mainClass, onCreateSpec);
 
 		if (onCreate == null) {
-			printlnErr("no main method found for main class " + mainClassName);
+			printlnErr("no onCreate method found for main class "
+					+ mainClassName);
 			System.exit(3);
 		}
 
@@ -247,7 +248,12 @@ public class SymbolicExecutor {
 		SymGenerator symGen = new SymGenerator();
 
 		int index = 0;
-		// arguments is stored at p{0..} register
+
+		// because onCreate is not static method, we should put this in p0
+		pReg = pReg.assoc("p0", new sym.op.Obj("L" + mainClassName + ";"));
+		index++;
+
+		// arguments is stored at p{1..} register
 		for (; index < onCreate.prototype.argsType.size(); index++) {
 			String t = onCreate.prototype.argsType.get(index);
 			String reg = "p" + index;

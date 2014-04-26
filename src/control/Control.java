@@ -18,7 +18,7 @@ public class Control {
 
 	public static boolean debug = false;
 
-	public static int symExeSec = 60; // default to execute at most 60 seconds
+	public static int symExeSec = 10 * 60; // default to execute at most 10 * 60 seconds
 
 	// verbose level
 	public enum Verbose_t {

@@ -246,6 +246,17 @@ public class SymbolicExecutor {
 			unaccessedClass.put(key, worker);
 		}
 
+		ScheduledThreadPoolExecutor stpe = new ScheduledThreadPoolExecutor(2);
+
+		// execute at most Control.symExeSec seconds
+		stpe.scheduleAtFixedRate((new Runnable() {
+			@Override
+			public void run() {
+				//latch.countDown();
+				System.exit(100); // to prevent possible dead lock
+			}
+		}), Control.symExeSec, 1, TimeUnit.SECONDS);
+
 		while (unaccessedClass.size() != 0 || unScanedClass.size() != 0) {
 			sim.classs.Class clazz = unScanedClass.poll();
 
@@ -308,16 +319,6 @@ public class SymbolicExecutor {
 		}
 
 		// scaned all the class
-
-		ScheduledThreadPoolExecutor stpe = new ScheduledThreadPoolExecutor(2);
-
-		// execute at most Control.symExeSec seconds
-		stpe.scheduleAtFixedRate((new Runnable() {
-			@Override
-			public void run() {
-				latch.countDown();
-			}
-		}), Control.symExeSec, 1, TimeUnit.SECONDS);
 
 		// when the executor is idle (ie. all Kagebunsin exits), we exit.
 		stpe.scheduleAtFixedRate((new Runnable() {

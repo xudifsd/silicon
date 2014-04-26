@@ -178,7 +178,7 @@ public class Kagebunsin implements Runnable {
 					IOp obj = (IOp) mapToSym.valAt(ci.args.get(0));
 					if (obj == null || obj instanceof sym.op.Const) {
 						String diagnose = String.format(
-								"%s.%s: trying to do %s on null obj under condition %s",
+								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
 								clazz.name, currentMethod.name, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
@@ -229,7 +229,7 @@ public class Kagebunsin implements Runnable {
 					if (value instanceof sym.op.Const
 							&& ((sym.op.Const) value).value == 0) {
 						String diagnose = String.format(
-								"%s.%s: trying to do %s on null obj under condition %s",
+								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
 								clazz.name, currentMethod.name, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
@@ -351,7 +351,7 @@ public class Kagebunsin implements Runnable {
 					if (v instanceof sym.op.Const
 							&& ((sym.op.Const) v).value == 0) {
 						String diagnose = String.format(
-								"%s.%s: trying to do %s on null obj under condition %s",
+								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
 								clazz.name, currentMethod.name, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
@@ -399,7 +399,7 @@ public class Kagebunsin implements Runnable {
 					sym.op.IOp r = executor.sget(className, ci.field.fieldName);
 					if (r == null) {
 						String diagnose = String.format(
-								"%s.%s: trying to do %s on %s to get '%s' under condition %s",
+								"%s.%s: get null while trying to do %s on %s to get '%s' under condition %s",
 								clazz.name, currentMethod.name, ci.op,
 								ci.field.classType, ci.field.fieldName,
 								andAllCond());
@@ -445,7 +445,7 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"%s.%s: trying to index '%s'[%s] under condition %s",
+								"%s.%s: OOB: trying to index '%s'[%s] under condition %s",
 								clazz.name, currentMethod.name, array, index,
 								andAllCond());
 						executor.writeln(diagnose);
@@ -687,7 +687,7 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"%s.%s: trying to index '%s'[%s] under condition %s",
+								"%s.%s: OOB: trying to index '%s'[%s] under condition %s",
 								clazz.name, currentMethod.name, array, index,
 								andAllCond());
 						executor.writeln(diagnose);

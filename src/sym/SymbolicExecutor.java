@@ -81,23 +81,27 @@ public class SymbolicExecutor {
 		return this.z3.calculate(types, conditions);
 	}
 
-	public synchronized sym.op.IOp sget(String className, String fieldName) {
+	public sym.op.IOp sget(String className, String fieldName) {
 		getClass(className); // to init the class
-		HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
-		if (obj == null)
-			return null; //error
+		synchronized (staticObjs) {
+			HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
+			if (obj == null)
+				return null; //error
 
-		return obj.get(fieldName);
+			return obj.get(fieldName);
+		}
 	}
 
-	public synchronized void sput(String className, String fieldName, sym.op.IOp value) {
+	public void sput(String className, String fieldName, sym.op.IOp value) {
 		getClass(className); // to init the class
-		HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
-		if (obj == null) {
-			obj = new HashMap<String, sym.op.IOp>();
-			staticObjs.put(className, obj);
+		synchronized (staticObjs) {
+			HashMap<String, sym.op.IOp> obj = staticObjs.get(className);
+			if (obj == null) {
+				obj = new HashMap<String, sym.op.IOp>();
+				staticObjs.put(className, obj);
+			}
+			obj.put(fieldName, value);
 		}
-		obj.put(fieldName, value);
 	}
 
 	// call clazz.<clinit>
@@ -112,16 +116,22 @@ public class SymbolicExecutor {
 		sim.method.Method clinit = getMethod(clazz, clinitSpec);
 
 		if (clinit != null) {
-			// invoke result.<clinit>, we assume there're no label and
-			// condition in clinit, so we use null to trigger error to
-			// let us know.
+			HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
+			for (sim.method.Method.Label label : clinit.labelList)
+				labelCount.put(label.lab, new AtomicInteger(0));
 
-			// we must invoke Kagebunsin in current thread, otherwise
-			// we have to use other method to guarantee execution order
-			Kagebunsin kagebunsin = new Kagebunsin(this, null, clazz, clinit,
-					0, PersistentHashMap.EMPTY, null, null,
-					PersistentVector.EMPTY);
-			kagebunsin.run();
+			SymGenerator symGen = new SymGenerator();
+			Kagebunsin kagebunsin = new Kagebunsin(this, labelCount, clazz,
+					clinit, 0, PersistentHashMap.EMPTY, PersistentVector.EMPTY,
+					symGen, PersistentVector.EMPTY);
+			try {
+				kagebunsin.run();
+			} catch (Exception ex) {
+				printlnErr(String.format(
+						"in class %s encount %s while invoke its <clinit>",
+						clazz.name, ex.toString()));
+				printSt(ex);
+			}
 		}
 	}
 

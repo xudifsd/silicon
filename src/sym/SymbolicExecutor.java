@@ -5,7 +5,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -30,16 +33,17 @@ public class SymbolicExecutor {
 	private Z3Stub z3;
 	private HashMap<String, HashMap<String, sym.op.IOp>> staticObjs;
 
-	// two fields below can only accessed via getClass(name), which is synchronized
+	// we synchronized on unaccessedClass to avoid init unaccessedClass twice
 	private HashMap<String, SimplifyWorker> unaccessedClass;
 	private HashMap<String, sim.classs.Class> allClass;
+	// contains classes that has clinit called, but not scaned by Kagebunsin
+	private ConcurrentLinkedQueue<sim.classs.Class> unScanedClass;
 
 	public final String symResultPath;
 	public final String apkOutputPath;
-	public final String mainClassName;
 
 	public SymbolicExecutor(List<SimplifyWorker> workers, File output,
-			String apkOutputPath, String mainClassName) throws IOException {
+			String apkOutputPath) throws IOException {
 		this.staticObjs = new HashMap<String, HashMap<String, sym.op.IOp>>();
 		this.workers = workers;
 		this.latch = new CountDownLatch(1);
@@ -52,7 +56,7 @@ public class SymbolicExecutor {
 		this.unaccessedClass = new HashMap<String, SimplifyWorker>();
 		this.allClass = new HashMap<String, sim.classs.Class>();
 		this.apkOutputPath = apkOutputPath;
-		this.mainClassName = mainClassName;
+		this.unScanedClass = new ConcurrentLinkedQueue<sim.classs.Class>();
 	}
 
 	public synchronized void write(String msg) {
@@ -96,48 +100,64 @@ public class SymbolicExecutor {
 		obj.put(fieldName, value);
 	}
 
+	// call clazz.<clinit>
+	private void initClass(String className, sim.classs.Class clazz) {
+		sim.method.Method.MethodPrototype clinitPrototype;
+		ArrayList<String> parameterForClinit = new ArrayList<String>();
+		clinitPrototype = new sim.method.Method.MethodPrototype("V",
+				parameterForClinit);
+		sim.classs.MethodItem clinitSpec = new sim.classs.MethodItem(className,
+				"<clinit>", clinitPrototype);
+
+		sim.method.Method clinit = getMethod(clazz, clinitSpec);
+
+		if (clinit != null) {
+			// invoke result.<clinit>, we assume there're no label and
+			// condition in clinit, so we use null to trigger error to
+			// let us know.
+
+			// we must invoke Kagebunsin in current thread, otherwise
+			// we have to use other method to guarantee execution order
+			Kagebunsin kagebunsin = new Kagebunsin(this, null, clazz, clinit,
+					0, PersistentHashMap.EMPTY, null, null,
+					PersistentVector.EMPTY);
+			kagebunsin.run();
+		}
+	}
+
+	// this method is not synchronized, it should called under protection of
+	// synchronized (unaccessedClass)
+	// push result to unScanedClass
+	private sim.classs.Class getClass(String className, SimplifyWorker worker) {
+		sim.classs.Class result;
+		try {
+			result = worker.call();
+		} catch (Exception e) {
+			printlnErr(String.format("error while processing %s\n",
+					worker.translateWorker.parserWorker.path));
+			printSt(e);
+			return null;
+		}
+
+		// NOTE!! we should put result into allClass before we call its
+		// <clinit>, because if not, we may recursively call ourselves
+		allClass.put(className, result);
+		unScanedClass.add(result);
+
+		initClass(className, result);
+		return result;
+	}
+
 	// className should be something like java/lang/Object, return null on 404
-	public synchronized sim.classs.Class getClass(String className) {
+	public sim.classs.Class getClass(String className) {
 		sim.classs.Class result = allClass.get(className);
 		if (result == null) {
-			SimplifyWorker worker = unaccessedClass.get(className);
-			if (worker == null) {
-				result = null;
-			} else {
-				try {
-					result = worker.call();
-				} catch (Exception e) {
-					printlnErr(String.format("error while processing %s\n",
-							worker.translateWorker.parserWorker.path));
-					printSt(e);
-				}
-
-				// NOTE!! we should put result into allClass before we call its
-				// <clinit>, because if not, we may recursively call ourselves
-				if (result != null)
-					allClass.put(className, result);
-
-				sim.method.Method.MethodPrototype clinitPrototype;
-				ArrayList<String> parameterForClinit = new ArrayList<String>();
-				clinitPrototype = new sim.method.Method.MethodPrototype("V",
-						parameterForClinit);
-				sim.classs.MethodItem clinitSpec = new sim.classs.MethodItem(
-						className, "<clinit>", clinitPrototype);
-
-				sim.method.Method clinit = getMethod(result, clinitSpec);
-
-				if (clinit != null) {
-					// invoke result.<clinit>, we assume there're no label and
-					// condition in clinit, so we use null to trigger error to
-					// let us know.
-
-					// we must invoke Kagebunsin in current thread, otherwise
-					// we have to use other method to guarantee execution order
-					Kagebunsin kagebunsin = new Kagebunsin(this, null, result,
-							clinit, 0, PersistentHashMap.EMPTY, null, null,
-							PersistentVector.EMPTY);
-					kagebunsin.run();
-				}
+			synchronized (unaccessedClass) {
+				SimplifyWorker worker = unaccessedClass.remove(className);
+				if (worker == null)
+					return null;
+				else
+					return getClass(className, worker);
 			}
 		}
 		return result;
@@ -216,62 +236,68 @@ public class SymbolicExecutor {
 			unaccessedClass.put(key, worker);
 		}
 
-		sim.classs.Class mainClass = getClass(mainClassName);
+		while (unaccessedClass.size() != 0 || unScanedClass.size() != 0) {
+			sim.classs.Class clazz = unScanedClass.poll();
 
-		if (mainClass == null) {
-			printlnErr(String.format("main class %s is not found\n",
-					mainClassName));
-			System.exit(3);
-		}
+			if (clazz == null) {
+				synchronized (unaccessedClass) {
+					// avoid race condition
+					if (unaccessedClass.size() == 0)
+						break;
 
-		sim.method.Method.MethodPrototype onCreatePrototype;
-		ArrayList<String> parameterForMain = new ArrayList<String>();
-		parameterForMain.add("Landroid/os/Bundle;");
-		onCreatePrototype = new sim.method.Method.MethodPrototype("V",
-				parameterForMain);
-		sim.classs.MethodItem onCreateSpec = new sim.classs.MethodItem(
-				mainClassName, "onCreate", onCreatePrototype);
+					Iterator<Entry<String, SimplifyWorker>> it;
+					it = unaccessedClass.entrySet().iterator();
 
-		sim.method.Method onCreate = getMethod(mainClass, onCreateSpec);
+					Entry<String, SimplifyWorker> entry = it.next();
+					getClass(entry.getKey(), entry.getValue()); // this will push an item to unScanedClass
+					unaccessedClass.remove(entry.getKey());
+					continue;
+				}
+			}
+			assert clazz != null;
 
-		if (onCreate == null) {
-			printlnErr("no onCreate method found for main class "
-					+ mainClassName);
-			System.exit(3);
-		}
+			out: for (sim.method.Method method : clazz.methods) {
+				HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
+				for (sim.method.Method.Label label : method.labelList)
+					labelCount.put(label.lab, new AtomicInteger(0));
 
-		HashMap<String, AtomicInteger> labelCount = new HashMap<String, AtomicInteger>();
-		for (sim.method.Method.Label label : onCreate.labelList)
-			labelCount.put(label.lab, new AtomicInteger(0));
+				IPersistentMap pReg = PersistentHashMap.EMPTY;
+				SymGenerator symGen = new SymGenerator();
 
-		IPersistentMap pReg = PersistentHashMap.EMPTY;
-		SymGenerator symGen = new SymGenerator();
+				int index = 0;
 
-		int index = 0;
+				if (!method.accessList.contains("static")) {
+					// unstatic method has this as p0
+					pReg = pReg.assoc("p0", new sym.op.Obj(clazz.name));
+					index++;
+				}
 
-		// because onCreate is not static method, we should put this in p0
-		pReg = pReg.assoc("p0", new sym.op.Obj("L" + mainClassName + ";"));
-		index++;
+				// arguments is stored at p{0..} or p{1..} register
+				for (; index < method.prototype.argsType.size(); index++) {
+					String t = method.prototype.argsType.get(index);
+					String reg = "p" + index;
+					if (t.equals("I")) {
+						pReg = pReg.assoc(reg, symGen.genSym(t));
+					} else if (t.startsWith("[")) {
+						pReg = pReg.assoc(reg, new sym.op.Array(t,
+								new sym.op.Const(0)));
+					} else if (t.startsWith("L")) {
+						continue; // assume object argument is null
+					} else {
+						printlnErr(String.format(
+								"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
+								method, t));
+						continue out;
+					}
+				}
 
-		// arguments is stored at p{1..} register
-		for (; index < onCreate.prototype.argsType.size(); index++) {
-			String t = onCreate.prototype.argsType.get(index);
-			String reg = "p" + index;
-			if (t.equals("I")) {
-				pReg = pReg.assoc(reg, symGen.genSym(t));
-			} else if (t.startsWith("[")) {
-				pReg = pReg.assoc(reg, new sym.op.Array(t, new sym.op.Const(0)));
-			} else if (t.startsWith("L")) {
-				continue; // assume object argument is null
-			} else {
-				printlnErr(String.format(
-						"before symbolic executing %s, encount type %s, don't add to mapToSym\n",
-						onCreate, t));
+				executor.submit(new Kagebunsin(this, labelCount, clazz, method,
+						0, pReg, PersistentVector.EMPTY, symGen,
+						PersistentVector.EMPTY));
 			}
 		}
 
-		executor.submit(new Kagebunsin(this, labelCount, mainClass, onCreate,
-				0, pReg, PersistentVector.EMPTY, symGen, PersistentVector.EMPTY));
+		// scaned all the class
 
 		ScheduledThreadPoolExecutor stpe = new ScheduledThreadPoolExecutor(2);
 

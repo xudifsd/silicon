@@ -14,7 +14,7 @@ else
     apkname="${apkname%.*}"
     folder=~/sym_result/$apkname
     apkoutput=$folder/apkoutput
-    symoutput=$folder/symoutput
+    symoutput=$folder/symoutput.txt
 
     rm -r $folder 2>/dev/null
     mkdir -p $apkoutput

@@ -86,7 +86,7 @@ public class CommandLine {
 				new F<Object>() {
 					@Override
 					public void f(Object i) {
-						Control.dump = (String) i;
+						Control.symoutput = (String) i;
 					}
 				}));
 	}

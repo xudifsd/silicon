@@ -21,9 +21,9 @@ public class Instruction {
 
 		public Move(String op, String dst, String src) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.src = src;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.src = src.intern();
 		}
 
 		@Override
@@ -38,8 +38,8 @@ public class Instruction {
 
 		public MoveResult(String op, String dst) {
 			super();
-			this.op = op;
-			this.dst = dst;
+			this.op = op.intern();
+			this.dst = dst.intern();
 		}
 
 		@Override
@@ -61,8 +61,8 @@ public class Instruction {
 
 		public Return(String op, String src) {
 			super();
-			this.op = op;
-			this.src = src;
+			this.op = op.intern();
+			this.src = src.intern();
 		}
 
 		@Override
@@ -78,8 +78,8 @@ public class Instruction {
 
 		public Const(String op, String dst, String value) {
 			super();
-			this.op = op;
-			this.dst = dst;
+			this.op = op.intern();
+			this.dst = dst.intern();
 			this.value = value;
 		}
 
@@ -95,7 +95,7 @@ public class Instruction {
 
 		public Monitor(String op, String ref) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.ref = ref;
 		}
 
@@ -128,7 +128,7 @@ public class Instruction {
 
 		public InstanceOf(String dst, String ref, String type) {
 			super();
-			this.dst = dst;
+			this.dst = dst.intern();
 			this.ref = ref;
 			this.type = type;
 		}
@@ -145,7 +145,7 @@ public class Instruction {
 
 		public ArrayLength(String dst, String ref) {
 			super();
-			this.dst = dst;
+			this.dst = dst.intern();
 			this.ref = ref;
 		}
 
@@ -161,7 +161,7 @@ public class Instruction {
 
 		public NewInstance(String dst, String type) {
 			super();
-			this.dst = dst;
+			this.dst = dst.intern();
 			this.type = type;
 		}
 
@@ -178,8 +178,8 @@ public class Instruction {
 
 		public NewArray(String dst, String size, String type) {
 			super();
-			this.dst = dst;
-			this.size = size;
+			this.dst = dst.intern();
+			this.size = size.intern();
 			this.type = type;
 		}
 
@@ -196,7 +196,7 @@ public class Instruction {
 
 		public FilledNewArray(String op, List<String> argList, String type) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.argList = argList;
 			this.type = type;
 		}
@@ -243,7 +243,7 @@ public class Instruction {
 
 		public Goto(String op, String label) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.label = label;
 		}
 
@@ -260,7 +260,7 @@ public class Instruction {
 
 		public Switch(String op, String test, String label) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.test = test;
 			this.label = label;
 		}
@@ -279,10 +279,10 @@ public class Instruction {
 
 		public Cmp(String op, String dst, String firstSrc, String secondSrc) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.firstSrc = firstSrc;
-			this.secondSrc = secondSrc;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.firstSrc = firstSrc.intern();
+			this.secondSrc = secondSrc.intern();
 		}
 
 		@Override
@@ -299,9 +299,9 @@ public class Instruction {
 
 		public IfTest(String op, String firstSrc, String secondSrc, String label) {
 			super();
-			this.op = op;
-			this.firstSrc = firstSrc;
-			this.secondSrc = secondSrc;
+			this.op = op.intern();
+			this.firstSrc = firstSrc.intern();
+			this.secondSrc = secondSrc.intern();
 			this.label = label;
 		}
 
@@ -318,8 +318,8 @@ public class Instruction {
 
 		public IfTestz(String op, String src, String label) {
 			super();
-			this.op = op;
-			this.src = src;
+			this.op = op.intern();
+			this.src = src.intern();
 			this.label = label;
 		}
 
@@ -337,10 +337,10 @@ public class Instruction {
 
 		public Aget(String op, String dst, String array, String index) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.array = array;
-			this.index = index;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.array = array.intern();
+			this.index = index.intern();
 		}
 
 		@Override
@@ -357,10 +357,10 @@ public class Instruction {
 
 		public Aput(String op, String src, String array, String index) {
 			super();
-			this.op = op;
-			this.src = src;
-			this.array = array;
-			this.index = index;
+			this.op = op.intern();
+			this.src = src.intern();
+			this.array = array.intern();
+			this.index = index.intern();
 		}
 
 		@Override
@@ -377,9 +377,9 @@ public class Instruction {
 
 		public Iget(String op, String dst, String obj, FieldItem field) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.obj = obj;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.obj = obj.intern();
 			this.field = field;
 		}
 
@@ -397,9 +397,9 @@ public class Instruction {
 
 		public Iput(String op, String src, String obj, FieldItem field) {
 			super();
-			this.op = op;
-			this.src = src;
-			this.obj = obj;
+			this.op = op.intern();
+			this.src = src.intern();
+			this.obj = obj.intern();
 			this.field = field;
 		}
 
@@ -416,8 +416,8 @@ public class Instruction {
 
 		public Sget(String op, String dst, FieldItem field) {
 			super();
-			this.op = op;
-			this.dst = dst;
+			this.op = op.intern();
+			this.dst = dst.intern();
 			this.field = field;
 		}
 
@@ -434,8 +434,8 @@ public class Instruction {
 
 		public Sput(String op, String src, FieldItem field) {
 			super();
-			this.op = op;
-			this.src = src;
+			this.op = op.intern();
+			this.src = src.intern();
 			this.field = field;
 		}
 
@@ -452,7 +452,7 @@ public class Instruction {
 
 		public Invoke(String op, List<String> args, MethodItem method) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.args = args;
 			this.method = method;
 		}
@@ -470,9 +470,9 @@ public class Instruction {
 
 		public UnOp(String op, String dst, String src) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.src = src;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.src = src.intern();
 		}
 
 		@Override
@@ -489,10 +489,10 @@ public class Instruction {
 
 		public BinOp(String op, String dst, String firstSrc, String secondSrc) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.firstSrc = firstSrc;
-			this.secondSrc = secondSrc;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.firstSrc = firstSrc.intern();
+			this.secondSrc = secondSrc.intern();
 		}
 
 		@Override
@@ -509,9 +509,9 @@ public class Instruction {
 
 		public BinOpLit(String op, String dst, String src, String constt) {
 			super();
-			this.op = op;
-			this.dst = dst;
-			this.src = src;
+			this.op = op.intern();
+			this.dst = dst.intern();
+			this.src = src.intern();
 			this.constt = constt;
 		}
 
@@ -588,7 +588,7 @@ public class Instruction {
 		public Catch(String op, boolean isAll, String type, String startLab,
 				String endLab, String catchLab) {
 			super();
-			this.op = op;
+			this.op = op.intern();
 			this.isAll = isAll;
 			this.type = type;
 			this.startLab = startLab;

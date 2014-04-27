@@ -253,6 +253,7 @@ public class SymbolicExecutor {
 			@Override
 			public void run() {
 				//latch.countDown();
+				printlnErr("exit because of timeout");
 				System.exit(100); // to prevent possible dead lock
 			}
 		}), Control.symExeSec, 1, TimeUnit.SECONDS);
@@ -315,6 +316,25 @@ public class SymbolicExecutor {
 				executor.submit(new Kagebunsin(this, labelCount, clazz, method,
 						0, pReg, PersistentVector.EMPTY, symGen,
 						PersistentVector.EMPTY));
+
+				/*
+				 * actually Kagebunsin isn't the main problem, our work blocked
+				 * because AST consumed lots of memory, and jvm is busy at gc
+				 *
+				// don't submit Kagebunsin too often
+				int count = executor.getActiveCount();
+
+				try {
+					if (count < threadPoolSize)
+						Thread.sleep(100);
+					else if (count < 2 * threadPoolSize)
+						Thread.sleep(500);
+					else
+						Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					continue;
+				}
+				*/
 			}
 		}
 

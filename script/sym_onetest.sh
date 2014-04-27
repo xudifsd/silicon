@@ -26,7 +26,7 @@ else
             export CLASSPATH="$CLASSPATH":$i
         done
 
-        java -Xmx1520m -Xms1520m -cp .:./bin:$CLASSPATH Silicon $1 -apkoutput $apkoutput -action sym -symoutput $symoutput >$folder/silicon.stdout 2>$folder/silicon.stderr || silicon_panic $folder
+        timeout -s SIGKILL 40m java -Xmx1520m -Xms1520m -cp .:./bin:$CLASSPATH Silicon $1 -apkoutput $apkoutput -action sym -symoutput $symoutput >$folder/silicon.stdout 2>$folder/silicon.stderr || silicon_panic $folder
     )
 
     if [ -e $folder/silicon_panic ]

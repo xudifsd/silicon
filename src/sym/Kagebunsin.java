@@ -147,7 +147,7 @@ public class Kagebunsin implements Runnable {
 			sim.stm.T currentInstruction = currentMethod.statements.get(pc);
 			if (control.Control.debug) {
 				executor.println(String.format(
-						"instruction is %s, mapToSym is %s\n",
+						"instruction to be execute is %s, current mapToSym is %s\n",
 						currentInstruction.toString(), mapToSym));
 			}
 			// sort according to instruction popularity
@@ -178,8 +178,8 @@ public class Kagebunsin implements Runnable {
 					IOp obj = (IOp) mapToSym.valAt(ci.args.get(0));
 					if (obj == null || obj instanceof sym.op.Const) {
 						String diagnose = String.format(
-								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
-								clazz.name, currentMethod.name, ci.op,
+								"NullRef: %s.%s at pc %d, %s on null obj under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
 					} else {
@@ -187,8 +187,8 @@ public class Kagebunsin implements Runnable {
 						if (succ)
 							continue;
 						else {
-							executor.printlnErr("not found " + ci.method
-									+ " in invoke-virtual etc");
+							executor.printlnErr("not found method " + ci.method
+									+ " in invoke-virtual etc, abort");
 							return; // abort execution
 						}
 					}
@@ -229,17 +229,18 @@ public class Kagebunsin implements Runnable {
 					if (value instanceof sym.op.Const
 							&& ((sym.op.Const) value).value == 0) {
 						String diagnose = String.format(
-								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
-								clazz.name, currentMethod.name, ci.op,
+								"NullRef: %s.%s at pc %d, %s on null obj under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
 					}
 					sym.op.Obj obj = (sym.op.Obj) value;
 					IOp result = obj.iget(ci.field.fieldName);
+					// TODO if ci is iget-object then it possible that result is null
 					if (result == null) {
 						executor.printlnErr(String.format(
-								"%s.%s: iget returns null at pc %d under condition %s",
-								clazz.name, currentMethod.name, pc,
+								"GetNull: %s.%s at pc %d, %s returns null under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
 								andAllCond()));
 						return;
 					}
@@ -351,8 +352,8 @@ public class Kagebunsin implements Runnable {
 					if (v instanceof sym.op.Const
 							&& ((sym.op.Const) v).value == 0) {
 						String diagnose = String.format(
-								"%s.%s: NullRef: trying to do %s on null obj under condition %s",
-								clazz.name, currentMethod.name, ci.op,
+								"NullRef: %s.%s at pc %d, %s on null obj under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
 					}
@@ -399,9 +400,8 @@ public class Kagebunsin implements Runnable {
 					sym.op.IOp r = executor.sget(className, ci.field.fieldName);
 					if (r == null) {
 						String diagnose = String.format(
-								"%s.%s: get null while trying to do %s on %s to get '%s' under condition %s",
-								clazz.name, currentMethod.name, ci.op,
-								ci.field.classType, ci.field.fieldName,
+								"GetNull: %s.%s at pc %d, %s get null under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
 								andAllCond());
 						executor.writeln(diagnose);
 					}
@@ -445,9 +445,9 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"%s.%s: OOB: trying to index '%s'[%s] under condition %s",
-								clazz.name, currentMethod.name, array, index,
-								andAllCond());
+								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
+								array, index, andAllCond());
 						executor.writeln(diagnose);
 						executor.writeln("    " + z3result);
 					}
@@ -687,9 +687,9 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"%s.%s: OOB: trying to index '%s'[%s] under condition %s",
-								clazz.name, currentMethod.name, array, index,
-								andAllCond());
+								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s",
+								clazz.name, currentMethod.name, pc, ci.op,
+								array, index, andAllCond());
 						executor.writeln(diagnose);
 						executor.writeln("    " + z3result);
 					}

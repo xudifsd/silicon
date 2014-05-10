@@ -445,11 +445,10 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s",
+								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s\n",
 								clazz.name, currentMethod.name, pc, ci.op,
 								array, index, andAllCond());
-						executor.writeln(diagnose);
-						executor.writeln("    " + z3result);
+						executor.writeln(diagnose + "    " + z3result);
 					}
 					continue;
 				default:
@@ -687,11 +686,10 @@ public class Kagebunsin implements Runnable {
 							conditions.cons(r));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
-								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s",
+								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s\n",
 								clazz.name, currentMethod.name, pc, ci.op,
 								array, index, andAllCond());
-						executor.writeln(diagnose);
-						executor.writeln("    " + z3result);
+						executor.writeln(diagnose + "    " + z3result);
 					}
 					continue;
 				default:

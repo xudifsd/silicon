@@ -12,7 +12,7 @@ then
 else
     apkname=`basename $1`
     apkname="${apkname%.*}"
-    folder=~/sym_result/$apkname
+    folder=~/sym_result_2/$apkname
     apkoutput=$folder/apkoutput
     symoutput=$folder/symoutput.txt
 
@@ -26,7 +26,7 @@ else
             export CLASSPATH="$CLASSPATH":$i
         done
 
-        timeout -s SIGKILL 40m java -Xmx1520m -Xms1520m -cp .:./bin:$CLASSPATH Silicon $1 -apkoutput $apkoutput -action sym -symoutput $symoutput >$folder/silicon.stdout 2>$folder/silicon.stderr || silicon_panic $folder
+        timeout -s SIGKILL 15m java -Xmx1520m -Xms1520m -cp .:./bin:$CLASSPATH Silicon $1 -apkoutput $apkoutput -action sym -symoutput $symoutput >$folder/silicon.stdout 2>$folder/silicon.stderr || silicon_panic $folder
     )
 
     if [ -e $folder/silicon_panic ]

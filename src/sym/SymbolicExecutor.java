@@ -301,8 +301,8 @@ public class SymbolicExecutor {
 					if (t.equals("I")) {
 						pReg = pReg.assoc(reg, symGen.genSym(t));
 					} else if (t.startsWith("[")) {
-						pReg = pReg.assoc(reg, new sym.op.Array(t,
-								new sym.op.Const(0)));
+						pReg = pReg.assoc(reg,
+								new sym.op.Array(t, symGen.genSym("I")));
 					} else if (t.startsWith("L")) {
 						continue; // assume object argument is null
 					} else {

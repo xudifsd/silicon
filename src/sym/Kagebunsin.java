@@ -439,10 +439,14 @@ public class Kagebunsin implements Runnable {
 					// IOp src = getSym(ci.src);
 					IOp index = getSym(ci.index);
 					IOp array = getSym(ci.array);
+
 					sym.pred.IPrediction r;
+					sym.pred.IPrediction r1;
 					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
+					r1 = new sym.pred.Ge(((sym.op.Array) array).length,
+							new sym.op.Const(1));
 					Z3Result z3result = executor.calculate(symGen.types,
-							conditions.cons(r));
+							conditions.cons(r).cons(r1));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
 								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s\n",
@@ -681,9 +685,12 @@ public class Kagebunsin implements Runnable {
 					IOp index = getSym(ci.index);
 					IOp array = getSym(ci.array);
 					sym.pred.IPrediction r;
+					sym.pred.IPrediction r1;
 					r = new sym.pred.Ge(index, ((sym.op.Array) array).length);
+					r1 = new sym.pred.Ge(((sym.op.Array) array).length,
+							new sym.op.Const(1));
 					Z3Result z3result = executor.calculate(symGen.types,
-							conditions.cons(r));
+							conditions.cons(r).cons(r1));
 					if (z3result.satOrNot) {
 						String diagnose = String.format(
 								"OOB: %s.%s at pc %d, %s index '%s'[%s] under condition %s\n",

@@ -315,6 +315,13 @@ public class SymbolicExecutor {
 					}
 				}
 
+				/* *
+				 * TODO
+				 * method here is also very huge, we shouldn't take its reference
+				 * when just new a Kagebunsin, we should also use some smaller
+				 * obj to indicate where to find method to reduce memory usage when
+				 * Kagebunsin is not running.
+				 * */
 				executor.submit(new Kagebunsin(this, labelCount, clazz.name,
 						method, 0, pReg, PersistentVector.EMPTY, symGen,
 						PersistentVector.EMPTY));

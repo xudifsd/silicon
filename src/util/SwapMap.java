@@ -22,39 +22,54 @@ public class SwapMap<K, V> extends MapAdapter<K, V> {
 		if (tmpdir != null)
 			this.tmpdir = tmpdir;
 
-		this.lru = new ArrayBlockingQueue<K>(lruThreshold);
+		this.lru = new ArrayBlockingQueue<>(lruThreshold);
 		this.cacheMap = new ConcurrentHashMap<>();
 		this.diskMap = new ConcurrentHashMap<>();
 	}
 
 	@Override
 	public V put(K key, V value) {
-		if (cacheMap.containsKey(key)) { // hit
-			lru.remove(key);
-		} else {
+		assert !cacheMap.containsKey(key) && !diskMap.containsKey(key);
+
+		synchronized (this) {
 			if (live.get() >= lruThreshold) {
-				victim();
+				swapOut();
 			} else {
 				live.incrementAndGet();
 			}
+			LRUPut(key);
+			return cacheMap.put(key, value);
 		}
-		return cache(key, value);
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked" })
 	@Override
 	public V get(Object key) {
-		V value = cacheMap.get(key);
-		if (value != null) { // hit
-			lru.remove(key);
-			cache((K) key, value);
-		} else {
-			if (diskMap.containsKey(key)) {
-				value = load(key);
-				victim();
-				cache((K) key, value);
+		synchronized (this) {
+
+			V value = cacheMap.get(key);
+			if (value != null) { // hit
+				LRUMoveToLast((K) key);
+			} else {
+				if (diskMap.containsKey(key)) {
+					swapOut();
+					value = swapIn((K) key);
+				}
 			}
+			return value;
 		}
+	}
+
+	private void swapOut() {
+		K k = LRUTake();
+		V v = cacheMap.remove(k);
+		store(k, v);
+	}
+
+	private V swapIn(K key) {
+		V value = load(key);
+		LRUPut(key);
+		cacheMap.put(key, value);
 		return value;
 	}
 
@@ -73,7 +88,7 @@ public class SwapMap<K, V> extends MapAdapter<K, V> {
 		diskMap.put(key, file.getName());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked" })
 	private V load(Object key) {
 		String filename = tmpdir + diskMap.get(key);
 		V value = null;
@@ -86,24 +101,27 @@ public class SwapMap<K, V> extends MapAdapter<K, V> {
 		return value;
 	}
 
-	private void victim() {
+	private void LRUPut(K key) {
+		try {
+			lru.put(key);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private K LRUTake() {
 		K k = null;
 		try {
 			k = lru.take();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		V v = cacheMap.remove(k);
-		store(k, v);
+		return k;
 	}
 
-	private V cache(K key, V value) {
-		try {
-			lru.put(key);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		return cacheMap.put(key, value);
+	private void LRUMoveToLast(K key) {
+		lru.remove(key);
+		LRUPut(key);
 	}
 
 	private File createTempFile() {

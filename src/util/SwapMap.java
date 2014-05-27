@@ -5,12 +5,13 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SwapMap<K, V> extends MapAdapter<K, V> {
-    private String tmpdir = System.getProperty("java.io.tmpdir");
     private static final String prefix = "_LRU_";
+    private String tmpdir = System.getProperty("java.io.tmpdir");
     private int lruThreshold = 3;
-    private int live = 0;
+    private AtomicInteger live = new AtomicInteger(0);
 
     private BlockingQueue<K> lru;
     private ConcurrentHashMap<K, V> cacheMap;
@@ -18,7 +19,7 @@ public class SwapMap<K, V> extends MapAdapter<K, V> {
 
     public SwapMap(int threshold, String tmpdir){
         this.lruThreshold = threshold;
-        this.tmpdir = tmpdir;
+        if (tmpdir != null) this.tmpdir = tmpdir;
 
         this.lru = new ArrayBlockingQueue<K>(lruThreshold);
         this.cacheMap = new ConcurrentHashMap<>();
@@ -27,37 +28,32 @@ public class SwapMap<K, V> extends MapAdapter<K, V> {
 
     @Override
     public V put(K key, V value) {
-        synchronized (this) {
-            if (cacheMap.containsKey(key)) { // hit
-                lru.remove(key);
+        if (cacheMap.containsKey(key)) { // hit
+            lru.remove(key);
+        } else {
+            if (live.get() >= lruThreshold) {
+                victim();
             } else {
-                if (live >= lruThreshold) {
-                    victim();
-                } else {
-                    live++;
-                }
+                live.incrementAndGet();
             }
-            return cache(key, value);
         }
+        return cache(key, value);
     }
 
     @Override
     public V get(Object key) {
-        synchronized (this) {
-            V value = cacheMap.get(key);
-            if (value != null) { // hit
-                lru.remove(key);
+        V value = cacheMap.get(key);
+        if (value != null) { // hit
+            lru.remove(key);
+            cache((K) key, value);
+        } else {
+            if (diskMap.containsKey(key)) {
+                value = load(key);
+                victim();
                 cache((K) key, value);
-            } else {
-                if (diskMap.containsKey(key)) {
-                    value = load(key);
-                    victim();
-                    cache((K) key, value);
-                }
             }
-
-            return value;
         }
+        return value;
     }
 
     private void store(K key, V value) {

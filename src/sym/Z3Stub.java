@@ -48,7 +48,7 @@ public class Z3Stub {
 	public synchronized Z3Result calculate(PersistentVector types, PersistentVector conditions) {
 		Z3Result z3result = new Z3Result();
 		z3result.result = new HashMap<String, String>();
-		Process p;
+		Process p = null;
 
 		try {
 			p = Runtime.getRuntime().exec("z3 -smt2 -in");
@@ -126,9 +126,11 @@ public class Z3Stub {
 			p.waitFor();
 			in.close();
 			reader.close();
-			p.destroy();
 		} catch (IOException | InterruptedException e) {
 			e.printStackTrace();
+		} finally {
+			if (p != null)
+				p.destroy();
 		}
 		return z3result;
 	}

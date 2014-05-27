@@ -21,6 +21,7 @@ public class Kagebunsin implements Runnable {
 	public static final int countThreshold = 4;
 	private sym.SymbolicExecutor executor;
 	private HashMap<String, AtomicInteger> labelCount;
+	private final String startClassName; // this help us have no reference to big obj
 	private sim.classs.Class clazz;
 	private Method currentMethod;
 	private int pc;
@@ -32,13 +33,13 @@ public class Kagebunsin implements Runnable {
 	private sym.op.IOp result; // result returned from last method
 
 	public Kagebunsin(sym.SymbolicExecutor executor,
-			HashMap<String, AtomicInteger> labelCount, sim.classs.Class clazz,
+			HashMap<String, AtomicInteger> labelCount, String startClassName,
 			Method currentMethod, int pc, IPersistentMap mapToSym,
 			PersistentVector conditions, sym.SymGenerator symGen,
 			PersistentVector stack) {
 		this.executor = executor;
 		this.labelCount = labelCount;
-		this.clazz = clazz;
+		this.startClassName = startClassName;
 		this.currentMethod = currentMethod;
 		this.pc = pc;
 		this.mapToSym = mapToSym;
@@ -116,8 +117,8 @@ public class Kagebunsin implements Runnable {
 			pReg = pReg.assoc(reg, mapToSym.valAt(src));
 		}
 
-		stack = stack.cons(new StackItem(clazz, currentMethod, pc, mapToSym,
-				labelCount));
+		stack = stack.cons(new StackItem(clazz.name, currentMethod, pc,
+				mapToSym, labelCount));
 
 		this.clazz = clazz;
 		this.currentMethod = m;
@@ -133,7 +134,8 @@ public class Kagebunsin implements Runnable {
 
 	private void popStack() {
 		StackItem item = (StackItem) stack.peek();
-		this.clazz = item.clazz;
+		this.clazz = executor.getClass(item.clazzName.substring(1,
+				item.clazzName.length() - 1));
 		this.currentMethod = item.method;
 		this.pc = item.pc; // isn't `item.pc - 1`
 		this.mapToSym = item.mapToSym;
@@ -143,6 +145,8 @@ public class Kagebunsin implements Runnable {
 
 	@Override
 	public void run() {
+		clazz = executor.getClass(startClassName.substring(1,
+				startClassName.length() - 1));
 		for (; pc < currentMethod.statements.size(); pc++) {
 			sim.stm.T currentInstruction = currentMethod.statements.get(pc);
 			if (control.Control.debug) {
@@ -238,10 +242,11 @@ public class Kagebunsin implements Runnable {
 					IOp result = obj.iget(ci.field.fieldName);
 					// TODO if ci is iget-object then it possible that result is null
 					if (result == null) {
-						executor.printlnErr(String.format(
+						String diagnose = String.format(
 								"GetNull: %s.%s at pc %d, %s returns null under condition %s",
 								clazz.name, currentMethod.name, pc, ci.op,
-								andAllCond()));
+								andAllCond());
+						executor.writeln(diagnose);
 						return;
 					}
 					mapToSym = mapToSym.assoc(ci.dst, result);
@@ -325,7 +330,7 @@ public class Kagebunsin implements Runnable {
 					Z3Result z3result = executor.calculate(symGen.types, rc);
 					if (z3result.satOrNot) {
 						executor.submit(new Kagebunsin(executor, labelCount,
-								clazz, currentMethod,
+								clazz.name, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
 								rc, symGen.clone(), stack));
 					}
@@ -625,7 +630,7 @@ public class Kagebunsin implements Runnable {
 
 					if (z3result.satOrNot) {
 						executor.submit(new Kagebunsin(executor, labelCount,
-								clazz, currentMethod,
+								clazz.name, currentMethod,
 								currentMethod.labels.get(ci.label), mapToSym,
 								rc, symGen.clone(), stack));
 					}

@@ -3,6 +3,7 @@ package sim.classs;
 import sim.Visitor;
 
 public class MethodItem extends T {
+	private static final long serialVersionUID = 1L;
 	public String classType;
 	public String methodName;
 	public sim.method.Method.MethodPrototype prototype;

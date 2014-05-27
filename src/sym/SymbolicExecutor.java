@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
@@ -23,9 +24,10 @@ import clojure.lang.PersistentVector;
 import control.Control;
 import sym.Z3Stub.Z3Result;
 import util.MultiThreadUtils.SimplifyWorker;
+import util.SwapMap;
 
 public class SymbolicExecutor {
-	public static final int threadPoolSize = 10;
+	public static final int threadPoolSize = 5;
 	private CountDownLatch latch;
 	private ThreadPoolExecutor executor;
 	private List<SimplifyWorker> workers;
@@ -35,7 +37,7 @@ public class SymbolicExecutor {
 
 	// we synchronized on unaccessedClass to avoid init unaccessedClass twice
 	private HashMap<String, SimplifyWorker> unaccessedClass;
-	private HashMap<String, sim.classs.Class> allClass;
+	private Map<String, sim.classs.Class> allClass;
 	// contains classes that has clinit called, but not scaned by Kagebunsin
 	private ConcurrentLinkedQueue<sim.classs.Class> unScanedClass;
 
@@ -54,7 +56,7 @@ public class SymbolicExecutor {
 		this.symResultPath = output.getAbsolutePath();
 		this.z3 = new Z3Stub();
 		this.unaccessedClass = new HashMap<String, SimplifyWorker>();
-		this.allClass = new HashMap<String, sim.classs.Class>();
+		this.allClass = new SwapMap<String, sim.classs.Class>(15, null);
 		this.apkOutputPath = apkOutputPath;
 		this.unScanedClass = new ConcurrentLinkedQueue<sim.classs.Class>();
 	}
@@ -121,9 +123,9 @@ public class SymbolicExecutor {
 				labelCount.put(label.lab, new AtomicInteger(0));
 
 			SymGenerator symGen = new SymGenerator();
-			Kagebunsin kagebunsin = new Kagebunsin(this, labelCount, clazz,
-					clinit, 0, PersistentHashMap.EMPTY, PersistentVector.EMPTY,
-					symGen, PersistentVector.EMPTY);
+			Kagebunsin kagebunsin = new Kagebunsin(this, labelCount,
+					clazz.name, clinit, 0, PersistentHashMap.EMPTY,
+					PersistentVector.EMPTY, symGen, PersistentVector.EMPTY);
 			try {
 				kagebunsin.run();
 			} catch (Exception ex) {
@@ -313,14 +315,14 @@ public class SymbolicExecutor {
 					}
 				}
 
-				executor.submit(new Kagebunsin(this, labelCount, clazz, method,
-						0, pReg, PersistentVector.EMPTY, symGen,
+				executor.submit(new Kagebunsin(this, labelCount, clazz.name,
+						method, 0, pReg, PersistentVector.EMPTY, symGen,
 						PersistentVector.EMPTY));
 
 				/*
 				 * actually Kagebunsin isn't the main problem, our work blocked
 				 * because AST consumed lots of memory, and jvm is busy at gc
-				 *
+				 */
 				// don't submit Kagebunsin too often
 				int count = executor.getActiveCount();
 
@@ -334,7 +336,6 @@ public class SymbolicExecutor {
 				} catch (InterruptedException e) {
 					continue;
 				}
-				*/
 			}
 		}
 

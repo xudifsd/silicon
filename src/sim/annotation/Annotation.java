@@ -1,10 +1,13 @@
 package sim.annotation;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import sim.Visitor;
 
 public class Annotation extends T{
+	private static final long serialVersionUID = 1L;
 	public String visibility;
 	public sim.annotation.Annotation.SubAnnotation subAnnotation;
 	public Annotation(String visibility, SubAnnotation subAnnotation) {
@@ -13,6 +16,7 @@ public class Annotation extends T{
 		this.subAnnotation = subAnnotation;
 	}
 	public static class SubAnnotation  extends T{
+		private static final long serialVersionUID = 1L;
 		public String classType;
 		public List<sim.annotation.Annotation.AnnotationElement> elementList;
 		public SubAnnotation() {
@@ -29,7 +33,8 @@ public class Annotation extends T{
 			v.visit(this);
 		}
 	}
-	public static class AnnotationElement {
+	public static class AnnotationElement implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public String name;
 		public sim.annotation.Annotation.ElementLiteral elementLiteral;
 		public AnnotationElement(String name, ElementLiteral elementLiteral) {
@@ -39,6 +44,7 @@ public class Annotation extends T{
 		}
 	}
 	public static class ElementLiteral extends T{
+		private static final long serialVersionUID = 1L;
 		public List<Object> element;
 		// subannotation,array,other
 		public String type;

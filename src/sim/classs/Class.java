@@ -1,10 +1,12 @@
 package sim.classs;
 
+import java.io.Serializable;
 import java.util.List;
 
 import sim.Visitor;
 
 public class Class extends T {
+	private static final long serialVersionUID = 1L;
 	public String name; // class name
 	public List<String> accessList;
 	public String superr; // super class
@@ -14,7 +16,8 @@ public class Class extends T {
 	public List<Field> fieldList;
 	public List<sim.method.Method> methods;
 
-	public static class Field {
+	public static class Field implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public String name;
 		public List<String> accessList;
 		public String type;

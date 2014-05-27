@@ -8,6 +8,8 @@ import sim.classs.MethodItem;
 
 public class Instruction {
 	public static class Nop extends T {
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void accept(Visitor v) {
 			v.visit(this);
@@ -15,6 +17,7 @@ public class Instruction {
 	}
 
 	public static class Move extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String src;
@@ -33,6 +36,7 @@ public class Instruction {
 	}
 
 	public static class MoveResult extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 
@@ -49,6 +53,8 @@ public class Instruction {
 	}
 
 	public static class ReturnVoid extends T {
+		private static final long serialVersionUID = 1L;
+
 		@Override
 		public void accept(Visitor v) {
 			v.visit(this);
@@ -56,6 +62,7 @@ public class Instruction {
 	}
 
 	public static class Return extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String src;
 
@@ -72,6 +79,7 @@ public class Instruction {
 	}
 
 	public static class Const extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String value;
@@ -90,6 +98,7 @@ public class Instruction {
 	}
 
 	public static class Monitor extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String ref;
 
@@ -106,6 +115,7 @@ public class Instruction {
 	}
 
 	public static class CheckCast extends T {
+		private static final long serialVersionUID = 1L;
 		public String ref;
 		public String type;
 
@@ -122,6 +132,7 @@ public class Instruction {
 	}
 
 	public static class InstanceOf extends T {
+		private static final long serialVersionUID = 1L;
 		public String dst;
 		public String ref;
 		public String type;
@@ -140,6 +151,7 @@ public class Instruction {
 	}
 
 	public static class ArrayLength extends T {
+		private static final long serialVersionUID = 1L;
 		public String dst;
 		public String ref;
 
@@ -156,6 +168,7 @@ public class Instruction {
 	}
 
 	public static class NewInstance extends T {
+		private static final long serialVersionUID = 1L;
 		public String dst;
 		public String type;
 
@@ -172,6 +185,7 @@ public class Instruction {
 	}
 
 	public static class NewArray extends T {
+		private static final long serialVersionUID = 1L;
 		public String dst;
 		public String size;
 		public String type;
@@ -190,6 +204,7 @@ public class Instruction {
 	}
 
 	public static class FilledNewArray extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public List<String> argList;
 		public String type;
@@ -208,6 +223,7 @@ public class Instruction {
 	}
 
 	public static class FillArrayData extends T {
+		private static final long serialVersionUID = 1L;
 		public String ref;
 		public String label;
 
@@ -224,6 +240,7 @@ public class Instruction {
 	}
 
 	public static class Throw extends T {
+		private static final long serialVersionUID = 1L;
 		public String exception;
 
 		public Throw(String exception) {
@@ -238,6 +255,7 @@ public class Instruction {
 	}
 
 	public static class Goto extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String label;
 
@@ -254,6 +272,7 @@ public class Instruction {
 	}
 
 	public static class Switch extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String test;
 		public String label;
@@ -272,6 +291,7 @@ public class Instruction {
 	}
 
 	public static class Cmp extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String firstSrc;
@@ -292,6 +312,7 @@ public class Instruction {
 	}
 
 	public static class IfTest extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String firstSrc;
 		public String secondSrc;
@@ -312,6 +333,7 @@ public class Instruction {
 	}
 
 	public static class IfTestz extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String src;
 		public String label;
@@ -330,6 +352,7 @@ public class Instruction {
 	}
 
 	public static class Aget extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String array;
@@ -350,6 +373,7 @@ public class Instruction {
 	}
 
 	public static class Aput extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String src;
 		public String array;
@@ -370,6 +394,7 @@ public class Instruction {
 	}
 
 	public static class Iget extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String obj;
@@ -390,6 +415,7 @@ public class Instruction {
 	}
 
 	public static class Iput extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String src;
 		public String obj;
@@ -410,6 +436,7 @@ public class Instruction {
 	}
 
 	public static class Sget extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public sim.classs.FieldItem field;
@@ -428,6 +455,7 @@ public class Instruction {
 	}
 
 	public static class Sput extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String src;
 		public sim.classs.FieldItem field;
@@ -446,6 +474,7 @@ public class Instruction {
 	}
 
 	public static class Invoke extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public List<String> args;
 		public sim.classs.MethodItem method;
@@ -464,6 +493,7 @@ public class Instruction {
 	}
 
 	public static class UnOp extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String src;
@@ -482,6 +512,7 @@ public class Instruction {
 	}
 
 	public static class BinOp extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String firstSrc;
@@ -502,6 +533,7 @@ public class Instruction {
 	}
 
 	public static class BinOpLit extends T {
+		private static final long serialVersionUID = 1L;
 		public String op;
 		public String dst;
 		public String src;
@@ -522,6 +554,7 @@ public class Instruction {
 	}
 
 	public static class ArrayDataDirective extends T {
+		private static final long serialVersionUID = 1L;
 		public String size;
 		public List<String> elementList;
 
@@ -538,6 +571,7 @@ public class Instruction {
 	}
 
 	public static class PackedSwitchDirective extends T {
+		private static final long serialVersionUID = 1L;
 		public String key;
 		public String count;
 		public List<String> labList;
@@ -558,6 +592,7 @@ public class Instruction {
 	}
 
 	public static class SparseSwitchDirective extends T {
+		private static final long serialVersionUID = 1L;
 		public String count;
 		public List<String> keyList;
 		public List<String> labList;
@@ -577,6 +612,7 @@ public class Instruction {
 	}
 
 	public static class Catch extends T {
+		private static final long serialVersionUID = 1L;
 		// .catch / . catchall
 		public String op;
 		public boolean isAll;

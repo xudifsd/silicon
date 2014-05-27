@@ -1,6 +1,7 @@
 package sym.op;
 
 import clojure.lang.IPersistentMap;
+import clojure.lang.PersistentHashMap;
 
 // TODO currently we ignore type check for field
 public class Obj implements IOp {
@@ -9,6 +10,7 @@ public class Obj implements IOp {
 
 	public Obj(String className) {
 		this.className = className;
+		this.fields = PersistentHashMap.EMPTY;
 	}
 
 	public IOp iget(String fieldName) {

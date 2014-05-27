@@ -3,6 +3,7 @@ package sim.classs;
 import sim.Visitor;
 
 public class FieldItem extends T {
+	private static final long serialVersionUID = 1L;
 	public String classType;
 	public String fieldName;
 	public String fieldType;

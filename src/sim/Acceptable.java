@@ -1,5 +1,7 @@
 package sim;
 
-public interface Acceptable {
+import java.io.Serializable;
+
+public interface Acceptable extends Serializable {
 	public void accept(Visitor v);
 }

@@ -1,5 +1,6 @@
 package sim.method;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,6 +9,7 @@ import sim.Visitor;
 import sim.annotation.Annotation;
 
 public class Method extends T {
+	private static final long serialVersionUID = 1L;
 	// 1.method_name_and_prototype
 	public String name;
 	public MethodPrototype prototype;
@@ -36,7 +38,8 @@ public class Method extends T {
 	// hashMap[label][index in simpleinstruction list]
 	public HashMap<String, Integer> labels;
 
-	public static class Label implements Comparable<Label> {
+	public static class Label implements Comparable<Label>, Serializable {
+		private static final long serialVersionUID = 1L;
 		public String lab;
 		public String add;
 
@@ -56,7 +59,8 @@ public class Method extends T {
 		}
 	}
 
-	public static class Parameter {
+	public static class Parameter implements Serializable {
+		private static final long serialVersionUID = 1L;
 		public String value;
 		public List<sim.annotation.Annotation> annotationList;
 
@@ -67,7 +71,8 @@ public class Method extends T {
 		}
 	}
 
-	public static class Catch implements Comparable<Catch> {
+	public static class Catch implements Comparable<Catch>, Serializable {
+		private static final long serialVersionUID = 1L;
 		// catch catchall
 		public String add;
 		public boolean isAll;
@@ -103,6 +108,7 @@ public class Method extends T {
 	}
 
 	public static class MethodPrototype extends T {
+		private static final long serialVersionUID = 1L;
 		public String returnType;
 		public List<String> argsType;
 

@@ -88,6 +88,22 @@ public class CommandLine {
 					public void f(Object i) {
 						Control.symoutput = (String) i;
 					}
+				}), new Arg<Object>("apioutput", "path",
+				"path to output stack trace of interested API call",
+				Kind.String, new F<Object>() {
+					@Override
+					public void f(Object i) {
+						Control.apioutput = (String) i;
+					}
+				}), new Arg<Object>("interest", "api,api",
+				"comma seprate method you're interested", Kind.String,
+				new F<Object>() {
+					@Override
+					public void f(Object i) {
+						String ss = (String) i;
+						for (String s : ss.split(","))
+							Control.interestAPI.add(s.trim());
+					}
 				}));
 	}
 

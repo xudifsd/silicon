@@ -68,12 +68,14 @@ public class Silicon {
 				System.exit(2);
 			}
 		} else if (Control.action.equals("sym")) {
+			System.out.println("interested API is " + Control.interestAPI);
 			List<SimplifyWorker> sims;
 			sims = CompilePass.simplify(classes);
 			classes = null;
 
 			SymbolicExecutor symbolicExe = new SymbolicExecutor(sims, new File(
-					Control.symoutput), Control.apkoutput);
+					Control.symoutput), new File(Control.apioutput),
+					Control.apkoutput);
 			symbolicExe.execute();
 		} else {
 			System.err.println("unknow action args " + Control.dump);

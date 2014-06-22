@@ -4,4 +4,4 @@ compile like:
 
 use like:
 
-    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar:jar/antlr-3.2.jar:jar/clojure-1.5.1.jar" Silicon test/apk/IndexOOB.apk -action sym
+    java -cp "bin/:jar/antlr-3.2.jar:jar/apktool.jar:jar/antlr-3.2.jar:jar/clojure-1.5.1.jar" Silicon test/apk/Target.apk -action sym -interest "T.target"

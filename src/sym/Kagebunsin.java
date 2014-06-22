@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import control.Control;
 import sim.method.Method;
 import sym.Z3Stub.Z3Result;
 import sym.op.IOp;
@@ -143,6 +144,55 @@ public class Kagebunsin implements Runnable {
 		stack = stack.pop();
 	}
 
+	private static String getMethodString(sim.classs.MethodItem method) {
+		int len = method.classType.length();
+		return method.classType.substring(1, len - 1) + "." + method.methodName;
+	}
+
+	private String getPReg(IPersistentMap mapToSym) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0;; i++) {
+			sym.op.IOp op = (IOp) mapToSym.valAt("p" + i);
+			if (op == null)
+				break;
+			else {
+				sb.append(op);
+				sb.append(", ");
+			}
+		}
+		return sb.toString();
+	}
+
+	private String getMethodString(String className, Method method) {
+		int len = className.length();
+		return className.substring(1, len - 1) + "." + method.name;
+	}
+
+	private void printSymStackTrace(String method) {
+		synchronized (executor) {
+			executor.apiWrite(String.format(
+					"----- stack trace for call to %s, most recent call first-----\n",
+					method));
+
+			executor.apiWrite("path condition is " + this.andAllCond() + "\n");
+
+			executor.apiWrite(String.format("%s(%s) at pc %d\n",
+					getMethodString(this.clazz.name, this.currentMethod),
+					getPReg(mapToSym), this.pc));
+
+			@SuppressWarnings("unchecked")
+			Iterator<StackItem> it = stack.iterator();
+
+			while (it.hasNext()) {
+				StackItem item = it.next();
+				executor.apiWrite(String.format("%s(%s) at pc %d\n",
+						getMethodString(item.clazzName, item.method),
+						getPReg(mapToSym), item.pc));
+			}
+			executor.apiWrite("\n");
+		}
+	}
+
 	@Override
 	public void run() {
 		clazz = executor.getClass(startClassName.substring(1,
@@ -157,6 +207,13 @@ public class Kagebunsin implements Runnable {
 			// sort according to instruction popularity
 			if (currentInstruction instanceof sim.stm.Instruction.Invoke) {
 				sim.stm.Instruction.Invoke ci = (sim.stm.Instruction.Invoke) currentInstruction;
+
+				String method = getMethodString(ci.method);
+				if (Control.interestAPI.contains(method)) {
+					printSymStackTrace(method);
+					return; // abort execution
+				}
+
 				boolean succ;
 				switch (ci.op) {
 				case "invoke-direct":

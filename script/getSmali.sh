@@ -2,7 +2,7 @@
 
 (cd ../test/tmp
     rm -rf /tmp/output /tmp/smalioutput 2> /dev/null
-    javac *.java
+    /Library/Java/JavaVirtualMachines/jdk1.7.0_45.jdk/Contents/Home/bin/javac *.java
     java -jar ../../jar/dx.jar --dex --output classes.dex *.class
     zip tmp classes.dex
     mv tmp.zip tmp.apk

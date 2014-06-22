@@ -32,6 +32,7 @@ public class SymbolicExecutor {
 	private ThreadPoolExecutor executor;
 	private List<SimplifyWorker> workers;
 	private FileWriter writer;
+	private FileWriter apiWriter;
 	private Z3Stub z3;
 	private HashMap<String, HashMap<String, sym.op.IOp>> staticObjs;
 
@@ -43,9 +44,10 @@ public class SymbolicExecutor {
 
 	public final String symResultPath;
 	public final String apkOutputPath;
+	public final String apiPath;
 
 	public SymbolicExecutor(List<SimplifyWorker> workers, File output,
-			String apkOutputPath) throws IOException {
+			File apiOutput, String apkOutputPath) throws IOException {
 		this.staticObjs = new HashMap<String, HashMap<String, sym.op.IOp>>();
 		this.workers = workers;
 		this.latch = new CountDownLatch(1);
@@ -54,6 +56,8 @@ public class SymbolicExecutor {
 				new LinkedBlockingQueue<Runnable>());
 		this.writer = new FileWriter(output);
 		this.symResultPath = output.getAbsolutePath();
+		this.apiWriter = new FileWriter(apiOutput);
+		this.apiPath = apiOutput.getAbsolutePath();
 		this.z3 = new Z3Stub();
 		this.unaccessedClass = new HashMap<String, SimplifyWorker>();
 		this.allClass = new SwapMap<String, sim.classs.Class>(15, null);
@@ -68,6 +72,17 @@ public class SymbolicExecutor {
 		} catch (IOException e) {
 			printlnErr(String.format("exception %s when writing to %s", e,
 					symResultPath));
+		}
+	}
+
+	// we should synchronized on Executor to write
+	public void apiWrite(String msg) {
+		try {
+			this.apiWriter.write(msg);
+			this.apiWriter.flush();
+		} catch (IOException e) {
+			printlnErr(String.format("exception %s when writing to %s", e,
+					apiPath));
 		}
 	}
 
@@ -385,7 +400,7 @@ public class SymbolicExecutor {
 		}
 
 		System.out.format(
-				"symbolic executing terminate normally, result is at %s\n",
-				symResultPath);
+				"symbolic executing terminate normally, result is at %s, interest api call is at %s\n",
+				symResultPath, apiPath);
 	}
 }

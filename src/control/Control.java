@@ -1,5 +1,7 @@
 package control;
 
+import java.util.HashSet;
+
 public class Control {
 	// source file
 	public static String fileName = null;
@@ -10,6 +12,8 @@ public class Control {
 
 	public static String symoutput = "/tmp/symoutput";
 
+	public static String apioutput = "/tmp/apioutput";
+
 	public static int numWorkers = 4;
 
 	public static String dump = "sim";
@@ -17,6 +21,8 @@ public class Control {
 	public static String action = "dump";
 
 	public static boolean debug = false;
+
+	public static HashSet<String> interestAPI = new HashSet<String>();
 
 	public static int symExeSec = 10 * 60; // default to execute at most 10 * 60 seconds
 
